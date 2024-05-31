@@ -1,0 +1,51 @@
+.Rail {
+    background-image: url(../assets/images/states/state1.svg);
+}
+
+.Mark {
+    background-image: url(../assets/images/states/state2.svg);
+}
+
+.Multiple {
+    background-image: url(../assets/images/states/state3.svg);
+}
+
+.Rebound {
+    background-image: url(../assets/images/states/state4.svg);
+}
+
+.HalfSlope {
+    background-image: url(../assets/images/states/state5.svg);
+}
+
+.Vertical {
+    background-image: url(../assets/images/states/state6.svg);
+}
+
+.Horizontal {
+    background-image: url(../assets/images/states/state7.svg);
+}
+
+
+/* Tooltip container */
+[data-tooltip] {
+    position: relative;
+    display: inline-block;
+}
+
+/* Tooltip text */
+[data-tooltip]:hover::before {
+    pointer-events: none;
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    padding: 5px;
+    font-size: 14px;
+    line-height: 1.2;
+    color: #fff;
+    background-color: rgba(0, 0, 0, .8);
+    border-radius: .25rem;
+}
