@@ -38,10 +38,7 @@ const GrilleInteractive = ({
                 <div>
                     {grille.grid.map((row, rowIndex) => (
                         <div key={rowIndex} style={{ display: 'flex', alignItems: 'center' }}>
-                            {/* Affichage de l'indice de ligne à gauche */}
                             <div style={{ width: '30px', textAlign: 'center' }}>
-                                {/* la valeur affichée sera grid length/2 ARRONDIE AU Superieur */}
-                                {Math.floor(grille.grid.length /2)- rowIndex}
                             </div>
                             {row.map((caseObj, colIndex) => {
                                 const isActive = activeCells.some(cell => cell.row === rowIndex && cell.col === colIndex);
@@ -50,6 +47,7 @@ const GrilleInteractive = ({
                                         key={colIndex}
                                         style={{
                                             backgroundColor: isActive ? 'blue' : 'white',
+                                            borderColor: rowIndex < 1 ? 'red' : 'black',
                                             color: isActive ? 'white' : 'black',
                                             margin: '5px',
                                             padding: '10px'

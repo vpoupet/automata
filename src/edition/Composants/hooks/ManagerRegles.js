@@ -44,7 +44,6 @@ const ManagerRegles = (grille) => {
     };
 
 
-
     const deleteRule = (index) => {
         const newConfigurations = regles.filter((config, i) => i !== index);
         setRegles(newConfigurations);
@@ -63,35 +62,33 @@ const ManagerRegles = (grille) => {
 
     const creerClause = (tab) => {
         const clauses = [];
-        tab.forEach((row, rowIndex) => {
-            row.forEach((cellule, colIndex) => {
-                if (cellule.length > 0) {
-                    for (let i = 0; i < cellule.length; i++) {
-                        let literals = "";
-                        if (cellule[i][0] === '!') {
-                            literals = new Negation(new Literal(Symbol.for(cellule[i].substr(1)), rowIndex, colIndex));
-                        }
-                        else {
-                            literals = new Literal(Symbol.for(cellule[i]), rowIndex, colIndex);
-                        }
-                        clauses.push(literals);
-                    }
+        tab.forEach((cell) => {
+            if (cell.length > 0) {
+                for (let i = 0; i < cell.length; i++) {
+                    let literals = new Literal(Symbol.for(cell[i]), 0);
 
+                    // Il faudra gérer la négation avec un attribut sur le signal (ça sera plus simple)!
+                    // if (cell[i][0] === '!') {
+                    //     literals = new Negation(literals);
+                    // }
+                    clauses.push(literals);
                 }
-            });
+            }
         });
         return new Conjunction(clauses);
     }
 
     const creerRegleArithmetique = (regle) => {
-        const clausePart = regle.slice(0, 3);
-        const outputPart = regle.slice(-2);
+        const clausePart = regle.slice(0, 1);
+        const outputPart = regle.slice(1);
         const clause = creerClause(clausePart);
         const outputs = creerOutput(outputPart);
         if (outputs.length === 0 && clause.subclauses.length === 0) {
             console.error("Aucun signal n'a été trouvée.");
             return;
         }
+        console.log("Conditions : " + clause)
+        console.log("Outputs : " + outputs)
         return new Rule(clause, outputs);
     };
 
@@ -99,7 +96,6 @@ const ManagerRegles = (grille) => {
         const outputs = [];
         tab.forEach((row, rowIndex) => {
             row.forEach((cellule, colIndex) => {
-                //je pensais faire un if pour une potentiel négation mais ce n'est pas un literal..
                 const ruleoutput = cellule.map(signal => new RuleOutput(rowIndex, Symbol.for(signal), colIndex));
                 outputs.push(...ruleoutput);
             });
@@ -108,12 +104,22 @@ const ManagerRegles = (grille) => {
     }
 
     useEffect(() => {
-        const reglesari = regles.map(creerRegleArithmetique);
-        setReglesArithmetiques(reglesari);
+        setReglesArithmetiques(regles.map(creerRegleArithmetique));
     }, [regles]);
 
 
-    return {regles, reglesArithmetiques,creerOutput, creerRegleArithmetique, updateRuleSignal, deleteSignalInRules, handleSaveRule, handleLoadRule, updateRule, deleteRule};
+    return {
+        regles,
+        reglesArithmetiques,
+        creerOutput,
+        creerRegleArithmetique,
+        updateRuleSignal,
+        deleteSignalInRules,
+        handleSaveRule,
+        handleLoadRule,
+        updateRule,
+        deleteRule
+    };
 };
 
 export default ManagerRegles;
