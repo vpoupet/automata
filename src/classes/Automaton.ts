@@ -11,7 +11,7 @@ class RuleParsingException extends Error {
 }
 
 
-class RuleOutput {
+export class RuleOutput {
     neighbor: number;
     signal: Signal;
     futureStep: number;
@@ -44,7 +44,7 @@ class RuleOutput {
  * In order to correspond to a cellular automaton, `futureStep` should be either strictly positive or can be 0 if
  * `neighbor` is also 0.
  */
-class Rule {
+export class Rule {
     condition: Clause;
     outputs: RuleOutput[];
 
