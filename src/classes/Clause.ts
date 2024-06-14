@@ -1,15 +1,18 @@
-import { Signal, Neighborhood } from "./types";
-
+import { Signal, Neighborhood } from "./types.ts";
 
 export class Clause {
     eval(_signals: Neighborhood): boolean {
         return true;
     }
+
     toString(): string {
         return "";
     }
-}
 
+    getLiterals(): Literal[] {
+        return [];
+    }
+}
 
 export class Negation extends Clause {
     subclause: Clause;
@@ -33,8 +36,11 @@ export class Negation extends Clause {
             return `-${this.subclause.toString()}`;
         }
     }
-}
 
+    getLiterals(): Literal[] {
+        return this.subclause.getLiterals();
+    }
+}
 
 /**
  * Representation of a conjunctive clause for rule conditions.
@@ -56,14 +62,19 @@ export class Conjunction extends Clause {
     }
 
     eval(signals: Neighborhood): boolean {
-        return this.subclauses.every(subclause => subclause.eval(signals));
+        return this.subclauses.every((subclause) => subclause.eval(signals));
     }
 
     toString(): string {
-        return `(${this.subclauses.map(subclause => subclause.toString()).join(" ")})`;
+        return `(${this.subclauses
+            .map((subclause) => subclause.toString())
+            .join(" ")})`;
+    }
+
+    getLiterals(): Literal[] {
+        return this.subclauses.flatMap((subclause) => subclause.getLiterals());
     }
 }
-
 
 /**
  * Representation of a disjunctive clause for rule conditions.
@@ -85,14 +96,19 @@ export class Disjunction extends Clause {
     }
 
     eval(signals: Neighborhood): boolean {
-        return this.subclauses.some(subclause => subclause.eval(signals));
+        return this.subclauses.some((subclause) => subclause.eval(signals));
     }
 
     toString(): string {
-        return `[${this.subclauses.map(subclause => subclause.toString()).join(" ")}]`;
+        return `[${this.subclauses
+            .map((subclause) => subclause.toString())
+            .join(" ")}]`;
+    }
+
+    getLiterals(): Literal[] {
+        return this.subclauses.flatMap((subclause) => subclause.getLiterals());
     }
 }
-
 
 /**
  * Representation of a positive literal for rule conditions.
@@ -118,5 +134,9 @@ export class Literal extends Clause {
         } else {
             return `${this.position}.${Symbol.keyFor(this.signal)}`;
         }
+    }
+
+    getLiterals(): Literal[] {
+        return [this];
     }
 }

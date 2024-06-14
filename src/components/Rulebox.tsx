@@ -5,15 +5,14 @@ import styles from "../style/Rulebox.module.scss";
 
 interface RuleboxProps {
     rules: string;
-    automaton: Automaton;
     setAutomaton: (automaton: Automaton) => void;
 }
-export function Rulebox({ rules, automaton, setAutomaton }: RuleboxProps) {
+export function Rulebox({ rules, setAutomaton }: RuleboxProps) {
     const ruleboxRef = useRef<HTMLTextAreaElement>(null);
     function updateRules() {
         const newRules = ruleboxRef.current?.value;
         if (newRules !== undefined) {
-            setAutomaton(new Automaton(newRules));
+            setAutomaton(new Automaton().parseRules(newRules));
         }
     }
 
