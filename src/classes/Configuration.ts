@@ -1,4 +1,4 @@
-import { Signal, Neighborhood } from './types';
+import { Signal, Neighborhood } from './types.ts';
 
 
 export class Configuration {

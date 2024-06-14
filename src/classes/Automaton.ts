@@ -1,6 +1,6 @@
-import { Clause, Conjunction, Disjunction, Literal, Negation } from './Clause';
-import { Configuration } from './Configuration';
-import { Signal } from './types';
+import { Clause, Conjunction, Disjunction, Literal, Negation } from './Clause.ts';
+import { Configuration } from './Configuration.ts';
+import { Signal } from './types.ts';
 
 
 class RuleParsingException extends Error {
@@ -63,11 +63,6 @@ export class Automaton {
      * List of rules of the automaton (the rules are executed on each cell in the order they appear in the list)
      */
     rules: Rule[];
-    /**
-     * List of the names of signals that are used in the rules. Internally, signals are represented by their index in
-     * this list.
-     * This list is automatically updated when parsing the rules.
-     */
     minNeighbor: number;
     maxNeighbor: number;
     /**
@@ -78,11 +73,39 @@ export class Automaton {
      */
     maxFutureDepth: number;
 
-    constructor(rulesString: string) {
+    constructor() {
         this.rules = [];
         this.minNeighbor = 0;
         this.maxNeighbor = 0;
         this.maxFutureDepth = 1;
+    }
+
+    updateParameters() {
+        this.minNeighbor = Infinity;
+        this.maxNeighbor = -Infinity;
+        this.maxFutureDepth = 1;
+        for (const rule of this.rules) {
+            for (const output of rule.outputs) {
+                this.maxFutureDepth = Math.max(this.maxFutureDepth, output.futureStep);
+            }
+            for (const literal of rule.condition.getLiterals()) {
+                this.minNeighbor = Math.min(this.minNeighbor, literal.position);
+                this.maxNeighbor = Math.max(this.maxNeighbor, literal.position);
+            }
+        }
+        if (this.minNeighbor === Infinity) this.minNeighbor = 0;
+        if (this.maxNeighbor === -Infinity) this.maxNeighbor = 0;
+        return this;
+    }
+
+    setRules(rules: Rule[]): Automaton {
+        this.rules = rules;
+        this.updateParameters();
+        return this;
+    }
+
+    parseRules(rulesString: string): Automaton {
+        this.rules = [];
         const conditionsStack: { condition: Clause, indent: number }[] = [];
         for (let line of rulesString.split('\n')) {
             const indent = line.search(/\S|$/);    // indentation of current line
@@ -126,6 +149,8 @@ export class Automaton {
                 this.rules.push(new Rule(condition, outputs));
             }
         }
+        this.updateParameters();
+        return this;
     }
 
     readConditionTokens(conditionTokens: string[]): Clause {
@@ -201,7 +226,6 @@ export class Automaton {
                 if (neighborString.includes('/')) {
                     [neighborString, futureStepString] = neighborString.split("/");
                     futureStep = parseInt(futureStepString);
-                    this.maxFutureDepth = Math.max(this.maxFutureDepth, futureStep);
                 }
                 const neighbor = neighborString === '' ? 0 : parseInt(neighborString);
                 outputs.push(new RuleOutput(neighbor, Symbol.for(signalName), futureStep));
@@ -258,10 +282,3 @@ export class Automaton {
         return this.rules.map(rule => rule.toString()).join("\n");
     }
 }
-
-
-
-
-
-
-

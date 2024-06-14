@@ -1,20 +1,19 @@
-import { useState } from 'react';
-import './App.css'
-import './style/style.scss'
-import { Diagram } from './components/Diagram';
-import { Rulebox } from './components/Rulebox'
-import { Settings } from './components/Settings'
-import { Automaton } from './classes/Automaton';
-
+import { useState } from "react";
+import "./App.css";
+import "./style/style.scss";
+import { Diagram } from "./components/Diagram";
+import { Rulebox } from "./components/Rulebox";
+import { Settings } from "./components/Settings";
+import { Automaton } from "./classes/Automaton";
 
 export interface SettingsInterface {
-  nbCells: number;
-  nbSteps: number;
-  timeGoesUp: boolean;
+    nbCells: number;
+    nbSteps: number;
+    timeGoesUp: boolean;
 }
 
 export default function App() {
-  const initialRules = `\
+    const initialRules = `\
 # Fischer's prime numbers sieve cellular automaton
 
 Init:
@@ -42,17 +41,26 @@ Rebound:
 Mark:
   -1.Mark
 `;
-  const [automaton, setAutomaton] = useState<Automaton>(new Automaton(initialRules));
-  const [settings, setSettings] = useState<SettingsInterface>({
-    nbCells: 40,
-    nbSteps: 60,
-    timeGoesUp: true
-  });
-  
-  return <main>
-    <h1>Signal Automaton</h1>
-    <Settings settings={settings} setSettings={setSettings} />
-    <Rulebox rules={initialRules} automaton={automaton} setAutomaton={setAutomaton} />
-    <Diagram automaton={automaton} settings={settings} />
-  </main>
+
+    const [automaton, setAutomaton] = useState<Automaton>(
+        new Automaton().parseRules(initialRules)
+    );
+    const [settings, setSettings] = useState<SettingsInterface>({
+        nbCells: 40,
+        nbSteps: 60,
+        timeGoesUp: true,
+    });
+
+    return (
+        <main>
+            <h1>Signal Automaton</h1>
+            <Settings settings={settings} setSettings={setSettings} />
+            <Rulebox
+                rules={initialRules}
+                automaton={automaton}
+                setAutomaton={setAutomaton}
+            />
+            <Diagram automaton={automaton} settings={settings} />
+        </main>
+    );
 }
