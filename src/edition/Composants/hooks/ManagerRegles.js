@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
-import { Conjunction, Literal } from "../../../classes/Clause.ts";
-import { Automaton, Rule, RuleOutput } from "../../../classes/Automaton.ts";
+import {useEffect, useState, useCallback} from 'react';
+import {Conjunction, Literal, Negation} from "../../../classes/Clause.ts";
+import {Automaton, Rule, RuleOutput} from "../../../classes/Automaton.ts";
 
 
 const ManagerRegles = (grille, setAutomaton) => {
@@ -69,14 +69,18 @@ const ManagerRegles = (grille, setAutomaton) => {
     const creerClause = (tab) => {
         const clauses = [];
 
-        tab.forEach((sousTableau, index) => {
+        tab.forEach((sousTableau) => {
             for (let i = 0; i < sousTableau.length; i++) {
                 const pos = i - Math.floor(sousTableau.length / 2);
-                if (sousTableau[i].length > 0) {
-                    for (let j = 0; j < sousTableau[i].length; j++) {
-                        let literals = new Literal(Symbol.for(sousTableau[i][j]), pos);
-                        clauses.push(literals);
+                for (let j = 0; j < sousTableau[i].length; j++) {
+                    let literals = new Literal(Symbol.for(sousTableau[i][j]), pos);
+                    const symbolDescription = Symbol.keyFor(Symbol.for(sousTableau[i][j]));
+                    console.log(symbolDescription);
+
+                    if (sousTableau[i][j].startsWith('!')) {
+                        literals = new Negation(literals);
                     }
+                    clauses.push(literals);
                 }
             }
         });

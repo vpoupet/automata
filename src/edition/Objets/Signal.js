@@ -1,11 +1,12 @@
 class Signal {
     constructor(value) {
         this.symbol = Symbol.for(String(value));
-        this.negation = false;
+        this.negation = value.startsWith('!');
     }
 
     setValue(value) {
         this.symbol = Symbol.for(String(value));
+        this.negation = value.startsWith('!');
     }
 
     getValue() {
