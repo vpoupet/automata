@@ -38,9 +38,9 @@ const GestionSignaux = ({ listeSignaux, onAddSignal, onUpdateSignal, onDeleteSig
                                 onChange={(e) => setEditSignalValue(e.target.value)}
                             />
                         ) : (
-                            signal.value
+                            signal.getValue()
                         )}
-                        <button onClick={() => handleEditSignal(idx, signal.value)}>
+                        <button onClick={() => handleEditSignal(idx, signal.getValue())}>
                             Modifier
                         </button>
                         <button onClick={() => onDeleteSignal(idx)}>

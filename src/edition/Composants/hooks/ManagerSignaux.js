@@ -9,7 +9,7 @@ const ManagerSignaux = () => {
     ]);
 
     const handleAddNewSignal = (signalValue) => {
-        if (listeSignaux.some(signal => signal.value === signalValue)) {
+        if (listeSignaux.some(signal => signal.getValue === signalValue)) {
             alert(`Le signal ${signalValue} existe déjà.`);
             return;
         }
@@ -17,9 +17,9 @@ const ManagerSignaux = () => {
     };
 
     const updateSignal = (index, newValue) => {
-        const oldValue = listeSignaux[index].value;
+        const oldValue = listeSignaux[index].getValue();
 
-        if (listeSignaux.some((signal, i) => signal.value === newValue && i !== index)) {
+        if (listeSignaux.some((signal, i) => signal.getValue() === newValue && i !== index)) {
             alert(`Le signal ${newValue} existe déjà.`);
             return { success: false, oldValue: null, newValue: null };
         }
@@ -32,7 +32,7 @@ const ManagerSignaux = () => {
     };
 
     const deleteSignal = (index) => {
-        const signalValue = listeSignaux[index].value;
+        const signalValue = listeSignaux[index].getValue();
         setListeSignaux((prev) => prev.filter((signal, i) => i !== index));
         return signalValue;
     };

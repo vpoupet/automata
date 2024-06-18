@@ -85,7 +85,7 @@ const ManagerGrilleInteractive = (rows, cols) => {
             if (Array.isArray(listeSignaux)) {
                 listeSignaux.forEach(signal => {
                     if (signal instanceof Signal) {
-                        caseObj.addSignal(signal.value);
+                        caseObj.addSignal(signal.getValue());
                     } else {
                         console.error('Invalid signal in listeSignaux:', signal);
                     }
@@ -103,12 +103,12 @@ const ManagerGrilleInteractive = (rows, cols) => {
             row.map(cell => {
                 const newCase = new Cellule();
                 cell.signals.forEach(signal => {
-                    if (signal.value === oldValue) {
+                    if (signal.getValue() === oldValue) {
                         newCase.addSignal(newValue);
-                    } else if (signal.value === '!' + oldValue) {
+                    } else if (signal.getValue() === '!' + oldValue) {
                         newCase.addSignal('!' + newValue);
                     } else {
-                        newCase.addSignal(signal.value);
+                        newCase.addSignal(signal.getValue());
                     }
                 });
                 return newCase;
@@ -123,8 +123,8 @@ const ManagerGrilleInteractive = (rows, cols) => {
             row.map(cell => {
                 const newCase = new Cellule();
                 cell.signals.forEach(signal => {
-                    if (signal.value !== signalValue && signal.value !== '!' + signalValue) {
-                        newCase.addSignal(signal.value);
+                    if (signal.getValue() !== signalValue && signal.getValue() !== '!' + signalValue) {
+                        newCase.addSignal(signal.getValue());
                     }
                 });
                 return newCase;

@@ -12,14 +12,14 @@ class Cellule {
         // Remove the opposite signal if it exists
         this.removeSignal(signalValue.startsWith('!') ? signalValue.substring(1) : '!' + signalValue);
 
-        if (!this.signals.some(signal => signal.value === signalValue)) {
+        if (!this.signals.some(signal => signal.getValue() === signalValue)) {
             const signal = new Signal(signalValue);
             this.signals.push(signal);
         }
     }
 
     removeSignal(signalValue) {
-        this.signals = this.signals.filter(signal => signal.value !== signalValue);
+        this.signals = this.signals.filter(signal => signal.getValue() !== signalValue);
     }
 
     removeAllSignals() {

@@ -1,10 +1,14 @@
 class Signal {
     constructor(value) {
-        this.value = String(value);  // Convertir en chaîne de caractères
+        this.symbol = Symbol.for(String(value));
     }
 
     setValue(value) {
-        this.value = String(value);  // Convertir en chaîne de caractères
+        this.symbol = Symbol.for(String(value));
+    }
+
+    getValue() {
+        return Symbol.keyFor(this.symbol);
     }
 }
 

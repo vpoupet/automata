@@ -8,7 +8,7 @@ const ManagerRegles = (grille) => {
 
     const handleSaveRule = () => {
         const configuration = grille.grid.map(row =>
-            row.map(caseObj => caseObj.signals.map(signal => signal.value))
+            row.map(caseObj => caseObj.signals.map(signal => signal.getValue()))
         );
         if (!regles.some(config => JSON.stringify(config) === JSON.stringify(configuration))) {
             setRegles([...regles, configuration]);
@@ -21,7 +21,7 @@ const ManagerRegles = (grille) => {
 
     const updateRule = (index) => {
         const configuration = grille.grid.map(row =>
-            row.map(caseObj => caseObj.signals.map(signal => signal.value))
+            row.map(caseObj => caseObj.signals.map(signal => signal.getValue()))
         );
         if (regles.some(config => JSON.stringify(config) === JSON.stringify(configuration))) {
             return;
@@ -61,7 +61,7 @@ const ManagerRegles = (grille) => {
     };
 
 
-    //todo : la position du literal ne peut pas être la valeur de sa position actuellement, il faut décaler les valeurs pour que le 0 soit au centre
+    //todo : la position du literal ne peut pas être la valeur de sa position actuellement, il faut décaler les valeurs pour que le 0 soit au centre de la grille
     const creerClause = (tab) => {
         const clauses = [];
         tab.forEach((cell, poscell) => {
@@ -95,6 +95,7 @@ const ManagerRegles = (grille) => {
         const clausePart = regle.slice(0, 1);
         const outputPart = regle.slice(1);
         //todo : slice uniquement pour les string.. il faut créer une classe règle ou tout faire avec Rule
+        //d'abord on place en position [0] l'output, on le centre au max
         const clause = creerClause(clausePart);
         const outputs = creerOutput(outputPart);
         if (outputs.length === 0 && clause.subclauses.length === 0) {

@@ -13,7 +13,6 @@ const GrilleInteractive = ({
                                handleCaseClick,
                                handleSaveRule
                            }) => {
-
     const setActiveSignals = (grille) => {
         if (activeCells.length === 0) {
             return [];
@@ -21,13 +20,13 @@ const GrilleInteractive = ({
         const signals = [];
         activeCells.forEach(cell => {
             grille.getCase(cell.row, cell.col).signals.forEach(signal => {
-                if (!signals.includes(signal.value)) {
-                    signals.push(signal.value);
+                if (!signals.includes(signal.getValue())) {
+                    signals.push(signal.getValue());
                 }
             });
         });
         return signals.filter(signal =>
-            activeCells.every(cell => grille.getCase(cell.row, cell.col).signals.map(s => s.value).includes(signal))
+            activeCells.every(cell => grille.getCase(cell.row, cell.col).signals.map(s => s.getValue()).includes(signal))
         );
     };
 
@@ -55,7 +54,7 @@ const GrilleInteractive = ({
                                         onClick={(event) => handleCaseClick(rowIndex, colIndex, event)}
                                     >
                                         {caseObj.signals.map((signal, idx) => (
-                                            <span key={idx}>{signal.value} </span>
+                                            <span key={idx}>{signal.getValue()} </span>
                                         ))}
                                     </button>
                                 );
