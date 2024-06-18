@@ -6,9 +6,22 @@ import GestionSignaux from "./Composants/gestionSignaux/GestionSignaux";
 import ManagerGrilleInteractive from "./Composants/hooks/ManagerGrilleInteractive";
 import ManagerSignaux from "./Composants/hooks/ManagerSignaux";
 import ManagerRegles from "./Composants/hooks/ManagerRegles";
+import {Diagram} from "../components/Diagram.tsx";
+import {Automaton} from "../classes/Automaton.ts";
 
 function App() {
 
+
+
+    const [rows] = useState(5);
+    const [cols] = useState(5);
+
+    const [automaton, setAutomaton] = useState(new Automaton());
+    const [settings, setSettings] = useState({
+        nbCells: 40,
+        nbSteps: 60,
+        timeGoesUp: true,
+    });
     const {
         grille,
         activeCells,
@@ -21,9 +34,10 @@ function App() {
         handleAddSignal,
         handleRemoveSignal,
         updateSignalInGrid,
-    } = ManagerGrilleInteractive(5,5);
+    } = ManagerGrilleInteractive(5, 5);
 
-    const {listeSignaux,
+    const {
+        listeSignaux,
         handleAddNewSignal,
         deleteSignal,
         updateSignal
@@ -36,13 +50,8 @@ function App() {
         handleSaveRule,
         updateRule,
         deleteRule,
-        updateRuleSignal
-    } = ManagerRegles(grille);
-
-
-    const [rows] = useState(5);
-    const [cols] = useState(5);
-
+        updateRuleSignal,
+    } = ManagerRegles(grille, setAutomaton);
 
     const sendLoadRuleToGrid = (index) => {
         const configuration = regles[index];
@@ -50,7 +59,7 @@ function App() {
     };
 
     const handleUpdateSignal = (index, newValue) => {
-        const {success, oldValue, newValue: updatedValue} = updateSignal(index, newValue);
+        const { success, oldValue, newValue: updatedValue } = updateSignal(index, newValue);
 
         if (success) {
             updateRuleSignal(oldValue, updatedValue);
@@ -67,7 +76,6 @@ function App() {
     const handleAddAllToCell = () => {
         handleAddAllSignals(listeSignaux);
     }
-
 
     return (
         <div className="App">
@@ -93,7 +101,6 @@ function App() {
                     onLoadRule={sendLoadRuleToGrid}
                     onUpdateRule={updateRule}
                     onDeleteRule={deleteRule}
-
                 />
             </div>
             <div>
@@ -104,6 +111,7 @@ function App() {
                     onDeleteSignal={handleDeleteSignal}
                 />
             </div>
+            <Diagram automaton={automaton} settings={settings} />
         </div>
     );
 }

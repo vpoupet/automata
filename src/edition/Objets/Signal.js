@@ -1,6 +1,7 @@
 class Signal {
     constructor(value) {
         this.symbol = Symbol.for(String(value));
+        this.negation = false;
     }
 
     setValue(value) {
@@ -9,6 +10,10 @@ class Signal {
 
     getValue() {
         return Symbol.keyFor(this.symbol);
+    }
+
+    getNegation(){
+        return this.negation;
     }
 }
 

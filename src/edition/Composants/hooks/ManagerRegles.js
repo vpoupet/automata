@@ -1,8 +1,9 @@
-import {useEffect, useState} from 'react';
-import {Conjunction, Literal, Negation} from "../../../classes/Clause.ts";
-import {Automaton, Rule, RuleOutput} from "../../../classes/Automaton.ts";
+import { useEffect, useState, useCallback } from 'react';
+import { Conjunction, Literal } from "../../../classes/Clause.ts";
+import { Automaton, Rule, RuleOutput } from "../../../classes/Automaton.ts";
 
-const ManagerRegles = (grille) => {
+
+const ManagerRegles = (grille, setAutomaton) => {
     const [regles, setRegles] = useState([]);
     const [reglesArithmetiques, setReglesArithmetiques] = useState([]);
 
@@ -11,7 +12,9 @@ const ManagerRegles = (grille) => {
             row.map(caseObj => caseObj.signals.map(signal => signal.getValue()))
         );
         if (!regles.some(config => JSON.stringify(config) === JSON.stringify(configuration))) {
-            setRegles([...regles, configuration]);
+            const newRegles = [...regles, configuration];
+            setRegles(newRegles);
+            setReglesArithmetiques(newRegles.map(creerRegleArithmetique));
         }
     };
 
@@ -28,6 +31,7 @@ const ManagerRegles = (grille) => {
         }
         const newConfigurations = regles.map((config, i) => i === index ? configuration : config);
         setRegles(newConfigurations);
+        setReglesArithmetiques(newConfigurations.map(creerRegleArithmetique));
     };
 
     const updateRuleSignal = (oldValue, newValue) => {
@@ -41,12 +45,13 @@ const ManagerRegles = (grille) => {
             )
         );
         setRegles(newConfigurations);
+        setReglesArithmetiques(newConfigurations.map(creerRegleArithmetique));
     };
-
 
     const deleteRule = (index) => {
         const newConfigurations = regles.filter((config, i) => i !== index);
         setRegles(newConfigurations);
+        setReglesArithmetiques(newConfigurations.map(creerRegleArithmetique));
     };
 
     const deleteSignalInRules = (signalValue) => {
@@ -58,72 +63,66 @@ const ManagerRegles = (grille) => {
             )
         );
         setRegles(newConfigurations);
+        setReglesArithmetiques(newConfigurations.map(creerRegleArithmetique));
     };
 
-
-    //todo : la position du literal ne peut pas être la valeur de sa position actuellement, il faut décaler les valeurs pour que le 0 soit au centre de la grille
     const creerClause = (tab) => {
         const clauses = [];
-        tab.forEach((cell, poscell) => {
-            if (cell.length > 0) {
-                for (let i = 0; i < cell.length; i++) {
-                    let literals = new Literal(Symbol.for(cell[i]),poscell);
-                    // Il faudra gérer la négation avec un attribut sur le signal (ça sera plus simple)!
-                    // if (cell[i][0] === '!') {
-                    //     literals = new Negation(literals);
-                    // }
-                    clauses.push(literals);
+
+        tab.forEach((sousTableau, index) => {
+            for (let i = 0; i < sousTableau.length; i++) {
+                const pos = i - Math.floor(sousTableau.length / 2);
+                if (sousTableau[i].length > 0) {
+                    for (let j = 0; j < sousTableau[i].length; j++) {
+                        let literals = new Literal(Symbol.for(sousTableau[i][j]), pos);
+                        clauses.push(literals);
+                    }
                 }
             }
         });
-        return new Conjunction(clauses);
-    }
 
-    //todo : vérifier le nombre de futur step possible (les signaux envoyés dans le futur très futuriste)
+        return new Conjunction(clauses);
+    };
+
     const creerOutput = (tab) => {
         const outputs = [];
         tab.forEach((row, rowIndex) => {
             row.forEach((cellule, colIndex) => {
-                const ruleoutput = cellule.map(signal => new RuleOutput(colIndex, Symbol.for(signal),rowIndex ));
-                outputs.push(...ruleoutput);
+                if (cellule.length > 0) {
+                    const ruleoutput = cellule.map(signal => new RuleOutput(colIndex - Math.floor(tab.length / 2), Symbol.for(signal), rowIndex + 1));
+                    outputs.push(...ruleoutput);
+                }
             });
         });
         return outputs;
-    }
+    };
 
     const creerRegleArithmetique = (regle) => {
         const clausePart = regle.slice(0, 1);
         const outputPart = regle.slice(1);
-        //todo : slice uniquement pour les string.. il faut créer une classe règle ou tout faire avec Rule
-        //d'abord on place en position [0] l'output, on le centre au max
-        const clause = creerClause(clausePart);
         const outputs = creerOutput(outputPart);
+        const clause = creerClause(clausePart);
         if (outputs.length === 0 && clause.subclauses.length === 0) {
             console.error("Aucun signal n'a été trouvée.");
             return;
         }
-        console.log("Conditions : " + clause)
-        console.log("Outputs : " + outputs)
         return new Rule(clause, outputs);
     };
 
-
-
-    const applyRules = () => {
-        // pour chaque règle arithmétique qu'on a créé, on regardera le nbr de voisins,
-        // cad les cellules qui ont un signal (c'est la distance la plus importante qui nous interesse vraiment)
-
-        //on donne les règles à l'automaton
+    const applyRules = useCallback(() => {
         const auto = new Automaton();
-
-        //Automaton.makeDiagram();
-    }
+        auto.setRules(reglesArithmetiques);
+        auto.updateParameters();
+        setAutomaton(auto);
+    }, [reglesArithmetiques, setAutomaton]);
 
     useEffect(() => {
         setReglesArithmetiques(regles.map(creerRegleArithmetique));
-        applyRules();
-        }, [regles]);
+    }, [regles]);
 
+    useEffect(() => {
+        applyRules();
+    }, [reglesArithmetiques, applyRules]);
 
     return {
         regles,
@@ -135,7 +134,7 @@ const ManagerRegles = (grille) => {
         handleSaveRule,
         handleLoadRule,
         updateRule,
-        deleteRule
+        deleteRule,
     };
 };
 

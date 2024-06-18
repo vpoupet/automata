@@ -3,7 +3,7 @@ import Signal from "../../Objets/Signal";
 
 const ManagerSignaux = () => {
     const [listeSignaux, setListeSignaux] = useState([
-        new Signal('1'),
+        new Signal('Init'),
         new Signal('2'),
         new Signal('3')
     ]);

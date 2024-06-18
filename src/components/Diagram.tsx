@@ -13,7 +13,6 @@ export function Diagram({ automaton, settings }: DiagramProps) {
     const initialConfiguration = new Configuration(settings.nbCells);
     initialConfiguration.cells[0].add(Symbol.for("Init"));
     const diagram = automaton.makeDiagram(initialConfiguration, settings.nbSteps);
-
     return <div className={styles.diagram}>
         {diagram.reverse().map((config, i) =>
             <DiagramRow key={i} config={config} />
