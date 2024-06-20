@@ -1,15 +1,15 @@
 import Signal from './Signal';
+
 class Cellule {
     constructor() {
         this.signals = [];
     }
 
-    get(signal){
+    get(signal) {
         return this.signals.includes(signal);
     }
 
     addSignal(signalValue) {
-        // Remove the opposite signal if it exists
         this.removeSignal(signalValue.startsWith('!') ? signalValue.substring(1) : '!' + signalValue);
 
         if (!this.signals.some(signal => signal.getValue() === signalValue)) {
@@ -26,17 +26,29 @@ class Cellule {
         this.signals = [];
     }
 
-    modifySignal(signal, newSignal){
-        //si la case possède le signal, le modifier pour mettre le nouveau à la place
-        if(this.signals.includes(signal)){
+    modifySignal(signal, newSignal) {
+        if (this.signals.includes(signal)) {
             this.signals[this.signals.indexOf(signal)].setValue(newSignal);
-        }
-        else if (this.signals.includes('!' + signal)){
+        } else if (this.signals.includes('!' + signal)) {
             this.signals[this.signals.indexOf('!' + signal)].setValue('!' + newSignal);
         }
-
     }
 
+    // Nouvelle méthode pour convertir en Set
+    toSet() {
+        return new Set(this.signals.map(signal => Symbol.for(signal.getValue())));
+    }
+
+    // Nouvelle méthode pour initialiser à partir d'un Set
+    fromSet(signalSet) {
+        this.signals = [];
+        for (const signal of signalSet) {
+            const signalName = Symbol.keyFor(signal);
+            if (signalName) {
+                this.addSignal(signalName);
+            }
+        }
+    }
 }
 
 export default Cellule;
