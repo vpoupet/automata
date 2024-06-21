@@ -26,25 +26,23 @@ class Cellule {
         this.signals = [];
     }
 
-    modifySignal(signal, newSignal) {
-        if (this.signals.includes(signal)) {
-            this.signals[this.signals.indexOf(signal)].setValue(newSignal);
-        } else if (this.signals.includes('!' + signal)) {
-            this.signals[this.signals.indexOf('!' + signal)].setValue('!' + newSignal);
-        }
-    }
 
-    // Nouvelle méthode pour convertir en Set
     toSet() {
         return new Set(this.signals.map(signal => Symbol.for(signal.getValue())));
     }
 
-    // Nouvelle méthode pour initialiser à partir d'un Set
     fromSet(signalSet) {
         this.signals = [];
         for (const signal of signalSet) {
-            const signalName = Symbol.keyFor(signal);
-            if (signalName) {
+            let signalName='';
+            if (typeof signal !== 'symbol') {
+                signalName = signal.getValue();
+            }
+            else {
+                signalName = Symbol.keyFor(signal);
+            }
+
+            if (signalName!=='') {
                 this.addSignal(signalName);
             }
         }

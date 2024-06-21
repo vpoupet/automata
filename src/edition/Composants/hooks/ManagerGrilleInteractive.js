@@ -7,7 +7,6 @@ const ManagerGrilleInteractive = (rows, cols) => {
     const [grille, setGrille] = useState(new Grille(rows, cols));
     const [activeCells, setActiveCells] = useState([]);
 
-
     const updateGrille = (callback) => {
         const newGrille = new Grille(grille.grid.length, grille.grid[0].length);
         newGrille.grid = grille.grid.map((r, rowIndex) =>
@@ -22,7 +21,6 @@ const ManagerGrilleInteractive = (rows, cols) => {
         );
         setGrille(newGrille);
     };
-
 
     const handleCaseClick = (rowIndex, colIndex, event) => {
         if (event.ctrlKey) {
@@ -79,7 +77,6 @@ const ManagerGrilleInteractive = (rows, cols) => {
         setGrille(newGrille);
     };
 
-
     const handleAddAllSignals = (listeSignaux) => {
         updateGrille((caseObj) => {
             if (Array.isArray(listeSignaux)) {
@@ -95,7 +92,6 @@ const ManagerGrilleInteractive = (rows, cols) => {
             }
         });
     };
-
 
     const updateSignalInGrid = (oldValue, newValue) => {
         const newGrille = new Grille(grille.grid.length, grille.grid[0].length);
@@ -133,7 +129,20 @@ const ManagerGrilleInteractive = (rows, cols) => {
         setGrille(newGrille);
     };
 
-    return { grille, activeCells, setActiveCells, handleAddSignal, handleRemoveSignal, handleAddAllSignals, handleRemoveAllSignals, handleRemoveAllSignalsFromGrid, handleCaseClick, updateGrilleFromRule, updateSignalInGrid, deleteSignalInGrid };
+    const handleUpdateFromDiagramme = (cells) => {
+        const newGrille = new Grille(rows, cols);
+        newGrille.grid[0] = cells.map(cell => {
+            const newCase = new Cellule();
+            for (let i = 0; i < cell.length; i++) {
+                newCase.addSignal(cell[i]);
+            }
+            return newCase;
+        });
+        setGrille(newGrille); // Assurez-vous que setGrille est appelé ici pour mettre à jour l'état
+        console.log('sensé avoir update la grille avec le diagramme');
+    };
+
+    return { grille, activeCells, setActiveCells, handleAddSignal, handleRemoveSignal, handleAddAllSignals, handleRemoveAllSignals, handleRemoveAllSignalsFromGrid, handleCaseClick, updateGrilleFromRule, updateSignalInGrid, deleteSignalInGrid, handleUpdateFromDiagramme };
 };
 
 export default ManagerGrilleInteractive;

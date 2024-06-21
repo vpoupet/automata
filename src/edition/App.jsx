@@ -1,6 +1,6 @@
 import GrilleInteractive from './Composants/gestionRegles/GrilleInteractive.jsx';
 import ListeRegles from './Composants/regles/ListeRegles';
-import {useEffect, useState} from "react";
+import {useState} from "react";
 
 import GestionSignaux from "./Composants/gestionSignaux/GestionSignaux";
 import ManagerGrilleInteractive from "./Composants/hooks/ManagerGrilleInteractive";
@@ -10,9 +10,6 @@ import {Diagram} from "../components/Diagram.tsx";
 import {Automaton} from "../classes/Automaton.ts";
 
 function App() {
-
-
-
     const [rows] = useState(5);
     const [cols] = useState(5);
 
@@ -34,7 +31,8 @@ function App() {
         handleAddSignal,
         handleRemoveSignal,
         updateSignalInGrid,
-    } = ManagerGrilleInteractive(5, 5);
+        handleUpdateFromDiagramme,
+    } = ManagerGrilleInteractive(rows, cols);
 
     const {
         listeSignaux,
@@ -77,6 +75,10 @@ function App() {
         handleAddAllSignals(listeSignaux);
     }
 
+    const handleCellClick = (cells) => {
+        handleUpdateFromDiagramme(cells);
+    };
+
     return (
         <div className="App">
             <div>
@@ -111,7 +113,7 @@ function App() {
                     onDeleteSignal={handleDeleteSignal}
                 />
             </div>
-            <Diagram automaton={automaton} settings={settings} />
+            <Diagram automaton={automaton} settings={settings} onCellClick={handleCellClick} />
         </div>
     );
 }

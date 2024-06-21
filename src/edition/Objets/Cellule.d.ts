@@ -22,7 +22,7 @@ declare module './Cellule' {
 
         toSet(): Set<symbol>;
 
-        fromSet(signalSet: Set<symbol>): void;
+        fromSet(signalSet: Set<Signal>): void;
     }
 
     export = Cellule;
