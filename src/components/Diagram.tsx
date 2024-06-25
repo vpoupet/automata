@@ -1,7 +1,6 @@
 import { SettingsInterface } from "../App";
 import { Automaton } from "../classes/Automaton";
 import { Configuration } from "../classes/Configuration";
-// import { Signal } from "../classes/types";
 import styles from "../style/Diagram.module.scss"
 import "../style/Cell.css"
 
@@ -58,6 +57,9 @@ function handleCellClick(index: number, cells: Set<Signal>[], onCellClick: (cell
         { cell: getCellOrEmpty(index + 1), key: `${index + 1}` },
         { cell: getCellOrEmpty(index + 2), key: `${index + 2}` },
     ];
+    console.log('Cell clicked:', index, );
+    console.log('Cells to update:', cellList);
+
     onCellClick(cellList);
 }
 

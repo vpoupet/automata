@@ -10,6 +10,9 @@ class Cellule {
     }
 
     addSignal(signalValue) {
+        if (signalValue instanceof Signal) {
+            signalValue = signalValue.getValue();
+        }
         this.removeSignal(signalValue.startsWith('!') ? signalValue.substring(1) : '!' + signalValue);
 
         if (!this.signals.some(signal => signal.getValue() === signalValue)) {

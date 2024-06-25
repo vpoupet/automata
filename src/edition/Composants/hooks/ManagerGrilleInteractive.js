@@ -130,17 +130,18 @@ const ManagerGrilleInteractive = (rows, cols) => {
     };
 
     const handleUpdateFromDiagramme = (cells) => {
+        console.log("les cells de manager : ", cells);
         const newGrille = new Grille(rows, cols);
-        newGrille.grid[0] = cells.map(cell => {
-            const newCase = new Cellule();
-            for (let i = 0; i < cell.length; i++) {
-                newCase.addSignal(cell[i]);
-            }
-            return newCase;
+
+        cells.forEach((cell, index) => {
+            cell.cell.forEach(signal => {
+                newGrille.grid[0][index].addSignal(Symbol.keyFor(signal));
+            });
         });
-        setGrille(newGrille); // Assurez-vous que setGrille est appelé ici pour mettre à jour l'état
-        console.log('sensé avoir update la grille avec le diagramme');
+
+        setGrille(newGrille);
     };
+
 
     return { grille, activeCells, setActiveCells, handleAddSignal, handleRemoveSignal, handleAddAllSignals, handleRemoveAllSignals, handleRemoveAllSignalsFromGrid, handleCaseClick, updateGrilleFromRule, updateSignalInGrid, deleteSignalInGrid, handleUpdateFromDiagramme };
 };
