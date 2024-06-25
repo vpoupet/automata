@@ -13,6 +13,9 @@ class Signal {
         return Symbol.keyFor(this.symbol);
     }
 
+    getSymbol(){
+        return this.symbol;
+    }
     getNegation(){
         return this.negation;
     }

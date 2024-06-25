@@ -3,9 +3,8 @@ import {Conjunction, Literal, Negation} from "../../../classes/Clause.ts";
 import {Automaton, Rule, RuleOutput} from "../../../classes/Automaton.ts";
 
 
-const ManagerRegles = (grille, setAutomaton) => {
+const ManagerRegles = (grille, setAutomaton, setReglesArithmetiques, reglesArithmetiques) => {
     const [regles, setRegles] = useState([]);
-    const [reglesArithmetiques, setReglesArithmetiques] = useState([]);
 
     const handleSaveRule = () => {
         const configuration = grille.grid.map(row =>

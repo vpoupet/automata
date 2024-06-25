@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import {useState} from 'react';
 import Grille from "../../Objets/Grille";
 import Cellule from "../../Objets/Cellule";
 import Signal from "../../Objets/Signal";
+import {Configuration} from "../../../classes/Configuration.ts";
 
-const ManagerGrilleInteractive = (rows, cols) => {
+const ManagerGrilleInteractive = (rows, cols, automaton, reglesArithmetiques, setAutomaton) => {
     const [grille, setGrille] = useState(new Grille(rows, cols));
     const [activeCells, setActiveCells] = useState([]);
 
@@ -29,11 +30,11 @@ const ManagerGrilleInteractive = (rows, cols) => {
                 if (alreadySelected) {
                     return prev.filter(cell => !(cell.row === rowIndex && cell.col === colIndex));
                 } else {
-                    return [...prev, { row: rowIndex, col: colIndex }];
+                    return [...prev, {row: rowIndex, col: colIndex}];
                 }
             });
         } else {
-            setActiveCells([{ row: rowIndex, col: colIndex }]);
+            setActiveCells([{row: rowIndex, col: colIndex}]);
         }
     };
 
@@ -138,12 +139,59 @@ const ManagerGrilleInteractive = (rows, cols) => {
                 newGrille.grid[0][index].addSignal(Symbol.keyFor(signal));
             });
         });
-
         setGrille(newGrille);
     };
 
 
-    return { grille, activeCells, setActiveCells, handleAddSignal, handleRemoveSignal, handleAddAllSignals, handleRemoveAllSignals, handleRemoveAllSignalsFromGrid, handleCaseClick, updateGrilleFromRule, updateSignalInGrid, deleteSignalInGrid, handleUpdateFromDiagramme };
+    const applyRulesGrid = () => {
+        //applique les règles sur la grille, pour l'instant 4 step max
+        const newGrille = new Grille(rows, cols);
+        const conffromgrid = new Configuration(grille.grid.length);
+        for (let i = 0; i < grille.grid[0].length; i++) {
+            conffromgrid.cells[i] = grille.grid[0][i].toSet()
+        }
+        console.log("la ligne initiale", conffromgrid)
+
+        automaton.setRules(reglesArithmetiques);
+        automaton.updateParameters();
+        setAutomaton(automaton);
+        const conf = automaton.makeDiagram(conffromgrid, 4);
+
+        console.log("conf pas confiant", conf,'taille : ', conf.length)
+        //passer de tableaux de tableau contenant des sets de Symbol
+        //à des tableaux de tableaux contenant des tableaux de Signal
+
+        for (let i = 0; i < conf.length; i++) {
+            console.log("confis de canard",conf[i])
+            for (let j = 0; j < conf[i].cells.length; j++) {
+                console.log("confiji de figue", conf[i][j])
+                const cellSet = conf[i].cells[j];
+                const cell = new Cellule();
+                cell.fromSet(cellSet);
+                newGrille.grid[i][j] = cell;
+            }
+        }
+
+        console.log('la grille a update', newGrille);
+        setGrille(newGrille);
+    }
+
+    return {
+        grille,
+        activeCells,
+        setActiveCells,
+        handleAddSignal,
+        handleRemoveSignal,
+        handleAddAllSignals,
+        handleRemoveAllSignals,
+        handleRemoveAllSignalsFromGrid,
+        handleCaseClick,
+        updateGrilleFromRule,
+        updateSignalInGrid,
+        deleteSignalInGrid,
+        handleUpdateFromDiagramme,
+        applyRulesGrid
+    };
 };
 
 export default ManagerGrilleInteractive;

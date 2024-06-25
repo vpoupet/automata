@@ -13,7 +13,8 @@ const GrilleInteractive = ({
                                handleRemoveAllSignals,
                                handleRemoveAllSignalsFromGrid,
                                handleCaseClick,
-                               handleSaveRule
+                               handleSaveRule,
+                               applyRules
                            }) => {
     const setActiveSignals = () => {
         if (activeCells.length === 0) {
@@ -71,6 +72,7 @@ const GrilleInteractive = ({
                     />
                 )}
                 <button onClick={handleSaveRule}>Ajouter règle</button>
+                <button onClick={applyRules}>Appliquer règles</button>
             </div>
         </div>
     );
