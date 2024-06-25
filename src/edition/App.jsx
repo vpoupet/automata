@@ -12,7 +12,7 @@ import {Automaton} from "../classes/Automaton.ts";
 function App() {
     const [rows] = useState(5);
     const [cols] = useState(5);
-    const [reglesArithmetiques, setReglesArithmetiques] = useState([]);
+    const [reglesbools, setReglesbools] = useState([]);
 
     const [automaton, setAutomaton] = useState(new Automaton());
     const [settings, setSettings] = useState({
@@ -35,7 +35,7 @@ function App() {
         updateSignalInGrid,
         handleUpdateFromDiagramme,
         applyRulesGrid
-    } = ManagerGrilleInteractive(rows, cols, automaton, reglesArithmetiques, setAutomaton);
+    } = ManagerGrilleInteractive(rows, cols, automaton, reglesbools, setAutomaton);
 
     const {
         listeSignaux,
@@ -51,7 +51,7 @@ function App() {
         updateRule,
         deleteRule,
         updateRuleSignal,
-    } = ManagerRegles(grille, setAutomaton, setReglesArithmetiques, reglesArithmetiques);
+    } = ManagerRegles(grille, setAutomaton, setReglesbools, reglesbools);
 
     const sendLoadRuleToGrid = (index) => {
         const configuration = regles[index];
@@ -103,7 +103,7 @@ function App() {
             <div>
                 <ListeRegles
                     regles={regles}
-                    reglesArithmetiques={reglesArithmetiques}
+                    reglesbools={reglesbools}
                     onLoadRule={sendLoadRuleToGrid}
                     onUpdateRule={updateRule}
                     onDeleteRule={deleteRule}

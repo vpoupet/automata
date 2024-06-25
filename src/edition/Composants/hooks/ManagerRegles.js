@@ -3,7 +3,7 @@ import {Conjunction, Literal, Negation} from "../../../classes/Clause.ts";
 import {Automaton, Rule, RuleOutput} from "../../../classes/Automaton.ts";
 
 
-const ManagerRegles = (grille, setAutomaton, setReglesArithmetiques, reglesArithmetiques) => {
+const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools) => {
     const [regles, setRegles] = useState([]);
 
     const handleSaveRule = () => {
@@ -13,7 +13,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesArithmetiques, reglesArith
         if (!regles.some(config => JSON.stringify(config) === JSON.stringify(configuration))) {
             const newRegles = [...regles, configuration];
             setRegles(newRegles);
-            setReglesArithmetiques(newRegles.map(creerRegleArithmetique));
+            setReglesbools(newRegles.map(creerReglebool));
         }
     };
 
@@ -30,7 +30,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesArithmetiques, reglesArith
         }
         const newConfigurations = regles.map((config, i) => i === index ? configuration : config);
         setRegles(newConfigurations);
-        setReglesArithmetiques(newConfigurations.map(creerRegleArithmetique));
+        setReglesbools(newConfigurations.map(creerReglebool));
     };
 
     const updateRuleSignal = (oldValue, newValue) => {
@@ -44,13 +44,13 @@ const ManagerRegles = (grille, setAutomaton, setReglesArithmetiques, reglesArith
             )
         );
         setRegles(newConfigurations);
-        setReglesArithmetiques(newConfigurations.map(creerRegleArithmetique));
+        setReglesbools(newConfigurations.map(creerReglebool));
     };
 
     const deleteRule = (index) => {
         const newConfigurations = regles.filter((config, i) => i !== index);
         setRegles(newConfigurations);
-        setReglesArithmetiques(newConfigurations.map(creerRegleArithmetique));
+        setReglesbools(newConfigurations.map(creerReglebool));
     };
 
     const deleteSignalInRules = (signalValue) => {
@@ -62,7 +62,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesArithmetiques, reglesArith
             )
         );
         setRegles(newConfigurations);
-        setReglesArithmetiques(newConfigurations.map(creerRegleArithmetique));
+        setReglesbools(newConfigurations.map(creerReglebool));
     };
 
     const creerClause = (tab) => {
@@ -100,7 +100,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesArithmetiques, reglesArith
         return outputs;
     };
 
-    const creerRegleArithmetique = (regle) => {
+    const creerReglebool = (regle) => {
         const clausePart = regle.slice(0, 1);
         const outputPart = regle.slice(1);
         const outputs = creerOutput(outputPart);
@@ -114,24 +114,24 @@ const ManagerRegles = (grille, setAutomaton, setReglesArithmetiques, reglesArith
 
     const applyRules = useCallback(() => {
         const auto = new Automaton();
-        auto.setRules(reglesArithmetiques);
+        auto.setRules(reglesbools);
         auto.updateParameters();
         setAutomaton(auto);
-    }, [reglesArithmetiques, setAutomaton]);
+    }, [reglesbools, setAutomaton]);
 
     useEffect(() => {
-        setReglesArithmetiques(regles.map(creerRegleArithmetique));
+        setReglesbools(regles.map(creerReglebool));
     }, [regles]);
 
     useEffect(() => {
         applyRules();
-    }, [reglesArithmetiques, applyRules]);
+    }, [reglesbools, applyRules]);
 
     return {
         regles,
-        reglesArithmetiques,
+        reglesbools,
         creerOutput,
-        creerRegleArithmetique,
+        creerReglebool,
         updateRuleSignal,
         deleteSignalInRules,
         handleSaveRule,

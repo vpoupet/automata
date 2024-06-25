@@ -4,7 +4,7 @@ import Cellule from "../../Objets/Cellule";
 import Signal from "../../Objets/Signal";
 import {Configuration} from "../../../classes/Configuration.ts";
 
-const ManagerGrilleInteractive = (rows, cols, automaton, reglesArithmetiques, setAutomaton) => {
+const ManagerGrilleInteractive = (rows, cols, automaton, reglesbools, setAutomaton) => {
     const [grille, setGrille] = useState(new Grille(rows, cols));
     const [activeCells, setActiveCells] = useState([]);
 
@@ -150,21 +150,16 @@ const ManagerGrilleInteractive = (rows, cols, automaton, reglesArithmetiques, se
         for (let i = 0; i < grille.grid[0].length; i++) {
             conffromgrid.cells[i] = grille.grid[0][i].toSet()
         }
-        console.log("la ligne initiale", conffromgrid)
-
-        automaton.setRules(reglesArithmetiques);
+        automaton.setRules(reglesbools);
         automaton.updateParameters();
         setAutomaton(automaton);
         const conf = automaton.makeDiagram(conffromgrid, 4);
 
-        console.log("conf pas confiant", conf,'taille : ', conf.length)
         //passer de tableaux de tableau contenant des sets de Symbol
         //à des tableaux de tableaux contenant des tableaux de Signal
 
         for (let i = 0; i < conf.length; i++) {
-            console.log("confis de canard",conf[i])
             for (let j = 0; j < conf[i].cells.length; j++) {
-                console.log("confiji de figue", conf[i][j])
                 const cellSet = conf[i].cells[j];
                 const cell = new Cellule();
                 cell.fromSet(cellSet);
@@ -172,7 +167,6 @@ const ManagerGrilleInteractive = (rows, cols, automaton, reglesArithmetiques, se
             }
         }
 
-        console.log('la grille a update', newGrille);
         setGrille(newGrille);
     }
 
