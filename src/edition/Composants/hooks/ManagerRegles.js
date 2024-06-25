@@ -74,7 +74,6 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools) => {
                 for (let j = 0; j < sousTableau[i].length; j++) {
                     let literals = new Literal(Symbol.for(sousTableau[i][j]), pos);
                     const symbolDescription = Symbol.keyFor(Symbol.for(sousTableau[i][j]));
-                    console.log(symbolDescription);
 
                     if (sousTableau[i][j].startsWith('!')) {
                         literals = new Negation(literals);

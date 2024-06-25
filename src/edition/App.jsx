@@ -78,7 +78,6 @@ function App() {
     }
 
     const handleCellClick = (cells) => {
-        console.log('Updating from diagram APP', cells);
         handleUpdateFromDiagramme(cells);
     };
 

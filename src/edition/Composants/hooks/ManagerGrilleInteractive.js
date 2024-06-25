@@ -33,7 +33,33 @@ const ManagerGrilleInteractive = (rows, cols, automaton, reglesbools, setAutomat
                     return [...prev, {row: rowIndex, col: colIndex}];
                 }
             });
-        } else {
+        } else if (event.shiftKey){
+            setActiveCells((prev) => {
+                const alreadySelected = prev.some(cell => cell.row === rowIndex && cell.col === colIndex);
+                if (alreadySelected) {
+                    return prev.filter(cell => !(cell.row === rowIndex && cell.col === colIndex));
+                } else if (prev.length === 1) {
+                    const firstCell = prev[0];
+                    const newActiveCells = [];
+
+                    const minRow = Math.min(firstCell.row, rowIndex);
+                    const maxRow = Math.max(firstCell.row, rowIndex);
+                    const minCol = Math.min(firstCell.col, colIndex);
+                    const maxCol = Math.max(firstCell.col, colIndex);
+
+                    for (let i = minRow; i <= maxRow; i++) {
+                        for (let j = minCol; j <= maxCol; j++) {
+                            newActiveCells.push({row: i, col: j});
+                        }
+                    }
+
+                    return newActiveCells;
+                } else {
+                    return [...prev, {row: rowIndex, col: colIndex}]
+                }
+            });
+        }
+        else {
             setActiveCells([{row: rowIndex, col: colIndex}]);
         }
     };
@@ -131,7 +157,6 @@ const ManagerGrilleInteractive = (rows, cols, automaton, reglesbools, setAutomat
     };
 
     const handleUpdateFromDiagramme = (cells) => {
-        console.log("les cells de manager : ", cells);
         const newGrille = new Grille(rows, cols);
 
         cells.forEach((cell, index) => {
