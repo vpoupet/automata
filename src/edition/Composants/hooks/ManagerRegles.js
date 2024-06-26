@@ -91,7 +91,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools) => {
         tab.forEach((row, rowIndex) => {
             row.forEach((cellule, colIndex) => {
                 if (cellule.length > 0) {
-                    const ruleoutput = cellule.map(signal => new RuleOutput(colIndex - Math.floor(tab.length / 2), Symbol.for(signal), rowIndex + 1));
+                    const ruleoutput = cellule.map(signal => new RuleOutput(colIndex - Math.floor(tab[0].length / 2), Symbol.for(signal), rowIndex + 1));
                     outputs.push(...ruleoutput);
                 }
             });

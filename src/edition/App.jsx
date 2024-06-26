@@ -10,7 +10,7 @@ import {Diagram} from "../components/Diagram.tsx";
 import {Automaton} from "../classes/Automaton.ts";
 
 function App() {
-    const [rows] = useState(5);
+    const [rows] = useState(2);
     const [cols] = useState(5);
     const [reglesbools, setReglesbools] = useState([]);
 
