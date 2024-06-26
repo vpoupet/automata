@@ -1,4 +1,4 @@
-import GrilleInteractive from './Composants/gestionRegles/GrilleInteractive.jsx';
+import GrilleInteractive from './Composants/gestionCreationRegles/GrilleInteractive.jsx';
 import ListeRegles from './Composants/regles/ListeRegles';
 import {useState} from "react";
 
@@ -12,7 +12,9 @@ import {Automaton} from "../classes/Automaton.ts";
 function App() {
     const [rows] = useState(2);
     const [cols] = useState(5);
+    const [regles, setRegles] = useState([]);
     const [reglesbools, setReglesbools] = useState([]);
+    const [activeRules, setActiveRule]= useState([])
 
     const [automaton, setAutomaton] = useState(new Automaton());
     const [settings, setSettings] = useState({
@@ -35,7 +37,7 @@ function App() {
         updateSignalInGrid,
         handleUpdateFromDiagramme,
         applyRulesGrid
-    } = ManagerGrilleInteractive(rows, cols, automaton, reglesbools, setAutomaton);
+    } = ManagerGrilleInteractive(rows, cols, automaton, reglesbools, setAutomaton, setActiveRule, regles, reglesbools, activeRules);
 
     const {
         listeSignaux,
@@ -45,13 +47,12 @@ function App() {
     } = ManagerSignaux();
 
     const {
-        regles,
         deleteSignalInRules,
         handleSaveRule,
         updateRule,
         deleteRule,
         updateRuleSignal,
-    } = ManagerRegles(grille, setAutomaton, setReglesbools, reglesbools);
+    } = ManagerRegles(grille, setAutomaton, setReglesbools, reglesbools, regles, setRegles, activeRules);
 
     const sendLoadRuleToGrid = (index) => {
         const configuration = regles[index];
@@ -106,6 +107,7 @@ function App() {
                     onLoadRule={sendLoadRuleToGrid}
                     onUpdateRule={updateRule}
                     onDeleteRule={deleteRule}
+                    activeRules={activeRules}
                 />
             </div>
             <div>

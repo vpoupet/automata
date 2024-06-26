@@ -1,10 +1,10 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import Grille from "../../Objets/Grille";
 import Cellule from "../../Objets/Cellule";
 import Signal from "../../Objets/Signal";
 import {Configuration} from "../../../classes/Configuration.ts";
 
-const ManagerGrilleInteractive = (rows, cols, automaton, reglesbools, setAutomaton) => {
+const ManagerGrilleInteractive = (rows, cols, automaton, reglesbools, setAutomaton, setActiveRule, regles, reglesbool, activeRules) => {
     const [grille, setGrille] = useState(new Grille(rows, cols));
     const [activeCells, setActiveCells] = useState([]);
 
@@ -33,7 +33,7 @@ const ManagerGrilleInteractive = (rows, cols, automaton, reglesbools, setAutomat
                     return [...prev, {row: rowIndex, col: colIndex}];
                 }
             });
-        } else if (event.shiftKey){
+        } else if (event.shiftKey) {
             setActiveCells((prev) => {
                 const alreadySelected = prev.some(cell => cell.row === rowIndex && cell.col === colIndex);
                 if (alreadySelected) {
@@ -58,8 +58,7 @@ const ManagerGrilleInteractive = (rows, cols, automaton, reglesbools, setAutomat
                     return [...prev, {row: rowIndex, col: colIndex}]
                 }
             });
-        }
-        else {
+        } else {
             setActiveCells([{row: rowIndex, col: colIndex}]);
         }
     };
@@ -178,11 +177,9 @@ const ManagerGrilleInteractive = (rows, cols, automaton, reglesbools, setAutomat
         automaton.setRules(reglesbools);
         automaton.updateParameters();
         setAutomaton(automaton);
-        const conf = automaton.makeDiagram(conffromgrid, 4);
-
+        const conf = automaton.makeDiagram(conffromgrid, grille.grid.length - 1);
         //passer de tableaux de tableau contenant des sets de Symbol
         //à des tableaux de tableaux contenant des tableaux de Signal
-
         for (let i = 0; i < conf.length; i++) {
             for (let j = 0; j < conf[i].cells.length; j++) {
                 const cellSet = conf[i].cells[j];
@@ -191,9 +188,35 @@ const ManagerGrilleInteractive = (rows, cols, automaton, reglesbools, setAutomat
                 newGrille.grid[i][j] = cell;
             }
         }
-
         setGrille(newGrille);
     }
+    useEffect(() => {
+        const config = new Configuration(grille.grid[0].length)
+        for (let i = 0; i < grille.grid[0].length; i++) {
+            config.cells[i] = grille.grid[0][i].toSet()
+        }
+        for (let i = 0; i < regles.length; i++) {
+            //setActiveRule étant asynchrone....
+            setActiveRule((prevRules) => {
+                let newRules = [...prevRules];
+                newRules[i] = false;
+                return newRules;
+            });
+        }
+
+        for (let i = 0; i < grille.grid[0].length; i++) {
+            //pas modulaire du tout !!!!! changer -2 2 en rayon (var globale)
+            const neighborhood = config.getNeighborhood(i, -2, 2);
+            for (let j=0; j<regles.length; j++) {
+                if (reglesbool[j].condition.eval(neighborhood)) {
+                    let newRules = [...activeRules];
+                    newRules[j] = true;
+                    setActiveRule(newRules);
+                }
+            }
+        }
+    }, [grille]);
+
 
     return {
         grille,

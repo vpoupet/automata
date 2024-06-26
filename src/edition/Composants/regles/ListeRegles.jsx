@@ -1,7 +1,7 @@
 import React from 'react';
 import Regle from "./Regle";
 
-const ListeRegles = ({regles, onLoadRule, onDeleteRule, onUpdateRule}) => {
+const ListeRegles = ({regles, onLoadRule, onDeleteRule, onUpdateRule, activeRules}) => {
 
 
     return (
@@ -11,6 +11,7 @@ const ListeRegles = ({regles, onLoadRule, onDeleteRule, onUpdateRule}) => {
                 <div key={index} style={{marginBottom: '10px'}}>
                     <Regle
                         grille={regle}
+                        activeRule={activeRules[index]}
                         onLoadRule={() => onLoadRule(index)}
                         onDeleteRule={() => onDeleteRule(index)}
                         onUpdateRule={() => onUpdateRule(index)}

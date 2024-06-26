@@ -3,19 +3,37 @@ import {Conjunction, Literal, Negation} from "../../../classes/Clause.ts";
 import {Automaton, Rule, RuleOutput} from "../../../classes/Automaton.ts";
 
 
-const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools) => {
-    const [regles, setRegles] = useState([]);
+const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles, setRegles, activeRules) => {
 
     const handleSaveRule = () => {
         const configuration = grille.grid.map(row =>
             row.map(caseObj => caseObj.signals.map(signal => signal.getValue()))
         );
         if (!regles.some(config => JSON.stringify(config) === JSON.stringify(configuration))) {
-            const newRegles = [...regles, configuration];
-            setRegles(newRegles);
-            setReglesbools(newRegles.map(creerReglebool));
+            let modify=false;
+            for (let i=0; i<activeRules.length; i++){
+                if (activeRules[i]){
+                    //on garde à false tant que la fonction ne fonctionne pas
+                    modify=false;
+                    modifyRule();
+                    //fonction permettant de modifier les règles qui sont touchées
+                }
+            }
+            if (!modify) {
+                const newRegles = [...regles, configuration];
+                setRegles(newRegles);
+                setReglesbools(newRegles.map(creerReglebool));
+            }
         }
     };
+
+    const modifyRule = () => {
+        //vérifie l'ouput de chaque règle ayant un index dont la valeur est true dans activeRules
+        //si l'output a changé, on met à jour setRegle et on met à jour setReglesbools
+        //il faut d'abord changer en bool pour rajouter la condition
+        //la condition est l'input ^ négation de ce qui n'est pas l'input de base
+        return;
+    }
 
     const handleLoadRule = (index) => {
         return regles[index];

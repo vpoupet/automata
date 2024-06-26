@@ -57,8 +57,6 @@ function handleCellClick(index: number, cells: Set<Signal>[], onCellClick: (cell
         { cell: getCellOrEmpty(index + 1), key: `${index + 1}` },
         { cell: getCellOrEmpty(index + 2), key: `${index + 2}` },
     ];
-    console.log('Cell clicked:', index, );
-    console.log('Cells to update:', cellList);
 
     onCellClick(cellList);
 }
