@@ -91,6 +91,13 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         if (modif.length !== 0) {
             console.log('il y a des modifications à faire');
             console.log(modif.length)
+
+            //pour chaque regle de modif, on met en négation tous les input de la grille qui ne font pas partie de la clause de la regle
+
+            //puis on modifie la clause de chaque regle
+
+
+            /**
             //on prend la clause de la grilleInteractive
             let conditionNegative = new Negation(creerClause(grille.grid[0]));
             //on prend la reglebool de chaque regle dans modif, on extrait leurs clauses
@@ -104,7 +111,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
                 bool.clause= new Conjunction([bool.clause, conditionNegative]);
             });
             //on modifie les règles dont le num est dans modif
-
+            **/
         }
 
         //vérifier si l'output a changé (une fois suffit, si oui on continu)
