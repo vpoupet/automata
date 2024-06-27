@@ -36,7 +36,7 @@ function App() {
         handleRemoveSignal,
         updateSignalInGrid,
         handleUpdateFromDiagramme,
-        applyRulesGrid
+        applyRulesGrid,
     } = ManagerGrilleInteractive(rows, cols, automaton, reglesbools, setAutomaton, setActiveRule, regles, reglesbools, activeRules);
 
     const {
@@ -52,6 +52,7 @@ function App() {
         updateRule,
         deleteRule,
         updateRuleSignal,
+        modifyRule,
     } = ManagerRegles(grille, setAutomaton, setReglesbools, reglesbools, regles, setRegles, activeRules);
 
     const sendLoadRuleToGrid = (index) => {
@@ -98,6 +99,7 @@ function App() {
                     handleCaseClick={handleCaseClick}
                     handleSaveRule={handleSaveRule}
                     applyRules={applyRulesGrid}
+                    modifyRule={modifyRule}
                 />
             </div>
             <div>

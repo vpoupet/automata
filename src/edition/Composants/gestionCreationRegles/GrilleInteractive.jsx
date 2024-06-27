@@ -14,7 +14,8 @@ const GrilleInteractive = ({
                                handleRemoveAllSignalsFromGrid,
                                handleCaseClick,
                                handleSaveRule,
-                               applyRules
+                               applyRules,
+                               modifyRule
                            }) => {
     const setActiveSignals = () => {
         if (activeCells.length === 0) {
@@ -34,16 +35,16 @@ const GrilleInteractive = ({
     };
 
     return (
-        <div style={{ display: 'flex' }}>
+        <div style={{display: 'flex'}}>
             <div>
                 <h1>Grille Interactive</h1>
                 <div className="grid-container">
-                    {Array.from({ length: grille.grid[0].length }).map((_, colIndex) => (
+                    {Array.from({length: grille.grid[0].length}).map((_, colIndex) => (
                         <div key={colIndex} className="row">
-                            <div style={{ width: '30px', textAlign: 'center', display: 'flex', flexDirection: 'column' }}>
+                            <div style={{width: '30px', textAlign: 'center', display: 'flex', flexDirection: 'column'}}>
                                 {colIndex + 1}
                             </div>
-                            {Array.from({ length: grille.grid.length }).map((_, rowIndex) => {
+                            {Array.from({length: grille.grid.length}).map((_, rowIndex) => {
                                 const caseObj = grille.getCase(grille.grid.length - 1 - rowIndex, colIndex);
                                 const isActive = activeCells.some(cell => cell.row === (grille.grid.length - 1 - rowIndex) && cell.col === colIndex);
                                 return (
@@ -72,7 +73,8 @@ const GrilleInteractive = ({
                     />
                 )}
                 <button onClick={handleSaveRule}>Ajouter règle</button>
-                <button onClick={applyRules}>Appliquer règles</button>
+                <button onClick={applyRules}>Appliquer règles sur la grille</button>
+                <button onClick={modifyRule}>Modifier règle</button>
             </div>
         </div>
     );
