@@ -212,22 +212,21 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
 
     const creerClause = (tab) => {
         const clauses = [];
-
         tab.forEach((sousTableau) => {
             for (let i = 0; i < sousTableau.length; i++) {
                 const pos = i - Math.floor(sousTableau.length / 2);
                 for (let j = 0; j < sousTableau[i].length; j++) {
+
                     let literal = new Literal(Symbol.for(sousTableau[i][j]), pos);
-                    const symbolDescription = Symbol.keyFor(Symbol.for(sousTableau[i][j]));
 
                     if (sousTableau[i][j].startsWith('!')) {
                         literal = new Negation(literal);
                     }
+
                     clauses.push(literal);
                 }
             }
         });
-
         return new Conjunction(clauses);
     };
 
@@ -265,7 +264,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         for (let regle of rules) {
             let tabNewRule = new Grille(grille.grid.length, grille.grid[0].length);
             for (let literal of regle.condition.getLiterals()) {
-                tabNewRule.grid[0][literal.position + (grille.grid[0].length-1)/2].signals.push(literal.signal)
+                tabNewRule.grid[0][literal.literal.position + (grille.grid[0].length-1)/2].signals.push(literal.literal.signal)
             }
             for (let ruleOut of regle.outputs){
                 tabNewRule.grid[ruleOut.futureStep][ruleOut.neighbor + (grille.grid[0].length-1)/2].signals.push(ruleOut.signal);

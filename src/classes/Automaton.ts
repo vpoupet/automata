@@ -89,8 +89,8 @@ export class Automaton {
                 this.maxFutureDepth = Math.max(this.maxFutureDepth, output.futureStep);
             }
             for (const literal of rule.condition.getLiterals()) {
-                this.minNeighbor = Math.min(this.minNeighbor, literal.position);
-                this.maxNeighbor = Math.max(this.maxNeighbor, literal.position);
+                this.minNeighbor = Math.min(this.minNeighbor, literal.literal.position);
+                this.maxNeighbor = Math.max(this.maxNeighbor, literal.literal.position);
             }
         }
         if (this.minNeighbor === Infinity) this.minNeighbor = 0;
