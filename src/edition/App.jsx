@@ -53,6 +53,7 @@ function App() {
         deleteRule,
         updateRuleSignal,
         modifyRule,
+        printReglesConsole
     } = ManagerRegles(grille, setAutomaton, setReglesbools, reglesbools, regles, setRegles, activeRules);
 
     const sendLoadRuleToGrid = (index) => {
@@ -110,6 +111,7 @@ function App() {
                     onUpdateRule={updateRule}
                     onDeleteRule={deleteRule}
                     activeRules={activeRules}
+                    printReglesConsole={printReglesConsole}
                 />
             </div>
             <div>

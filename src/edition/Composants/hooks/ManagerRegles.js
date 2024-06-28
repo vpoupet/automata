@@ -2,29 +2,31 @@ import {useEffect, useState, useCallback} from 'react';
 import {Clause, Conjunction, Literal, Negation} from "../../../classes/Clause.ts";
 import {Automaton, Rule, RuleOutput} from "../../../classes/Automaton.ts";
 import signal from "../../Objets/Signal.js";
+import listeRegles from "../regles/ListeRegles.jsx";
+import {Configuration} from "../../../classes/Configuration.ts";
+import Cellule from "../../Objets/Cellule.js";
+import Grille from "../../Objets/Grille.js";
 
 
 const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles, setRegles, activeRules) => {
 
-    const handleSaveRule = (cellOutput=[], pos = Number.MIN_SAFE_INTEGER) => {
+    const handleSaveRule = (cellOutput = [], pos = Number.MIN_SAFE_INTEGER) => {
         let configuration;
-        if (cellOutput.length!==0 && pos !== Number.MIN_SAFE_INTEGER){
+        if (cellOutput.length !== 0 && pos !== Number.MIN_SAFE_INTEGER) {
             configuration = grille.grid[0].map(caseObj =>
                 caseObj.signals.map(signal =>
-                signal.getValue()))
+                    signal.getValue()))
             //j'ai ajouté à la config la premiere ligne de la grille
             //je dois maintenant rajouter des cases VIDES excepté cellOutput que je met à la position pos
             for (let i = 1; i < grille.grid.length; i++) {
-                if (i===pos){
+                if (i === pos) {
                     configuration.push(cellOutput);
-                }
-                else {
+                } else {
                     configuration.push(new Array(grille.grid[0].length).fill([]));
                 }
             }
 
-        }
-        else {
+        } else {
             configuration = grille.grid.map(row =>
                 row.map(caseObj =>
                     caseObj.signals.map(signal =>
@@ -36,40 +38,14 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
             setRegles(newRegles);
             setReglesbools(newRegles.map(creerReglebool));
         }
+        console.log(regles)
     };
 
     const modifyRule = () => {
-        //--------------------------------- La on vérifie si tous les signaux de la grille ont une origine connue -------------------------------------------------------------\\
 
-        // si ce n'est pas le cas on créé une règle !
-
-        let activeRulesOnly = [];
-        for (let i = 0; i < activeRules.length; i++) {
-            if (activeRules[i]) {
-                activeRulesOnly.push(regles[i]);
-            }
-        }
-        for (let rows = 1; rows < grille.grid.length; rows++) {
-            for (let cell = 0; cell < grille.grid[0].length; cell++) {
-                grille.grid[rows][cell].signals.forEach(signal => {
-                    let signalIsUsed = false;
-                    //pour chaque signaux de la cellule
-                    for (let i=0; i<activeRulesOnly.length; i++){
-                        //si le signal est déjà utilisé dans une règle
-                        if (activeRulesOnly[i][rows][cell].includes(signal)) {
-                            signalIsUsed.push(true);
-                        }
-                    }
-                    if (!signalIsUsed) {
-                        console.log('le signal ' + signal + " n'est pas utilisé dans les règles actives, ajout d'une règle !");
-                        handleSaveRule()
-                    }
-                });
-            }
-        }
 
         //------------------------------------ La on vérifie si tout les signaux des règles ont été appliqués ------------------------------------------------------------\\
-        // si ce n'est pas le cas on modifie les inputs des règles en questions pour rajouter la négation des nouveaux signaux
+        // si ce n'est pas le cas on modifie les règles existantes
 
         let modif = [];
         for (let i = 0; i < activeRules.length; i++) {
@@ -88,30 +64,56 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
                 }
             }
         }
+
+
+        //pour chaque regle de modif, on met en négation tous les input de la grille
+        // qui ne font pas partie de la clause de la regle
+
         if (modif.length !== 0) {
             console.log('il y a des modifications à faire');
             console.log(modif.length)
+            let inputModified = [];
+            for (let nbrRule = 0; nbrRule < modif.length; nbrRule++) {
+                inputModified.push([])
+                for (let i = 0; i < grille.grid[0].length; i++) {
+                    for (let signals = 0; signals < grille.grid[0][i].signals.length; signals++) {
+                        //dans ce for il faudrait repasser en clause pour faire les négations direct en bools
+                        //sinon il faudra refaire un for de for de for
 
-            //pour chaque regle de modif, on met en négation tous les input de la grille qui ne font pas partie de la clause de la regle
+                        if (grille.grid[0][i].signals[signals].getValue() === modif[nbrRule].signal) {
+                            inputModified[nbrRule].push(i);
+                        } else {
+                            if (grille.grid[0][i].signals[signals].getValue() === '!' + modif[nbrRule].signal) {
+                                inputModified[nbrRule].push('!' + i);
+                            }
+                        }
+                    }
+                    if (inputModified[nbrRule].length === 0) {
+                        //une cellule ? ou un tab vide ?
+                        inputModified[nbrRule].push([]);
+                    }
 
-            //puis on modifie la clause de chaque regle
+                }
+            }
+
+            //puis on modifie la clause de chaque regle de modif avec la nouvelle ainsi créée
 
 
             /**
-            //on prend la clause de la grilleInteractive
-            let conditionNegative = new Negation(creerClause(grille.grid[0]));
-            //on prend la reglebool de chaque regle dans modif, on extrait leurs clauses
-            let bools = ([{numregle: 0, clause : Clause}])
-            for (let i=0; i<modif.length; i++) {
-                bools.push({numregle: modif[i].numregle, clause: reglesbools[modif[i].numregle].clause});
-            }
-            //on y ajoute la négation de l'?ensemble?  de l'input actuel (on le fait à chaque regle concernée)
-            // Todo : pas la négation de l'ensemble, juste de ce qui est nouveau dans l'input de chaque regle (et non ca et non ca et non ca)
-            bools.map((bool) => {
-                bool.clause= new Conjunction([bool.clause, conditionNegative]);
-            });
-            //on modifie les règles dont le num est dans modif
-            **/
+             //on prend la clause de la grilleInteractive
+             let conditionNegative = new Negation(creerClause(grille.grid[0]));
+             //on prend la reglebool de chaque regle dans modif, on extrait leurs clauses
+             let bools = ([{numregle: 0, clause : Clause}])
+             for (let i=0; i<modif.length; i++) {
+             bools.push({numregle: modif[i].numregle, clause: reglesbools[modif[i].numregle].clause});
+             }
+             //on y ajoute la négation de l'?ensemble?  de l'input actuel (on le fait à chaque regle concernée)
+             // Todo : pas la négation de l'ensemble, juste de ce qui est nouveau dans l'input de chaque regle (et non ca et non ca et non ca)
+             bools.map((bool) => {
+             bool.clause= new Conjunction([bool.clause, conditionNegative]);
+             });
+             //on modifie les règles dont le num est dans modif
+             **/
         }
 
         //vérifier si l'output a changé (une fois suffit, si oui on continu)
@@ -120,7 +122,44 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
 
         //si l'output est la/pas la pour chaque règle on ajoute negation
         //à chacune des règles et on ajoute nouvelle règle pour l'output spécifique
-        return;
+
+
+        //--------------------------------- La on vérifie si tous les signaux de la grille ont une origine connue -------------------------------------------------------------\\
+        // si ce n'est pas le cas on créé une règle !
+
+        let activeRulesOnly = [];
+        for (let i = 0; i < activeRules.length; i++) {
+            if (activeRules[i]) {
+                activeRulesOnly.push(regles[i]);
+            }
+        }
+        for (let rows = 1; rows < grille.grid.length; rows++) {
+            for (let cell = 0; cell < grille.grid[0].length; cell++) {
+                grille.grid[rows][cell].signals.forEach(signal => {
+                    let signalIsUsed = false;
+                    //pour chaque signaux de la cellule
+                    for (let i = 0; i < activeRulesOnly.length; i++) {
+                        //si le signal est déjà utilisé dans une règle
+                        if (activeRulesOnly[i][rows][cell].includes(signal)) {
+                            signalIsUsed.push(true);
+                        }
+                    }
+                    if (!signalIsUsed) {
+                        console.log('le signal ' + signal + " n'est pas utilisé dans les règles actives, ajout d'une règle !");
+                        handleSaveRule()
+                    }
+                });
+            }
+        }
+    }
+
+    const printReglesConsole = () => {
+        let stringRule = ""
+        for (let i = 0; i < reglesbools.length; i++) {
+            stringRule += reglesbools[i].toString()
+            stringRule += '\n'
+        }
+        console.log(stringRule)
     }
 
     const handleLoadRule = (index) => {
@@ -178,13 +217,13 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
             for (let i = 0; i < sousTableau.length; i++) {
                 const pos = i - Math.floor(sousTableau.length / 2);
                 for (let j = 0; j < sousTableau[i].length; j++) {
-                    let literals = new Literal(Symbol.for(sousTableau[i][j]), pos);
+                    let literal = new Literal(Symbol.for(sousTableau[i][j]), pos);
                     const symbolDescription = Symbol.keyFor(Symbol.for(sousTableau[i][j]));
 
                     if (sousTableau[i][j].startsWith('!')) {
-                        literals = new Negation(literals);
+                        literal = new Negation(literal);
                     }
-                    clauses.push(literals);
+                    clauses.push(literal);
                 }
             }
         });
@@ -212,10 +251,32 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         const clause = creerClause(clausePart);
         if (outputs.length === 0 && clause.subclauses.length === 0) {
             console.error("Aucun signal n'a été trouvée.");
+            console.log("tu m'as donnée ça : ", regle)
             return;
         }
         return new Rule(clause, outputs);
     };
+
+    window.ajoutRegle = (input = "") => {
+        let auto = new Automaton();
+        auto.parseRules(input);
+        let rules = auto.getRules()
+        console.log(rules);
+        for (let regle of rules) {
+            let tabNewRule = new Grille(grille.grid.length, grille.grid[0].length);
+            for (let literal of regle.condition.getLiterals()) {
+                tabNewRule.grid[0][literal.position + (grille.grid[0].length-1)/2].signals.push(literal.signal)
+            }
+            for (let ruleOut of regle.outputs){
+                tabNewRule.grid[ruleOut.futureStep][ruleOut.neighbor + (grille.grid[0].length-1)/2].signals.push(ruleOut.signal);
+            }
+            console.log(tabNewRule.grid)
+            const newRegles = [...regles, tabNewRule.grid];
+            setRegles(newRegles);
+            setReglesbools(newRegles.map(creerReglebool));
+            // setRegles(tabNewRule.grid);
+        }
+    }
 
     const applyRules = useCallback(() => {
         const auto = new Automaton();
@@ -243,7 +304,8 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         handleLoadRule,
         updateRule,
         deleteRule,
-        modifyRule
+        modifyRule,
+        printReglesConsole
     };
 };
 

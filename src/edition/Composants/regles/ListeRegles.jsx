@@ -1,7 +1,7 @@
 import React from 'react';
 import Regle from "./Regle";
 
-const ListeRegles = ({regles, onLoadRule, onDeleteRule, onUpdateRule, activeRules}) => {
+const ListeRegles = ({regles, onLoadRule, onDeleteRule, onUpdateRule, activeRules, printReglesConsole}) => {
 
 
     return (
@@ -18,6 +18,7 @@ const ListeRegles = ({regles, onLoadRule, onDeleteRule, onUpdateRule, activeRule
                     />
                 </div>
             ))}
+            <button onClick={printReglesConsole}>Sortir règles en texte</button>
         </div>
     );
 }

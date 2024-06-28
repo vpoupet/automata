@@ -276,8 +276,13 @@ export class Automaton {
             }
         }
         return diagram;
+
     }
 
+
+    getRules(): Rule[] {
+        return this.rules;
+    }
     toString(): string {
         return this.rules.map(rule => rule.toString()).join("\n");
     }

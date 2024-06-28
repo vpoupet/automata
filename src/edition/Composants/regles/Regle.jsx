@@ -15,7 +15,7 @@ const Regle = ({ grille, onLoadRule, onDeleteRule, onUpdateRule, activeRule}) =>
                 ))}
             </div>
             <div>
-                <button onClick={onLoadRule}>Règle</button>
+                <button onClick={onLoadRule}>Mettre dans grille</button>
                 <button onClick={onDeleteRule}>Supprimer</button>
                 <button onClick={onUpdateRule}>Mettre à jour</button>
             </div>
