@@ -1,0 +1,24 @@
+.cell {
+    height: 30px;
+    width: 30px;
+    border: 1px solid #ddd;
+    background-color: white;
+    position: relative;
+    cursor: pointer;
+}
+
+.cell.active {
+    background-color: blue;
+    color: white;
+}
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* 5 colonnes de largeur égale */
+    grid-gap: 10px; /* Espace entre les cellules */
+    width: fit-content; /* Ajuste la largeur du conteneur au contenu */
+    margin: auto; /* Centre le conteneur */
+}
+
+.cellContent {
+    color: red;
+}

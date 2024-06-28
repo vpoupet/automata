@@ -41,19 +41,19 @@ const GestionnaireSignauxGrille = ({ signals, allSignals, onAddSignal, onRemoveS
                 </label>
             </div>
             {allSignals.map((signal) => (
-                <div key={signal.value}>
+                <div key={signal.getValue()}>
                     <label>
                         <input
                             type="checkbox"
-                            checked={signals.includes(signal.value)}
-                            onChange={(e) => handleLeftCheckboxChange(signal.value, e)}
+                            checked={signals.includes(signal.getValue())}
+                            onChange={(e) => handleLeftCheckboxChange(signal.getValue(), e)}
                         />
                         <input
                             type="checkbox"
-                            checked={signals.includes('!' + signal.value)}
-                            onChange={(e) => handleRightCheckboxChange(signal.value, e)}
+                            checked={signals.includes('!' + signal.getValue())}
+                            onChange={(e) => handleRightCheckboxChange(signal.getValue(), e)}
                         />
-                        {signal.value}
+                        {signal.getValue()}
                     </label>
                 </div>
             ))}

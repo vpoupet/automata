@@ -1,10 +1,23 @@
 class Signal {
     constructor(value) {
-        this.value = String(value);  // Convertir en chaîne de caractères
+        this.symbol = Symbol.for(String(value));
+        this.negation = value.startsWith('!');
     }
 
     setValue(value) {
-        this.value = String(value);  // Convertir en chaîne de caractères
+        this.symbol = Symbol.for(String(value));
+        this.negation = value.startsWith('!');
+    }
+
+    getValue() {
+        return Symbol.keyFor(this.symbol);
+    }
+
+    getSymbol(){
+        return this.symbol;
+    }
+    getNegation(){
+        return this.negation;
     }
 }
 

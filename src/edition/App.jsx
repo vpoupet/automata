@@ -1,13 +1,27 @@
-import GrilleInteractive from './Composants/gestionRegles/GrilleInteractive.jsx';
+import GrilleInteractive from './Composants/gestionCreationRegles/GrilleInteractive.jsx';
 import ListeRegles from './Composants/regles/ListeRegles';
-import {useEffect, useState} from "react";
+import {useState} from "react";
 
 import GestionSignaux from "./Composants/gestionSignaux/GestionSignaux";
 import ManagerGrilleInteractive from "./Composants/hooks/ManagerGrilleInteractive";
 import ManagerSignaux from "./Composants/hooks/ManagerSignaux";
 import ManagerRegles from "./Composants/hooks/ManagerRegles";
+import {Diagram} from "../components/Diagram.tsx";
+import {Automaton} from "../classes/Automaton.ts";
 
 function App() {
+    const [rows] = useState(2);
+    const [cols] = useState(5);
+    const [regles, setRegles] = useState([]);
+    const [reglesbools, setReglesbools] = useState([]);
+    const [activeRules, setActiveRule]= useState([])
+
+    const [automaton, setAutomaton] = useState(new Automaton());
+    const [settings, setSettings] = useState({
+        nbCells: 40,
+        nbSteps: 60,
+        timeGoesUp: true,
+    });
 
     const {
         grille,
@@ -21,28 +35,26 @@ function App() {
         handleAddSignal,
         handleRemoveSignal,
         updateSignalInGrid,
-    } = ManagerGrilleInteractive(5,5);
+        handleUpdateFromDiagramme,
+        applyRulesGrid,
+    } = ManagerGrilleInteractive(rows, cols, automaton, reglesbools, setAutomaton, setActiveRule, regles, reglesbools, activeRules);
 
-    const {listeSignaux,
+    const {
+        listeSignaux,
         handleAddNewSignal,
         deleteSignal,
         updateSignal
     } = ManagerSignaux();
 
     const {
-        regles,
-        reglesArithmetiques,
         deleteSignalInRules,
         handleSaveRule,
         updateRule,
         deleteRule,
-        updateRuleSignal
-    } = ManagerRegles(grille);
-
-
-    const [rows] = useState(5);
-    const [cols] = useState(5);
-
+        updateRuleSignal,
+        modifyRule,
+        printReglesConsole
+    } = ManagerRegles(grille, setAutomaton, setReglesbools, reglesbools, regles, setRegles, activeRules);
 
     const sendLoadRuleToGrid = (index) => {
         const configuration = regles[index];
@@ -50,7 +62,7 @@ function App() {
     };
 
     const handleUpdateSignal = (index, newValue) => {
-        const {success, oldValue, newValue: updatedValue} = updateSignal(index, newValue);
+        const { success, oldValue, newValue: updatedValue } = updateSignal(index, newValue);
 
         if (success) {
             updateRuleSignal(oldValue, updatedValue);
@@ -68,6 +80,9 @@ function App() {
         handleAddAllSignals(listeSignaux);
     }
 
+    const handleCellClick = (cells) => {
+        handleUpdateFromDiagramme(cells);
+    };
 
     return (
         <div className="App">
@@ -84,16 +99,19 @@ function App() {
                     handleRemoveAllSignalsFromGrid={handleRemoveAllSignalsFromGrid}
                     handleCaseClick={handleCaseClick}
                     handleSaveRule={handleSaveRule}
+                    applyRules={applyRulesGrid}
+                    modifyRule={modifyRule}
                 />
             </div>
             <div>
                 <ListeRegles
                     regles={regles}
-                    reglesArithmetiques={reglesArithmetiques}
+                    reglesbools={reglesbools}
                     onLoadRule={sendLoadRuleToGrid}
                     onUpdateRule={updateRule}
                     onDeleteRule={deleteRule}
-
+                    activeRules={activeRules}
+                    printReglesConsole={printReglesConsole}
                 />
             </div>
             <div>
@@ -104,6 +122,7 @@ function App() {
                     onDeleteSignal={handleDeleteSignal}
                 />
             </div>
+            <Diagram automaton={automaton} settings={settings} onCellClick={handleCellClick} />
         </div>
     );
 }

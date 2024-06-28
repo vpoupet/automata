@@ -1,4 +1,4 @@
-import { Signal, Neighborhood } from "./types.ts";
+import {Signal, Neighborhood, SignedLiteral} from "./types.ts";
 
 export class Clause {
     eval(_signals: Neighborhood): boolean {
@@ -9,7 +9,7 @@ export class Clause {
         return "";
     }
 
-    getLiterals(): Literal[] {
+    getLiterals(): SignedLiteral[] {
         return [];
     }
 }
@@ -37,8 +37,14 @@ export class Negation extends Clause {
         }
     }
 
-    getLiterals(): Literal[] {
-        return this.subclause.getLiterals();
+    getLiterals(): SignedLiteral[] {
+        return this.subclause.getLiterals().map(l => {
+            return {
+                literal: l.literal,
+                sign: !l.sign,
+            }
+            }
+        );
     }
 }
 
@@ -71,7 +77,7 @@ export class Conjunction extends Clause {
             .join(" ")})`;
     }
 
-    getLiterals(): Literal[] {
+    getLiterals(): SignedLiteral[] {
         return this.subclauses.flatMap((subclause) => subclause.getLiterals());
     }
 }
@@ -105,7 +111,7 @@ export class Disjunction extends Clause {
             .join(" ")}]`;
     }
 
-    getLiterals(): Literal[] {
+    getLiterals(): SignedLiteral[] {
         return this.subclauses.flatMap((subclause) => subclause.getLiterals());
     }
 }
@@ -136,7 +142,10 @@ export class Literal extends Clause {
         }
     }
 
-    getLiterals(): Literal[] {
-        return [this];
+    getLiterals(): SignedLiteral[] {
+        return [{
+            literal : this,
+            sign : true,
+        }];
     }
 }
