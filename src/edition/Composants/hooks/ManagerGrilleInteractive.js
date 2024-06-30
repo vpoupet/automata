@@ -24,7 +24,7 @@ const ManagerGrilleInteractive = (rows, cols, automaton, reglesbools, setAutomat
     };
 
     const handleCaseClick = (rowIndex, colIndex, event) => {
-        if (event.ctrlKey) {
+        if (event.ctrlKey || event.metaKey) {
             setActiveCells((prev) => {
                 const alreadySelected = prev.some(cell => cell.row === rowIndex && cell.col === colIndex);
                 if (alreadySelected) {
