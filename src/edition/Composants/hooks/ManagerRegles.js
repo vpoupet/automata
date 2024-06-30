@@ -264,7 +264,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         for (let regle of rules) {
             let tabNewRule = new Grille(grille.grid.length, grille.grid[0].length);
             for (let literal of regle.condition.getLiterals()) {
-                tabNewRule.grid[0][literal.literal.position + (grille.grid[0].length-1)/2].signals.push(literal.literal.signal)
+                tabNewRule.grid[0][literal.position + (grille.grid[0].length-1)/2].signals.push(literal.signal)
             }
             for (let ruleOut of regle.outputs){
                 tabNewRule.grid[ruleOut.futureStep][ruleOut.neighbor + (grille.grid[0].length-1)/2].signals.push(ruleOut.signal);

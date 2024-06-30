@@ -1,7 +1,12 @@
-import { Clause, Conjunction, Disjunction, Literal, Negation } from './Clause.ts';
-import { Configuration } from './Configuration.ts';
-import { Signal } from './types.ts';
-
+import {
+    Clause,
+    Conjunction,
+    Disjunction,
+    Literal,
+    Negation,
+} from "./Clause.ts";
+import { Configuration } from "./Configuration.ts";
+import { Signal } from "./types.ts";
 
 class RuleParsingException extends Error {
     constructor(message: string) {
@@ -9,7 +14,6 @@ class RuleParsingException extends Error {
         this.name = "RuleParsingException";
     }
 }
-
 
 export class RuleOutput {
     neighbor: number;
@@ -26,11 +30,12 @@ export class RuleOutput {
         if (this.futureStep === 1) {
             return `${this.neighbor}.${Symbol.keyFor(this.signal)}`;
         } else {
-            return `${this.neighbor}/${this.futureStep}.${Symbol.keyFor(this.signal)}`;
+            return `${this.neighbor}/${this.futureStep}.${Symbol.keyFor(
+                this.signal
+            )}`;
         }
     }
 }
-
 
 /**
  * Representation of a cellular automaton rule.
@@ -54,7 +59,9 @@ export class Rule {
     }
 
     toString() {
-        return `${this.condition.toString()}: ${this.outputs.map(output => output.toString()).join(" ")}`;
+        return `${this.condition.toString()}: ${this.outputs
+            .map((output) => output.toString())
+            .join(" ")}`;
     }
 }
 
@@ -86,11 +93,14 @@ export class Automaton {
         this.maxFutureDepth = 1;
         for (const rule of this.rules) {
             for (const output of rule.outputs) {
-                this.maxFutureDepth = Math.max(this.maxFutureDepth, output.futureStep);
+                this.maxFutureDepth = Math.max(
+                    this.maxFutureDepth,
+                    output.futureStep
+                );
             }
             for (const literal of rule.condition.getLiterals()) {
-                this.minNeighbor = Math.min(this.minNeighbor, literal.literal.position);
-                this.maxNeighbor = Math.max(this.maxNeighbor, literal.literal.position);
+                this.minNeighbor = Math.min(this.minNeighbor, literal.position);
+                this.maxNeighbor = Math.max(this.maxNeighbor, literal.position);
             }
         }
         if (this.minNeighbor === Infinity) this.minNeighbor = 0;
@@ -106,10 +116,10 @@ export class Automaton {
 
     parseRules(rulesString: string): Automaton {
         this.rules = [];
-        const conditionsStack: { condition: Clause, indent: number }[] = [];
-        for (let line of rulesString.split('\n')) {
-            const indent = line.search(/\S|$/);    // indentation of current line
-            line = line.replace(/#.*/, '').trim();  // remove comments and whitespace
+        const conditionsStack: { condition: Clause; indent: number }[] = [];
+        for (let line of rulesString.split("\n")) {
+            const indent = line.search(/\S|$/); // indentation of current line
+            line = line.replace(/#.*/, "").trim(); // remove comments and whitespace
             if (line.length === 0) continue;
 
             let conditionString: string | undefined;
@@ -123,7 +133,10 @@ export class Automaton {
             }
             let condition: Clause;
             let outputs: RuleOutput[];
-            while (conditionsStack.length > 0 && conditionsStack[0].indent >= indent) {
+            while (
+                conditionsStack.length > 0 &&
+                conditionsStack[0].indent >= indent
+            ) {
                 // remove irrelevant conditions from stack
                 conditionsStack.shift();
             }
@@ -135,9 +148,12 @@ export class Automaton {
                 if (conditionsStack.length === 0) {
                     condition = lineCondition;
                 } else {
-                    condition = new Conjunction([conditionsStack[0].condition, lineCondition]);
+                    condition = new Conjunction([
+                        conditionsStack[0].condition,
+                        lineCondition,
+                    ]);
                 }
-                conditionsStack.unshift({ condition, indent });   // push condition to stack
+                conditionsStack.unshift({ condition, indent }); // push condition to stack
             } else {
                 // get parent condition from stack
                 condition = conditionsStack[0].condition;
@@ -156,7 +172,7 @@ export class Automaton {
     readConditionTokens(conditionTokens: string[]): Clause {
         const token = conditionTokens.shift();
         if (token === undefined) {
-            return new Clause();
+            return new Conjunction([]);
         }
         const subclauses: Clause[] = [];
         let negatedCondition: Clause;
@@ -164,7 +180,9 @@ export class Automaton {
             case "(":
                 while (conditionTokens[0] !== ")") {
                     if (conditionTokens.length === 0) {
-                        throw new RuleParsingException("Unbalanced parentheses in condition");
+                        throw new RuleParsingException(
+                            "Unbalanced parentheses in condition"
+                        );
                     }
                     subclauses.push(this.readConditionTokens(conditionTokens));
                 }
@@ -178,7 +196,9 @@ export class Automaton {
             case "[":
                 while (conditionTokens[0] !== "]") {
                     if (conditionTokens.length === 0) {
-                        throw new RuleParsingException("Unbalanced parentheses in condition");
+                        throw new RuleParsingException(
+                            "Unbalanced parentheses in condition"
+                        );
                     }
                     subclauses.push(this.readConditionTokens(conditionTokens));
                 }
@@ -217,18 +237,22 @@ export class Automaton {
     parseOutputs(outputsString: string): RuleOutput[] {
         const outputs: RuleOutput[] = [];
         for (const outputString of outputsString.trim().split(/\s+/)) {
-            if (outputString.includes('.')) {
+            if (outputString.includes(".")) {
                 let futureStep = 1;
                 let futureStepString: string;
                 const outputSplit = outputString.split(".");
                 let neighborString = outputSplit[0];
                 const signalName = outputSplit[1];
-                if (neighborString.includes('/')) {
-                    [neighborString, futureStepString] = neighborString.split("/");
+                if (neighborString.includes("/")) {
+                    [neighborString, futureStepString] =
+                        neighborString.split("/");
                     futureStep = parseInt(futureStepString);
                 }
-                const neighbor = neighborString === '' ? 0 : parseInt(neighborString);
-                outputs.push(new RuleOutput(neighbor, Symbol.for(signalName), futureStep));
+                const neighbor =
+                    neighborString === "" ? 0 : parseInt(neighborString);
+                outputs.push(
+                    new RuleOutput(neighbor, Symbol.for(signalName), futureStep)
+                );
             } else {
                 outputs.push(new RuleOutput(0, Symbol.for(outputString), 1));
             }
@@ -238,7 +262,7 @@ export class Automaton {
 
     /**
      * Returns a space-time diagram from a starting configuration
-     * 
+     *
      * The input is a list of configurations, because some future configurations might already have signals from previous
      * steps (when a rule output sends a signal several time steps ahead). If the list has less than (maxFutureSteps + 1)
      * (corresponding to the current configuration and the `maxFutureSteps` next ones) new empty configurations are added
@@ -248,12 +272,15 @@ export class Automaton {
      * each cell in the configuration). `configs[0]` is the configuration at time t (the one to which the rules are
      * applied) and the other ones are configurations at subsequent times (t + 1, t + 2, ...) if they already have signals.
      * New configurations can be added as needed with empty sets for all cells.
-     * 
+     *
      * @returns {[[Set<int>]]} the list of configurations after applying the rules. Note that because some rules can affect
      * the configuration at time t (rules 0/0) the configuration to which the rules were applied might have changed. The
      * configurations are modified in place (the returned list is not a copy of the input).
      */
-    makeDiagram(initialConfiguration: Configuration, nbSteps: number): Configuration[] {
+    makeDiagram(
+        initialConfiguration: Configuration,
+        nbSteps: number
+    ): Configuration[] {
         const nbCells = initialConfiguration.getSize();
         const diagram = [initialConfiguration];
         for (let i = 0; i < nbSteps; i++) {
@@ -262,13 +289,23 @@ export class Automaton {
         for (let t = 0; t < nbSteps; t++) {
             const config = diagram[t];
             for (let c = 0; c < nbCells; c++) {
-                const neighborhood = config.getNeighborhood(c, this.minNeighbor, this.maxNeighbor);
+                const neighborhood = config.getNeighborhood(
+                    c,
+                    this.minNeighbor,
+                    this.maxNeighbor
+                );
                 for (const rule of this.rules) {
                     if (rule.condition.eval(neighborhood)) {
-                        rule.outputs.forEach(output => {
+                        rule.outputs.forEach((output) => {
                             const targetCell = c + output.neighbor;
-                            if (t + output.futureStep < diagram.length && 0 <= targetCell && targetCell < nbCells) {
-                                diagram[t + output.futureStep].cells[targetCell].add(output.signal);
+                            if (
+                                t + output.futureStep < diagram.length &&
+                                0 <= targetCell &&
+                                targetCell < nbCells
+                            ) {
+                                diagram[t + output.futureStep].cells[
+                                    targetCell
+                                ].add(output.signal);
                             }
                         });
                     }
@@ -276,14 +313,12 @@ export class Automaton {
             }
         }
         return diagram;
-
     }
-
 
     getRules(): Rule[] {
         return this.rules;
     }
     toString(): string {
-        return this.rules.map(rule => rule.toString()).join("\n");
+        return this.rules.map((rule) => rule.toString()).join("\n");
     }
 }
