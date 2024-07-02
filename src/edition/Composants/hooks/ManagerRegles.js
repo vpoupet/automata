@@ -42,10 +42,11 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
     };
 
     const modifyRule = () => {
+        modifExistingRules();
+        addUnexpectedRule();
+    }
 
-
-        //------------------------------------ La on vérifie si tout les signaux des règles ont été appliqués ------------------------------------------------------------\\
-        // si ce n'est pas le cas on modifie les règles existantes
+    const modifExistingRules = () => {
 
         let modif = [];
         for (let i = 0; i < activeRules.length; i++) {
@@ -96,36 +97,10 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
                 }
             }
 
-            //puis on modifie la clause de chaque regle de modif avec la nouvelle ainsi créée
-
-
-            /**
-             //on prend la clause de la grilleInteractive
-             let conditionNegative = new Negation(creerClause(grille.grid[0]));
-             //on prend la reglebool de chaque regle dans modif, on extrait leurs clauses
-             let bools = ([{numregle: 0, clause : Clause}])
-             for (let i=0; i<modif.length; i++) {
-             bools.push({numregle: modif[i].numregle, clause: reglesbools[modif[i].numregle].clause});
-             }
-             //on y ajoute la négation de l'?ensemble?  de l'input actuel (on le fait à chaque regle concernée)
-             // Todo : pas la négation de l'ensemble, juste de ce qui est nouveau dans l'input de chaque regle (et non ca et non ca et non ca)
-             bools.map((bool) => {
-             bool.clause= new Conjunction([bool.clause, conditionNegative]);
-             });
-             //on modifie les règles dont le num est dans modif
-             **/
         }
+    }
 
-        //vérifier si l'output a changé (une fois suffit, si oui on continu)
-
-        //si l'output est pas la pour n'importe laquelle on ajoute négation à la règle en question
-
-        //si l'output est la/pas la pour chaque règle on ajoute negation
-        //à chacune des règles et on ajoute nouvelle règle pour l'output spécifique
-
-
-        //--------------------------------- La on vérifie si tous les signaux de la grille ont une origine connue -------------------------------------------------------------\\
-        // si ce n'est pas le cas on créé une règle !
+    const addUnexpectedRule = () => {
 
         let activeRulesOnly = [];
         for (let i = 0; i < activeRules.length; i++) {
@@ -152,6 +127,40 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
             }
         }
     }
+
+    //------------------------------------ La on vérifie si tout les signaux des règles ont été appliqués ------------------------------------------------------------\\
+    // si ce n'est pas le cas on modifie les règles existantes
+
+    //puis on modifie la clause de chaque regle de modif avec la nouvelle ainsi créée
+
+
+    /**
+     //on prend la clause de la grilleInteractive
+     let conditionNegative = new Negation(creerClause(grille.grid[0]));
+     //on prend la reglebool de chaque regle dans modif, on extrait leurs clauses
+     let bools = ([{numregle: 0, clause : Clause}])
+     for (let i=0; i<modif.length; i++) {
+     bools.push({numregle: modif[i].numregle, clause: reglesbools[modif[i].numregle].clause});
+     }
+     //on y ajoute la négation de l'?ensemble?  de l'input actuel (on le fait à chaque regle concernée)
+     // Todo : pas la négation de l'ensemble, juste de ce qui est nouveau dans l'input de chaque regle (et non ca et non ca et non ca)
+     bools.map((bool) => {
+     bool.clause= new Conjunction([bool.clause, conditionNegative]);
+     });
+     //on modifie les règles dont le num est dans modif
+     **/
+
+//vérifier si l'output a changé (une fois suffit, si oui on continu)
+
+//si l'output est pas la pour n'importe laquelle on ajoute négation à la règle en question
+
+//si l'output est la/pas la pour chaque règle on ajoute negation
+//à chacune des règles et on ajoute nouvelle règle pour l'output spécifique
+
+
+//--------------------------------- La on vérifie si tous les signaux de la grille ont une origine connue -------------------------------------------------------------\\
+// si ce n'est pas le cas on créé une règle !
+
 
     const printReglesConsole = () => {
         let stringRule = ""
@@ -212,34 +221,33 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
 
     const creerClause = (tab) => {
         const clauses = [];
-        tab.forEach((sousTableau) => {
-            for (let i = 0; i < sousTableau.length; i++) {
-                const pos = i - Math.floor(sousTableau.length / 2);
-                for (let j = 0; j < sousTableau[i].length; j++) {
-
-                    let literal = new Literal(Symbol.for(sousTableau[i][j]), pos);
-
-                    if (sousTableau[i][j].startsWith('!')) {
-                        literal = new Negation(literal);
-                    }
-
+        tab.forEach((row) => {
+            for (let cell = 0; cell < row.length; cell++) {
+                const pos = cell - Math.floor(row.length / 2);
+                for (let signal = 0; signal < row[cell].length; signal++) {
+                    //todo : à modif avec le fonctionnement de signal
+                    let literal = new Literal(Symbol.for(row[cell][signal]), pos, !row[cell][signal].startsWith("!"));
                     clauses.push(literal);
                 }
             }
         });
+        console.log('clauses (sous forme de conjonction) : ', new Conjunction(clauses))
         return new Conjunction(clauses);
     };
 
     const creerOutput = (tab) => {
         const outputs = [];
+        console.log('tab de output' , tab)
         tab.forEach((row, rowIndex) => {
             row.forEach((cellule, colIndex) => {
-                if (cellule.length > 0) {
-                    const ruleoutput = cellule.map(signal => new RuleOutput(colIndex - Math.floor(tab[0].length / 2), Symbol.for(signal), rowIndex + 1));
+                if (cellule.signals.length > 0) {
+                    const ruleoutput = cellule.signals.map(signal => new RuleOutput(colIndex - Math.floor(tab[0].length / 2), signal, rowIndex + 1));
+                    console.log('outputs de la Rule : ', ruleoutput)
                     outputs.push(...ruleoutput);
                 }
             });
         });
+
         return outputs;
     };
 
@@ -306,6 +314,5 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         modifyRule,
         printReglesConsole
     };
-};
-
+}
 export default ManagerRegles;

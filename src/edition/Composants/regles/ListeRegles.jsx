@@ -1,7 +1,7 @@
 import React from 'react';
 import Regle from "./Regle";
 
-const ListeRegles = ({regles, onLoadRule, onDeleteRule, onUpdateRule, activeRules, printReglesConsole}) => {
+const ListeRegles = ({regles,reglesbools, onLoadRule, onDeleteRule, onUpdateRule, activeRules, printReglesConsole}) => {
 
 
     return (
@@ -9,6 +9,7 @@ const ListeRegles = ({regles, onLoadRule, onDeleteRule, onUpdateRule, activeRule
             <h2>Règles enregistrées</h2>
             {regles.map((regle, index) => (
                 <div key={index} style={{marginBottom: '10px'}}>
+                    {reglesbools[index] !== null && reglesbools[index] !== undefined ? reglesbools[index].toString() : ''}
                     <Regle
                         grille={regle}
                         activeRule={activeRules[index]}
