@@ -72,7 +72,7 @@ const GrilleInteractive = ({
                 )}
                 <button onClick={handleSaveRule}>Ajouter règle</button>
                 <button onClick={applyRules}>Appliquer règles sur la grille</button>
-                <button onClick={modifyRule}>Modifier règle</button>
+                <button onClick={modifyRule}>Adapter règles</button>
             </div>
         </div>
     );

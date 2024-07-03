@@ -1,96 +1,120 @@
-import { useEffect, useState, useCallback } from 'react';
-import { Clause, Conjunction, Literal, Negation } from "../../../classes/Clause.ts";
-import { Automaton, Rule, RuleOutput } from "../../../classes/Automaton.ts";
+import {useEffect, useState, useCallback} from 'react';
+import {Clause, Conjunction, Literal, Negation} from "../../../classes/Clause.ts";
+import {Automaton, Rule, RuleOutput} from "../../../classes/Automaton.ts";
 import Grille from "../../Objets/Grille.js";
+import {act} from "react-dom/test-utils";
+import {Configuration} from "../../../classes/Configuration.ts";
 
 const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles, setRegles, activeRules) => {
 
     const handleSaveRule = () => {
         let configuration = new Grille(grille.grid.length, grille.grid[0].length);
-            configuration.grid = grille.grid.map(row =>
-                row.map(cell => ({ ...cell, signals: [...cell.signals] }))
-            );
-        if (!regles.some(config => JSON.stringify(config) === JSON.stringify(configuration.grid))) {
-            const newRegles = [...regles, configuration.grid];
-            setRegles(newRegles);
-        }
-
+        configuration.grid = grille.grid.map(row =>
+            row.map(cell => ({...cell, signals: [...cell.signals]}))
+        );
+        const newRegles = [...regles, configuration.grid];
+        setRegles(newRegles);
         console.log(regles);
     };
 
     const modifyRule = () => {
-        modifExistingRules();
-        addUnexpectedRule();
+        let oneRuleToModify = [false, 0];
+        console.log('les regles', regles)
+        for (let ruleNbr = 0; ruleNbr < regles.length; ruleNbr++) {
+            //manque un étage, on descend pas assez bas pour comparer les signaux
+            if (regles[ruleNbr][0].signals === grille.grid[0].signals && regles[ruleNbr][0] !== undefined) {
+                console.log('on a trouvé une règle à modifier', ruleNbr)
+                oneRuleToModify = [true, ruleNbr];
+            }
+        }
+        if (oneRuleToModify[0]) {
+            console.log('modification de la règle', oneRuleToModify[1])
+            modifExistingRules(oneRuleToModify[1]);
+        } else {
+            console.log('ajout d\'une règle (entre autre), on a pas exactement cet input dans une règle');
+            addUnexpectedRule();
+        }
     };
 
-    const modifExistingRules = () => {
-        let modif = [];
-        for (let i = 0; i < activeRules.length; i++) {
-            if (activeRules[i]) {
-                for (let rows = 1; rows < grille.grid.length; rows++) {
-                    for (let cell = 0; cell < grille.grid[0].length; cell++) {
-                        regles[i][rows][cell].signals.forEach(signal => {
-                            if (grille.grid[rows][cell].signals.map(s => s).includes(signal)) {
-                                console.log('le signal ' + signal.description + ' est toujours présent dans la grille');
-                            } else {
-                                console.log('le signal ' + signal.description + " n'est pas présent dans l'output, la regle n° ", i, "à l'emplacement : ligne : ", rows, 'colonne : ', cell, "  !!! n'est pas contente !!!");
-                                modif.push({ signal: signal, row: rows, col: cell, numregle: i });
-                            }
-                        });
-                    }
-                }
-            }
-        }
-
-        if (modif.length !== 0) {
-            console.log('il y a des modifications à faire');
-            console.log(modif.length);
-            let inputModified = [];
-            for (let nbrRule = 0; nbrRule < modif.length; nbrRule++) {
-                inputModified.push([]);
-                for (let i = 0; i < grille.grid[0].length; i++) {
-                    for (let signals = 0; signals < grille.grid[0][i].signals.length; signals++) {
-                        if (grille.grid[0][i].signals[signals].description === modif[nbrRule].signal.description) {
-                            inputModified[nbrRule].push(i);
-                        } else {
-                            if (grille.grid[0][i].signals[signals].description === '!' + modif[nbrRule].signal.description) {
-                                inputModified[nbrRule].push('!' + i);
-                            }
-                        }
-                    }
-                    if (inputModified[nbrRule].length === 0) {
-                        inputModified[nbrRule].push([]);
-                    }
-                }
-            }
-        }
+    const modifExistingRules = (valueRule) => {
+        let newRule = new Grille(grille.grid.length, grille.grid[0].length);
+        newRule.grid = grille.grid.map(row =>
+            row.map(cell => ({...cell, signals: [...cell.signals]}))
+        );
+        let newRegles = regles;
+        newRegles[valueRule] = newRule.grid;
+        setRegles(newRegles);
     };
 
     const addUnexpectedRule = () => {
         let activeRulesOnly = [];
         for (let i = 0; i < activeRules.length; i++) {
             if (activeRules[i]) {
-                activeRulesOnly.push(regles[i]);
+                activeRulesOnly.push(creerReglebool(regles[i]));
             }
         }
-        for (let rows = 1; rows < grille.grid.length; rows++) {
-            for (let cell = 0; cell < grille.grid[0].length; cell++) {
-                grille.grid[rows][cell].signals.forEach(signal => {
-                    let signalIsUsed = false;
-                    for (let i = 0; i < activeRulesOnly.length; i++) {
-                        if (activeRulesOnly[i][rows][cell].signals.includes(signal.description)) {
-                            signalIsUsed = true;
-                        }
-                    }
-                    if (!signalIsUsed) {
-                        console.log('le signal ' + signal.description + " n'est pas utilisé dans les règles actives, ajout d'une règle !");
-                        handleSaveRule();
-                    }
-                });
+        console.log('regles concernées : ', activeRulesOnly);
+
+        const auto = new Automaton();
+        auto.setRules(activeRulesOnly);
+        auto.updateParameters();
+        let confInit = new Configuration(grille.grid.length);
+        for (let i = 0; i < grille.grid[0].length; i++) {
+            confInit.cells[i] = grille.grid[0][i].toSet();
+        }
+        //PAS BIEN LE 1 !!
+        const confInal = auto.makeDiagram(confInit, 1)
+        confInal.shift();
+        console.log('output des règles sur l\'input de la grille', confInal);
+
+        //PAS BIEN, mais pour l'instant.. pour chaque configuration (il en reste une seule pour le moment, j'espère !!)
+        if (confInal.length > 1) {
+            console.error('Trop de configurations en sortie de la grille');
+            return;
+        }
+        //si l'output généré est le même que celui de la grille, on fait rien on return c'est gg
+        let outputdifferent = false;
+        //PAS BIEN, FAIRE DOUBLE BOUCLE SI ON EST RP !
+        for (let i = 0; i < grille.grid[0].length; i++) {
+            if (grille.grid[1][i].signals.toSet() !== confInal[0].cells[i]) {
+                outputdifferent = true;
             }
         }
+        if (!outputdifferent) {
+            console.log('les outputs sont les mêmes, on ne fait rien');
+            return;
+        }
+
+        // bon la on est au moment critique, faut rajouter une nouvelle règle et
+        // ajouter la négation de l'input de la grille pour chaque règle active (DNF)
+
+        let newRule = new Grille(grille.grid.length, grille.grid[0].length);
+        newRule.grid = grille.grid.map(row =>
+            row.map(cell => ({...cell, signals: [...cell.signals]}))
+        );
+
+        let newRuleBool = creerReglebool(newRule.grid);
+        const RulesToModify = modifRulesWithNegation(newRuleBool, activeRulesOnly);
+
+        //on modifie les règles existantes
+        let j=0;
+        for (let i = 0; i < activeRules.length; i++) {
+            if (activeRules[i]) {
+                regles[i]=RulesToModify[i-j];
+            }
+            else{
+                j--;
+            }
+        }
+        //on ajoute la nouvelle règle
+        regles.push(newRule.grid);
+        //PAS BIEN ???
+        setRegles(regles);
     };
 
+    const modifRulesWithNegation = (newRuleBool, activeRulesOnly) => {
+        //on ajoute la négation de l'input de la grille
+    };
     const printReglesConsole = () => {
         let stringRule = "";
         for (let i = 0; i < reglesbools.length; i++) {
@@ -106,14 +130,14 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
 
     const updateRule = (index) => {
         const configuration = grille.grid.map(row =>
-            row.map(caseObj => ({ ...caseObj, signals: [...caseObj.signals] }))
+            row.map(caseObj => ({...caseObj, signals: [...caseObj.signals]}))
         );
         if (regles.some(config => JSON.stringify(config) === JSON.stringify(configuration))) {
             return;
         }
         const newConfigurations = regles.map((config, i) => i === index ? configuration : config);
         setRegles(newConfigurations);
-        
+
     };
 
     const updateRuleSignal = (oldValue, newValue) => {
@@ -127,25 +151,28 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
             )
         );
         setRegles(newConfigurations);
-        
+
     };
 
     const deleteRule = (index) => {
         const newConfigurations = regles.filter((config, i) => i !== index);
         setRegles(newConfigurations);
-        
+
     };
 
     const deleteSignalInRules = (signalValue) => {
         const newConfigurations = regles.map(config =>
             config.map(row =>
                 row.map(cellSignals =>
-                    ({ ...cellSignals, signals: cellSignals.signals.filter(signal => signal !== signalValue && signal !== '!' + signalValue) })
+                    ({
+                        ...cellSignals,
+                        signals: cellSignals.signals.filter(signal => signal !== signalValue && signal !== '!' + signalValue)
+                    })
                 )
             )
         );
         setRegles(newConfigurations);
-        
+
     };
 
     const creerOutput = (tab) => {
