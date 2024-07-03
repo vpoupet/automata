@@ -9,7 +9,6 @@ const ListeRegles = ({regles,reglesbools, onLoadRule, onDeleteRule, onUpdateRule
             <h2>Règles enregistrées</h2>
             {regles.map((regle, index) => (
                 <div key={index} style={{marginBottom: '10px'}}>
-                    {reglesbools[index] !== null && reglesbools[index] !== undefined ? reglesbools[index].toString() : ''}
                     <Regle
                         grille={regle}
                         activeRule={activeRules[index]}
@@ -17,6 +16,7 @@ const ListeRegles = ({regles,reglesbools, onLoadRule, onDeleteRule, onUpdateRule
                         onDeleteRule={() => onDeleteRule(index)}
                         onUpdateRule={() => onUpdateRule(index)}
                     />
+                    {reglesbools[index] !== null && reglesbools[index] !== undefined ? reglesbools[index].toString() : ''}
                 </div>
             ))}
             <button onClick={printReglesConsole}>Sortir règles en texte</button>

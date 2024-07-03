@@ -21,16 +21,14 @@ const GrilleInteractive = ({
         if (activeCells.length === 0) {
             return [];
         }
-        const signals = [];
+        const signals = new Set();
         activeCells.forEach(cell => {
             grille.getCase(cell.row, cell.col).signals.forEach(signal => {
-                if (!signals.includes(signal.getValue())) {
-                    signals.push(signal.getValue());
-                }
+                signals.add(signal);
             });
         });
-        return signals.filter(signal =>
-            activeCells.every(cell => grille.getCase(cell.row, cell.col).signals.map(s => s.getValue()).includes(signal))
+        return Array.from(signals).filter(signal =>
+            activeCells.every(cell => grille.getCase(cell.row, cell.col).signals.map(s => s).includes(signal))
         );
     };
 

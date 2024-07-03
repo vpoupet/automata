@@ -11,19 +11,20 @@ const GestionnaireSignauxGrille = ({ signals, allSignals, onAddSignal, onRemoveS
         }
     };
 
-    const handleLeftCheckboxChange = (signalValue, e) => {
+    const handleLeftCheckboxChange = (signal, e) => {
         if (e.target.checked) {
-            onAddSignal(signalValue);
+            onAddSignal(signal);
         } else {
-            onRemoveSignal(signalValue);
+            onRemoveSignal(signal);
         }
     };
 
-    const handleRightCheckboxChange = (signalValue, e) => {
+    const handleRightCheckboxChange = (signal, e) => {
+        const negatedSignal = Symbol.for('!' + Symbol.keyFor(signal));
         if (e.target.checked) {
-            onAddSignal('!' + signalValue);
+            onAddSignal(negatedSignal);
         } else {
-            onRemoveSignal('!' + signalValue);
+            onRemoveSignal(negatedSignal);
         }
     };
 
@@ -41,19 +42,19 @@ const GestionnaireSignauxGrille = ({ signals, allSignals, onAddSignal, onRemoveS
                 </label>
             </div>
             {allSignals.map((signal) => (
-                <div key={signal.getValue()}>
+                <div key={Symbol.keyFor(signal)}>
                     <label>
                         <input
                             type="checkbox"
-                            checked={signals.includes(signal.getValue())}
-                            onChange={(e) => handleLeftCheckboxChange(signal.getValue(), e)}
+                            checked={signals.includes(signal)}
+                            onChange={(e) => handleLeftCheckboxChange(signal, e)}
                         />
                         <input
                             type="checkbox"
-                            checked={signals.includes('!' + signal.getValue())}
-                            onChange={(e) => handleRightCheckboxChange(signal.getValue(), e)}
+                            checked={signals.includes(Symbol.for('!' + Symbol.keyFor(signal)))}
+                            onChange={(e) => handleRightCheckboxChange(signal, e)}
                         />
-                        {signal.getValue()}
+                        {Symbol.keyFor(signal)}
                     </label>
                 </div>
             ))}

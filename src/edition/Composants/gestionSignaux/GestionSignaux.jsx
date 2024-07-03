@@ -1,4 +1,4 @@
-import {useState} from "react";
+import { useState } from "react";
 
 const GestionSignaux = ({ listeSignaux, onAddSignal, onUpdateSignal, onDeleteSignal }) => {
     const [newSignalValue, setNewSignalValue] = useState("");
@@ -7,19 +7,19 @@ const GestionSignaux = ({ listeSignaux, onAddSignal, onUpdateSignal, onDeleteSig
 
     const handleAddSignal = () => {
         if (newSignalValue.trim()) {
-            onAddSignal(newSignalValue);
+            onAddSignal(Symbol.for(newSignalValue));
             setNewSignalValue("");
         }
     };
 
     const handleEditSignal = (index, value) => {
         setEditIndex(index);
-        setEditSignalValue(value);
+        setEditSignalValue(Symbol.keyFor(value));
     };
 
     const handleUpdateSignal = () => {
         if (editSignalValue.trim()) {
-            onUpdateSignal(editIndex, editSignalValue);
+            onUpdateSignal(editIndex, Symbol.for(editSignalValue));
             setEditIndex(null);
             setEditSignalValue("");
         }
@@ -38,9 +38,9 @@ const GestionSignaux = ({ listeSignaux, onAddSignal, onUpdateSignal, onDeleteSig
                                 onChange={(e) => setEditSignalValue(e.target.value)}
                             />
                         ) : (
-                            signal.getValue()
+                            Symbol.keyFor(signal)
                         )}
-                        <button onClick={() => handleEditSignal(idx, signal.getValue())}>
+                        <button onClick={() => handleEditSignal(idx, signal)}>
                             Modifier
                         </button>
                         <button onClick={() => onDeleteSignal(idx)}>
