@@ -89,13 +89,9 @@ const ManagerGrilleInteractive = (rows, cols, automaton, reglesbools, setAutomat
     const updateGrilleFromRule = (configuration) => {
         const newGrille = new Grille(rows, cols);
         newGrille.grid = configuration.map((row, rowIndex) =>
-            row.map((signals, colIndex) => {
+            row.map((cell, colIndex) => {
                 const newCase = new Cellule();
-                if (Array.isArray(signals)) {
-                    signals.forEach(signal => newCase.addSignal(Symbol.for(signal))); // Convertir en Symbol
-                } else {
-                    newCase.addSignal(Symbol.for(signals));
-                }
+                    cell.signals.forEach(signal => newCase.addSignal(signal));
                 return newCase;
             })
         );

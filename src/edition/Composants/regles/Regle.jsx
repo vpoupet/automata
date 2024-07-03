@@ -14,19 +14,20 @@ const Regle = ({ grille, onLoadRule, onDeleteRule, onUpdateRule, activeRule }) =
                         <div key={`${rowIndex}-${colIndex}`} style={{
                             width: '30px',
                             height: '30px',
-                            backgroundColor: cell.length > 0 ? 'blue' : 'white',
+                            backgroundColor: cell.signals.length > 0 ? 'blue' : 'white',
                             border: '1px solid black',
                             margin: '0px',
                             padding: '0px'
                         }}>
-                            {cell.length > 0 &&
+                            {cell.signals.length > 0 &&
                                 <span style={{
-                                    fontSize: '10px',
-                                    color: 'white',
+                                    color: 'red',
                                     margin: '0px',
                                     padding: '0px'
                                 }}>
-                                    {cell.signals.description.join(',')}
+                                    {cell.signals.map(signal => {
+                                        return signal.length > 1 ? signal.substring(1) : signal.description;
+                                    })}
                                 </span>}
                         </div>
                     ))

@@ -53,7 +53,8 @@ function App() {
         deleteRule,
         updateRuleSignal,
         modifyRule,
-        printReglesConsole
+        printReglesConsole,
+        addRuleFromString
     } = ManagerRegles(grille, setAutomaton, setReglesbools, reglesbools, regles, setRegles, activeRules);
 
     const sendLoadRuleToGrid = (index) => {
@@ -112,6 +113,7 @@ function App() {
                     onDeleteRule={deleteRule}
                     activeRules={activeRules}
                     printReglesConsole={printReglesConsole}
+                    addRuleFromString={addRuleFromString}
                 />
             </div>
             <div>
@@ -122,6 +124,7 @@ function App() {
                     onDeleteSignal={handleDeleteSignal}
                 />
             </div>
+
             <Diagram automaton={automaton} settings={settings} onCellClick={handleCellClick} />
         </div>
     );

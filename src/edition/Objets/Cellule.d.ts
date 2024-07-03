@@ -1,9 +1,5 @@
 declare module './Cellule' {
-    class Signal {
-        constructor(value: string);
-        getValue(): string;
-        setValue(value: string): void;
-    }
+    import {Signal} from "../../classes/types.ts";
 
     class Cellule {
         signals: Signal[];

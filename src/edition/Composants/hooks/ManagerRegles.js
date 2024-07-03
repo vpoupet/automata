@@ -5,29 +5,14 @@ import Grille from "../../Objets/Grille.js";
 
 const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles, setRegles, activeRules) => {
 
-    const handleSaveRule = (cellOutput = [], pos = Number.MIN_SAFE_INTEGER) => {
+    const handleSaveRule = () => {
         let configuration = new Grille(grille.grid.length, grille.grid[0].length);
-        if (cellOutput.length !== 0 && pos !== Number.MIN_SAFE_INTEGER) {
-            // Copier la grille actuelle
             configuration.grid = grille.grid.map(row =>
                 row.map(cell => ({ ...cell, signals: [...cell.signals] }))
             );
-            for (let rowIndex = 1; rowIndex < grille.grid.length; rowIndex++) {
-                if (rowIndex === pos) {
-                    configuration.grid[rowIndex] = cellOutput;
-                } else {
-                    configuration.grid[rowIndex] = new Array(grille.grid[0].length).fill({ signals: [] });
-                }
-            }
-        } else {
-            configuration.grid = grille.grid.map(row =>
-                row.map(cell => ({ ...cell, signals: [...cell.signals] }))
-            );
-        }
         if (!regles.some(config => JSON.stringify(config) === JSON.stringify(configuration.grid))) {
             const newRegles = [...regles, configuration.grid];
             setRegles(newRegles);
-            setReglesbools(newRegles.map(creerReglebool));
         }
 
         console.log(regles);
@@ -128,7 +113,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         }
         const newConfigurations = regles.map((config, i) => i === index ? configuration : config);
         setRegles(newConfigurations);
-        setReglesbools(newConfigurations.map(creerReglebool));
+        
     };
 
     const updateRuleSignal = (oldValue, newValue) => {
@@ -142,13 +127,13 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
             )
         );
         setRegles(newConfigurations);
-        setReglesbools(newConfigurations.map(creerReglebool));
+        
     };
 
     const deleteRule = (index) => {
         const newConfigurations = regles.filter((config, i) => i !== index);
         setRegles(newConfigurations);
-        setReglesbools(newConfigurations.map(creerReglebool));
+        
     };
 
     const deleteSignalInRules = (signalValue) => {
@@ -160,7 +145,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
             )
         );
         setRegles(newConfigurations);
-        setReglesbools(newConfigurations.map(creerReglebool));
+        
     };
 
     const creerOutput = (tab) => {
@@ -186,7 +171,6 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         const clauses = [];
         tab.forEach((row) => {
             for (let cell = 0; cell < row.length; cell++) {
-                console.log('row[cell] : ', row[cell]);
                 const pos = cell - Math.floor(row.length / 2);
                 for (let signal = 0; signal < row[cell].signals.length; signal++) {
                     let literal = new Literal(row[cell].signals[signal], pos, !row[cell].signals[signal].description.startsWith("!"));
@@ -210,7 +194,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         }
         return new Rule(clause, outputs);
     };
-    window.ajoutRegle = (input = "") => {
+    const addRuleFromString = (input = "") => {
         let auto = new Automaton();
         auto.parseRules(input);
         let rules = auto.getRules();
@@ -226,7 +210,6 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
             console.log(tabNewRule.grid);
             const newRegles = [...regles, tabNewRule.grid];
             setRegles(newRegles);
-            setReglesbools(newRegles.map(creerReglebool));
         }
     };
 
@@ -257,7 +240,8 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         updateRule,
         deleteRule,
         modifyRule,
-        printReglesConsole
+        printReglesConsole,
+        addRuleFromString
     };
 }
 export default ManagerRegles;
