@@ -72,7 +72,7 @@ interface CellProps {
 
 function Cell({ cell, onClick, className }: CellProps) {
     const cellule = new Cellule();
-    cellule.fromSet(cell); // Initialise la cellule avec le Set de signaux
+    cellule.initFromSet(cell); // Initialise la cellule avec le Set de signaux
 
     const signalNames: string[] = [];
     for (const signal of cellule.signals) {

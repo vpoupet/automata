@@ -14,11 +14,9 @@ declare module './Cellule' {
 
         removeAllSignals(): void;
 
-        modifySignal(signal: string, newSignal: string): void;
+        getSignals(): Set<symbol>;
 
-        toSet(): Set<symbol>;
-
-        fromSet(signalSet: Set<Signal>): void;
+        initFromSet(signalSet: Set<Signal>): void;
     }
 
     export = Cellule;

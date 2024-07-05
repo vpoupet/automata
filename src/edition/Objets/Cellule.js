@@ -1,10 +1,10 @@
 class Cellule {
     constructor() {
-        this.signals = [];
+        this.signals = new Set();
     }
 
     get(signal) {
-        return this.signals.includes(signal);
+        return this.signals.has(signal);
     }
 
     addSignal(signal) {
@@ -18,8 +18,8 @@ class Cellule {
         this.removeSignal(negatedSignal);
 
         // Ajoute le signal si non déjà présent
-        if (!this.signals.includes(signal)) {
-            this.signals.push(signal);
+        if (!this.signals.has(signal)) {
+            this.signals.add(signal);
         }
     }
 
@@ -28,24 +28,19 @@ class Cellule {
         if (typeof signal !== 'symbol') {
             signal = Symbol.for(signal);
         }
-        this.signals = this.signals.filter(s => s !== signal);
+        this.signals.delete(signal);
     }
 
     removeAllSignals() {
-        this.signals = [];
+        this.signals = new Set();
     }
 
-    toSet() {
-        return new Set(this.signals);
+    getSignals() {
+        return this.signals;
     }
 
-    fromSet(signalSet) {
-        this.signals = [];
-        for (const signal of signalSet) {
-            if (typeof signal === 'symbol') {
-                this.addSignal(signal);
-            }
-        }
+    initFromSet(signalSet) {
+        this.signals = new Set(signalSet);
     }
 }
 

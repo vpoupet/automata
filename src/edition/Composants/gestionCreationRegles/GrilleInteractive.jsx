@@ -28,21 +28,21 @@ const GrilleInteractive = ({
             });
         });
         return Array.from(signals).filter(signal =>
-            activeCells.every(cell => grille.getCase(cell.row, cell.col).signals.map(s => s).includes(signal))
+            activeCells.every(cell => grille.getCase(cell.row, cell.col).signals.has(signal))
         );
     };
 
     return (
-        <div style={{display: 'flex'}}>
+        <div style={{ display: 'flex' }}>
             <div>
                 <h1>Grille Interactive</h1>
                 <div className="grid-container">
-                    {Array.from({length: grille.grid[0].length}).map((_, colIndex) => (
+                    {Array.from({ length: grille.grid[0].length }).map((_, colIndex) => (
                         <div key={colIndex} className="row">
-                            <div style={{width: '30px', textAlign: 'center', display: 'flex', flexDirection: 'column'}}>
+                            <div style={{ width: '30px', textAlign: 'center', display: 'flex', flexDirection: 'column' }}>
                                 {colIndex + 1}
                             </div>
-                            {Array.from({length: grille.grid.length}).map((_, rowIndex) => {
+                            {Array.from({ length: grille.grid.length }).map((_, rowIndex) => {
                                 const caseObj = grille.getCase(grille.grid.length - 1 - rowIndex, colIndex);
                                 const isActive = activeCells.some(cell => cell.row === (grille.grid.length - 1 - rowIndex) && cell.col === colIndex);
                                 return (

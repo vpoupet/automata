@@ -12,7 +12,7 @@ const ManagerGrilleInteractive = (rows, cols, automaton, reglesbools, setAutomat
         newGrille.grid = grille.grid.map((r, rowIndex) =>
             r.map((c, colIndex) => {
                 const newCase = new Cellule();
-                newCase.signals = [...c.signals];
+                newCase.signals = new Set(c.signals);
                 if (activeCells.some(cell => cell.row === rowIndex && cell.col === colIndex)) {
                     callback(newCase);
                 }
@@ -91,7 +91,7 @@ const ManagerGrilleInteractive = (rows, cols, automaton, reglesbools, setAutomat
         newGrille.grid = configuration.map((row, rowIndex) =>
             row.map((cell, colIndex) => {
                 const newCase = new Cellule();
-                    cell.signals.forEach(signal => newCase.addSignal(signal));
+                cell.signals.forEach(signal => newCase.addSignal(signal));
                 return newCase;
             })
         );
@@ -165,7 +165,7 @@ const ManagerGrilleInteractive = (rows, cols, automaton, reglesbools, setAutomat
         const newGrille = new Grille(rows, cols);
         const conffromgrid = new Configuration(grille.grid.length);
         for (let i = 0; i < grille.grid[0].length; i++) {
-            conffromgrid.cells[i] = grille.grid[0][i].toSet();
+            conffromgrid.cells[i] = grille.grid[0][i].getSignals();
         }
         automaton.setRules(reglesbools);
         automaton.updateParameters();
@@ -175,7 +175,7 @@ const ManagerGrilleInteractive = (rows, cols, automaton, reglesbools, setAutomat
             for (let j = 0; j < conf[i].cells.length; j++) {
                 const cellSet = conf[i].cells[j];
                 const cell = new Cellule();
-                cell.fromSet(cellSet);
+                cell.initFromSet(cellSet);
                 newGrille.grid[i][j] = cell;
             }
         }
@@ -185,7 +185,7 @@ const ManagerGrilleInteractive = (rows, cols, automaton, reglesbools, setAutomat
     useEffect(() => {
         const config = new Configuration(grille.grid[0].length);
         for (let i = 0; i < grille.grid[0].length; i++) {
-            config.cells[i] = grille.grid[0][i].toSet();
+            config.cells[i] = grille.grid[0][i].getSignals();
         }
         for (let i = 0; i < regles.length; i++) {
             setActiveRule((prevRules) => {

@@ -1,9 +1,8 @@
-import {useEffect, useState, useCallback} from 'react';
-import {Clause, Conjunction, Literal, Negation} from "../../../classes/Clause.ts";
-import {Automaton, Rule, RuleOutput} from "../../../classes/Automaton.ts";
+import { useEffect, useState, useCallback } from 'react';
+import { Clause, Conjunction, Literal, Negation } from "../../../classes/Clause.ts";
+import { Automaton, Rule, RuleOutput } from "../../../classes/Automaton.ts";
 import Grille from "../../Objets/Grille.js";
-import {act} from "react-dom/test-utils";
-import {Configuration} from "../../../classes/Configuration.ts";
+import { Configuration } from "../../../classes/Configuration.ts";
 import Cellule from "../../Objets/Cellule.js";
 
 const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles, setRegles, activeRules) => {
@@ -11,7 +10,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
     const handleSaveRule = () => {
         let configuration = new Grille(grille.grid.length, grille.grid[0].length);
         configuration.grid = grille.grid.map(row =>
-            row.map(cell => ({...cell, signals: [...cell.signals]}))
+            row.map(cell => ({...cell, signals: new Set(cell.signals)}))
         );
         const newRegles = [...regles, configuration.grid];
         setRegles(newRegles);
@@ -24,7 +23,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         for (let ruleNbr = 0; ruleNbr < regles.length; ruleNbr++) {
             //manque un étage, on descend pas assez bas pour comparer les signaux
             for (let i=0; i<grille.grid[0].length; i++) {
-                if (regles[ruleNbr][0][i].signals === grille.grid[0][i].signals && regles[ruleNbr][0][i] !== undefined) {
+                if (setEquals(regles[ruleNbr][0][i].signals, grille.grid[0][i].signals) && regles[ruleNbr][0][i] !== undefined) {
                     console.log('on a trouvé une seule règle à modifier, la n° ', ruleNbr)
                     oneRuleToModify = [true, ruleNbr];
                 }
@@ -53,7 +52,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         auto.updateParameters();
         let confInit = new Configuration(grille.grid.length);
         for (let i = 0; i < grille.grid[0].length; i++) {
-            confInit.cells[i] = grille.grid[0][i].toSet();
+            confInit.cells[i] = grille.grid[0][i].getSignals();
         }
         //PAS BIEN LE 1 !!
         const confInal = auto.makeDiagram(confInit, 1)
@@ -69,7 +68,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         let outputdifferent = false;
         //PAS BIEN, FAIRE DOUBLE BOUCLE SI ON EST RP !
         for (let i = 0; i < grille.grid[0].length; i++) {
-            if (grille.grid[1][i].toSet() !== confInal[0].cells[i]) {
+            if (!setEquals(grille.grid[1][i].signals, confInal[0].cells[i].signals)) {
                 outputdifferent = true;
             }
         }
@@ -83,7 +82,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
 
         let newRule = new Grille(grille.grid.length, grille.grid[0].length);
         newRule.grid = grille.grid.map(row =>
-            row.map(cell => ({...cell, signals: [...cell.signals]}))
+            row.map(cell => ({...cell, signals: new Set(cell.signals)}))
         );
 
         //on créé la regle bool de la nouvelle regle
@@ -125,12 +124,12 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         for (let i = 0; i < grille.grid[0].length; i++) {
             for (let j=0; j<clause.getLiterals().length; j++){
                 if (clause.getLiterals()[j].position === i){
-                    tab.grid[0][i].signals.push(clause.getLiterals()[j].signal);
+                    tab.grid[0][i].signals.add(clause.getLiterals()[j].signal);
                 }
             }
             for (let j=0; j<output.length; j++){
                 if (output[j].neighbor === i){
-                    tab.grid[output[j].futureStep][i].signals.push(output[j].signal);
+                    tab.grid[output[j].futureStep][i].signals.add(output[j].signal);
                 }
             }
         }
@@ -152,7 +151,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
 
     const updateRule = (index) => {
         const configuration = grille.grid.map(row =>
-            row.map(caseObj => ({...caseObj, signals: [...caseObj.signals]}))
+            row.map(caseObj => ({...caseObj, signals: new Set(caseObj.signals)}))
         );
         if (regles.some(config => JSON.stringify(config) === JSON.stringify(configuration))) {
             return;
@@ -165,11 +164,12 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
     const updateRuleSignal = (oldValue, newValue) => {
         const newConfigurations = regles.map(config =>
             config.map(row =>
-                row.map(cellSignals =>
-                    cellSignals.signals.map(signal =>
+                row.map(cell => ({
+                    ...cell,
+                    signals: new Set(Array.from(cell.signals).map(signal =>
                         signal === oldValue ? newValue : (signal === '!' + oldValue ? '!' + newValue : signal)
-                    )
-                )
+                    ))
+                }))
             )
         );
         setRegles(newConfigurations);
@@ -185,12 +185,10 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
     const deleteSignalInRules = (signalValue) => {
         const newConfigurations = regles.map(config =>
             config.map(row =>
-                row.map(cellSignals =>
-                    ({
-                        ...cellSignals,
-                        signals: cellSignals.signals.filter(signal => signal !== signalValue && signal !== '!' + signalValue)
-                    })
-                )
+                row.map(cell => ({
+                    ...cell,
+                    signals: new Set(Array.from(cell.signals).filter(signal => signal !== signalValue && signal !== '!' + signalValue))
+                }))
             )
         );
         setRegles(newConfigurations);
@@ -203,7 +201,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
 
         tab.forEach((row, rowIndex) => {
             row.forEach((cellule, colIndex) => {
-                if (cellule.signals.length > 0) {
+                if (cellule.signals.size > 0) {
                     cellule.signals.forEach(signal => {
                         let ruleOutput = new RuleOutput(colIndex - Math.floor(tab[0].length / 2), signal, rowIndex + 1);
                         console.log('outputs de la Rule : ', ruleOutput);
@@ -221,8 +219,8 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         tab.forEach((row) => {
             for (let cell = 0; cell < row.length; cell++) {
                 const pos = cell - Math.floor(row.length / 2);
-                for (let signal = 0; signal < row[cell].signals.length; signal++) {
-                    let literal = new Literal(row[cell].signals[signal], pos, !row[cell].signals[signal].description.startsWith("!"));
+                for (let signal of row[cell].signals) {
+                    let literal = new Literal(signal, pos, !signal.description.startsWith("!"));
                     clauses.push(literal);
                 }
             }
@@ -243,6 +241,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         }
         return new Rule(clause, outputs);
     };
+
     const addRuleFromString = (input = "") => {
         let auto = new Automaton();
         auto.parseRules(input);
@@ -251,10 +250,10 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         for (let regle of rules) {
             let tabNewRule = new Grille(grille.grid.length, grille.grid[0].length);
             for (let literal of regle.condition.getLiterals()) {
-                tabNewRule.grid[0][literal.position + (grille.grid[0].length - 1) / 2].signals.push(literal.signal);  // Remplacement de literal.signal par literal.signal.description
+                tabNewRule.grid[0][literal.position + (grille.grid[0].length - 1) / 2].signals.add(literal.signal);  // Remplacement de literal.signal par literal.signal.description
             }
             for (let ruleOut of regle.outputs) {
-                tabNewRule.grid[ruleOut.futureStep][ruleOut.neighbor + (grille.grid[0].length - 1) / 2].signals.push(ruleOut.signal);  // Remplacement de ruleOut.signal par ruleOut.signal.description
+                tabNewRule.grid[ruleOut.futureStep][ruleOut.neighbor + (grille.grid[0].length - 1) / 2].signals.add(ruleOut.signal);  // Remplacement de ruleOut.signal par ruleOut.signal.description
             }
             console.log(tabNewRule.grid);
             const newRegles = [...regles, tabNewRule.grid];
@@ -292,5 +291,15 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         printReglesConsole,
         addRuleFromString
     };
-}
+};
+
 export default ManagerRegles;
+
+// Helper function to compare two sets for equality
+const setEquals = (a, b) => {
+    if (a.size !== b.size) return false;
+    for (let item of a) {
+        if (!b.has(item)) return false;
+    }
+    return true;
+};
