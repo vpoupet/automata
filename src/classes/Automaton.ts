@@ -1,19 +1,9 @@
 import {
     Clause,
-    Conjunction,
-    Disjunction,
-    Literal,
-    Negation,
+    Conjunction
 } from "./Clause.ts";
 import { Configuration } from "./Configuration.ts";
 import { Signal } from "./types.ts";
-
-class RuleParsingException extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = "RuleParsingException";
-    }
-}
 
 export class RuleOutput {
     neighbor: number;
@@ -144,7 +134,7 @@ export class Automaton {
             // prepare condition
             if (conditionString) {
                 // parse condition from line
-                const lineCondition = this.parseCondition(conditionString);
+                const lineCondition = Clause.fromString(conditionString);
                 if (conditionsStack.length === 0) {
                     condition = lineCondition;
                 } else {
@@ -167,71 +157,6 @@ export class Automaton {
         }
         this.updateParameters();
         return this;
-    }
-
-    readConditionTokens(conditionTokens: string[]): Clause {
-        const token = conditionTokens.shift();
-        if (token === undefined) {
-            return new Conjunction([]);
-        }
-        const subclauses: Clause[] = [];
-        let negatedCondition: Clause;
-        switch (token) {
-            case "(":
-                while (conditionTokens[0] !== ")") {
-                    if (conditionTokens.length === 0) {
-                        throw new RuleParsingException(
-                            "Unbalanced parentheses in condition"
-                        );
-                    }
-                    subclauses.push(this.readConditionTokens(conditionTokens));
-                }
-                conditionTokens.shift();
-                if (subclauses.length === 1) {
-                    // conjunction with only one subclause
-                    return subclauses[0];
-                } else {
-                    return new Conjunction(subclauses);
-                }
-            case "[":
-                while (conditionTokens[0] !== "]") {
-                    if (conditionTokens.length === 0) {
-                        throw new RuleParsingException(
-                            "Unbalanced parentheses in condition"
-                        );
-                    }
-                    subclauses.push(this.readConditionTokens(conditionTokens));
-                }
-                conditionTokens.shift();
-                if (subclauses.length === 1) {
-                    // disjunction with only one subclause
-                    return subclauses[0];
-                } else {
-                    return new Disjunction(subclauses);
-                }
-            case "!":
-                negatedCondition = this.readConditionTokens(conditionTokens);
-                if (negatedCondition instanceof Negation) {
-                    return negatedCondition.subclause;
-                } else {
-                    return new Negation(negatedCondition);
-                }
-            default:
-                return new Literal(Symbol.for(token));
-        }
-    }
-
-    parseCondition(conditionString: string): Clause {
-        // const tokens = conditionString.split(/(\(|\)|\[|\]|\+|-|\w+)/).filter(t => t.length > 0);
-        const tokens = conditionString.match(/(\(|\)|\[|\]|\+|-|!|\w+)/g);
-        if (tokens === null) {
-            throw new RuleParsingException("Invalid condition");
-        }
-        const condition = this.readConditionTokens(tokens);
-        if (tokens.length > 0) {
-            throw new RuleParsingException("Invalid condition");
-        }
-        return condition;
     }
 
     parseOutputs(outputsString: string): RuleOutput[] {

@@ -13,6 +13,13 @@ export interface DNFClause extends Disjunction {
     subclauses: ConjunctionOfLiterals[];
 }
 
+class ClauseParsingException extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "ClauseParsingException";
+    }
+}
+
 export abstract class Clause {
     abstract eval(neighborhood: Neighborhood): boolean;
 
@@ -23,6 +30,72 @@ export abstract class Clause {
     abstract toCNF(): CNFClause;
 
     abstract toDNF(): DNFClause;
+
+    private static readTokens(conditionTokens: string[]): Clause {
+        const token = conditionTokens.shift();
+        if (token === undefined) {
+            return new Conjunction([]);
+        }
+        const subclauses: Clause[] = [];
+        let negatedCondition: Clause;
+        switch (token) {
+            case "(":
+                while (conditionTokens[0] !== ")") {
+                    if (conditionTokens.length === 0) {
+                        throw new ClauseParsingException(
+                            "Unbalanced parentheses in condition"
+                        );
+                    }
+                    subclauses.push(this.readTokens(conditionTokens));
+                }
+                conditionTokens.shift();
+                if (subclauses.length === 1) {
+                    // conjunction with only one subclause
+                    return subclauses[0];
+                } else {
+                    return new Conjunction(subclauses);
+                }
+            case "[":
+                while (conditionTokens[0] !== "]") {
+                    if (conditionTokens.length === 0) {
+                        throw new ClauseParsingException(
+                            "Unbalanced parentheses in condition"
+                        );
+                    }
+                    subclauses.push(this.readTokens(conditionTokens));
+                }
+                conditionTokens.shift();
+                if (subclauses.length === 1) {
+                    // disjunction with only one subclause
+                    return subclauses[0];
+                } else {
+                    return new Disjunction(subclauses);
+                }
+            case "!":
+                negatedCondition = this.readTokens(conditionTokens);
+                if (negatedCondition instanceof Negation) {
+                    return negatedCondition.subclause;
+                } else if (negatedCondition instanceof Literal) {
+                    return negatedCondition.negate();
+                } else {
+                    return new Negation(negatedCondition);
+                }
+            default:
+                return new Literal(Symbol.for(token));
+        }
+    }
+
+    static fromString(s: string): Clause {
+        const tokens = s.match(/(\(|\)|\[|\]|\+|-|!|\w+)/g);
+        if (tokens === null) {
+            throw new ClauseParsingException("Invalid condition");
+        }
+        const condition = this.readTokens(tokens);
+        if (tokens.length > 0) {
+            throw new ClauseParsingException("Invalid condition");
+        }
+        return condition;
+    }
 }
 
 /**
@@ -94,7 +167,7 @@ export class Negation extends Clause {
     }
 
     toString(): string {
-        return `!(${this.subclause.toString()})`;
+        return `!${this.subclause.toString()}`;
     }
 
     getLiterals(): Literal[] {
