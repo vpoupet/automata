@@ -51,16 +51,19 @@ Mark:
         timeGoesUp: true,
     });
 
+    const onCellClick = () => {
+        console.log("");
+    }
+
     return (
         <main>
             <h1>Signal Automaton</h1>
             <Settings settings={settings} setSettings={setSettings} />
             <Rulebox
                 rules={initialRules}
-                automaton={automaton}
                 setAutomaton={setAutomaton}
             />
-            <Diagram automaton={automaton} settings={settings} />
+            <Diagram automaton={automaton} settings={settings} onCellClick={onCellClick} />
         </main>
     );
 }

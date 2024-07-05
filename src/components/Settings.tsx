@@ -1,5 +1,4 @@
 import { SettingsInterface } from "../App";
-import { Diagram } from "./Diagram";
 
 interface SettingsProps {
     settings: SettingsInterface;

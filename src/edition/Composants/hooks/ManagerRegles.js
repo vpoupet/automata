@@ -15,7 +15,6 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         );
         const newRegles = [...regles, configuration.grid];
         setRegles(newRegles);
-        console.log(regles);
     };
 
     const modifyRule = () => {
@@ -24,9 +23,11 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         console.log('les regles', regles)
         for (let ruleNbr = 0; ruleNbr < regles.length; ruleNbr++) {
             //manque un étage, on descend pas assez bas pour comparer les signaux
-            if (regles[ruleNbr][0] === grille.grid[0] && regles[ruleNbr][0] !== undefined) {
-                console.log('on a trouvé une seule règle à modifier, la n° ', ruleNbr)
-                oneRuleToModify = [true, ruleNbr];
+            for (let i=0; i<grille.grid[0].length; i++) {
+                if (regles[ruleNbr][0][i].signals === grille.grid[0][i].signals && regles[ruleNbr][0][i] !== undefined) {
+                    console.log('on a trouvé une seule règle à modifier, la n° ', ruleNbr)
+                    oneRuleToModify = [true, ruleNbr];
+                }
             }
         }
         if (oneRuleToModify[0]) {
@@ -90,15 +91,16 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         //on ajoute la négation de l'input de la nouvelle règle à chaque règle active
         const rulesModified = modifRulesWithNegation(newRuleBool, activeRulesOnly);
 
-        //on modifie les règles existantes
-        let j=0;
+
+        //on supprime les règles actives et on ajoute toutes les nouvelles règles créées
+        //PAS BIEN, un peu bizarre de modifier la liste comme ça..
         for (let i = 0; i < activeRules.length; i++) {
             if (activeRules[i]) {
-                regles[i]=rulesModified[i-j];
+                deleteRule(i);
             }
-            else{
-                j--;
-            }
+        }
+        for (let rules in rulesModified){
+            regles.push(rules)
         }
         //on ajoute la nouvelle règle
         regles.push(newRule.grid);
@@ -107,8 +109,34 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
     };
 
     const modifRulesWithNegation = (newRuleBool, activeRulesOnly) => {
-        //comment
+        let newRulesReadyToUse = [];
+        for (let i=0; i<activeRulesOnly.length; i++){
+            let newRules = new Conjunction([activeRulesOnly[i].condition, new Negation(newRuleBool.condition)]).toDNF();
+            for (let j=0; j<newRules.subclauses.length; j++){
+                newRulesReadyToUse.push(tabFromRuleBool(newRules.subclauses[j],newRuleBool.outputs));
+            }
+        }
+        console.log('la liste des nouvelles règles à rajouter ! : ', newRulesReadyToUse)
+        return newRulesReadyToUse;
     };
+
+    const tabFromRuleBool = (clause, output) => {
+        let tab = new Grille(grille.grid.length, grille.grid[0].length);
+        for (let i = 0; i < grille.grid[0].length; i++) {
+            for (let j=0; j<clause.getLiterals().length; j++){
+                if (clause.getLiterals()[j].position === i){
+                    tab.grid[0][i].signals.push(clause.getLiterals()[j].signal);
+                }
+            }
+            for (let j=0; j<output.length; j++){
+                if (output[j].neighbor === i){
+                    tab.grid[output[j].futureStep][i].signals.push(output[j].signal);
+                }
+            }
+        }
+        return tab.grid;
+    }
+
     const printReglesConsole = () => {
         let stringRule = "";
         for (let i = 0; i < reglesbools.length; i++) {
