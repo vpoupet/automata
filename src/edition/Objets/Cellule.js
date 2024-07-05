@@ -14,6 +14,16 @@ class Cellule {
         }
 
         // Supprime le signal opposé si présent
+        if (signal.description.startsWith('!')) {
+            const nonNegatedSignal = Symbol.for(Symbol.keyFor(signal).substring(1));
+            this.removeSignal(nonNegatedSignal);
+        }
+        else {
+            const negatedSignal = Symbol.for('!' + Symbol.keyFor(signal));
+            this.removeSignal(negatedSignal);
+        }
+
+
         const negatedSignal = Symbol.for('!' + Symbol.keyFor(signal));
         this.removeSignal(negatedSignal);
 

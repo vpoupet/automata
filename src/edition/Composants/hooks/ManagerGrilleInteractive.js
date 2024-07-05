@@ -82,8 +82,14 @@ const ManagerGrilleInteractive = (rows, cols, automaton, reglesbools, setAutomat
 
     const handleRemoveAllSignalsFromGrid = () => {
         const newGrille = new Grille(rows, cols);
+        newGrille.grid = grille.grid.map(row =>
+            row.map(cell => {
+                const newCase = new Cellule();
+                return newCase;
+            })
+        );
         setGrille(newGrille);
-        setActiveCells([]);
+
     };
 
     const updateGrilleFromRule = (configuration) => {
@@ -115,6 +121,10 @@ const ManagerGrilleInteractive = (rows, cols, automaton, reglesbools, setAutomat
     };
 
     const updateSignalInGrid = (oldSignal, newSignal) => {
+        if (typeof oldSignal !== 'symbol' || typeof newSignal !== 'symbol') {
+            console.error('Invalid signal value:', oldSignal, newSignal);
+            return;
+        }
         const newGrille = new Grille(grille.grid.length, grille.grid[0].length);
         newGrille.grid = grille.grid.map(row =>
             row.map(cell => {

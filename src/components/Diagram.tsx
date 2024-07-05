@@ -70,7 +70,7 @@ interface CellProps {
     className?: string;
 }
 
-function Cell({ cell, onClick, className }: CellProps) {
+export function Cell({ cell, onClick, className }: CellProps) {
     const cellule = new Cellule();
     cellule.initFromSet(cell); // Initialise la cellule avec le Set de signaux
 
@@ -94,5 +94,3 @@ function Cell({ cell, onClick, className }: CellProps) {
         </div>
     );
 }
-
-export default Cell;

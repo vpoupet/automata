@@ -8,25 +8,23 @@ const ManagerSignaux = () => {
     ]);
 
     const handleAddNewSignal = (signalValue) => {
-        const symbol = Symbol.for(signalValue);
-        if (listeSignaux.includes(symbol)) {
-            alert(`Le signal ${signalValue} existe déjà.`);
+        if (listeSignaux.includes(signalValue)) {
+            alert(`Le signal ${signalValue.description} existe déjà.`);
             return;
         }
-        setListeSignaux((prev) => [...prev, symbol]);
+        setListeSignaux((prev) => [...prev, signalValue]);
     };
 
     const updateSignal = (index, newValue) => {
-        const oldValue = Symbol.keyFor(listeSignaux[index]);
-        const newSymbol = Symbol.for(newValue);
+        const oldValue = listeSignaux[index];
 
-        if (listeSignaux.some((signal, i) => signal === newSymbol && i !== index)) {
+        if (listeSignaux.some((signal, i) => signal === newValue && i !== index)) {
             alert(`Le signal ${newValue} existe déjà.`);
             return { success: false, oldValue: null, newValue: null };
         }
 
         setListeSignaux((prev) =>
-            prev.map((signal, i) => (i === index ? newSymbol : signal))
+            prev.map((signal, i) => (i === index ? newValue : signal))
         );
 
         return { success: true, oldValue, newValue };

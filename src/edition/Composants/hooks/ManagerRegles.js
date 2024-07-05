@@ -1,8 +1,8 @@
-import { useEffect, useState, useCallback } from 'react';
-import { Clause, Conjunction, Literal, Negation } from "../../../classes/Clause.ts";
-import { Automaton, Rule, RuleOutput } from "../../../classes/Automaton.ts";
+import {useEffect, useState, useCallback} from 'react';
+import {Clause, Conjunction, Literal, Negation} from "../../../classes/Clause.ts";
+import {Automaton, Rule, RuleOutput} from "../../../classes/Automaton.ts";
 import Grille from "../../Objets/Grille.js";
-import { Configuration } from "../../../classes/Configuration.ts";
+import {Configuration} from "../../../classes/Configuration.ts";
 import Cellule from "../../Objets/Cellule.js";
 
 const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles, setRegles, activeRules) => {
@@ -17,62 +17,44 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
     };
 
     const modifyRule = () => {
+        let rulesToModify = new Set();
+        const config = new Configuration(grille.grid[0].length);
+        for (let i = 0; i < grille.grid[0].length; i++) {
+            config.cells[i] = grille.grid[0][i].getSignals();
+        }
 
-        let oneRuleToModify = [false, 0];
-        console.log('les regles', regles)
         for (let ruleNbr = 0; ruleNbr < regles.length; ruleNbr++) {
-            //manque un étage, on descend pas assez bas pour comparer les signaux
-            for (let i=0; i<grille.grid[0].length; i++) {
-                if (setEquals(regles[ruleNbr][0][i].signals, grille.grid[0][i].signals) && regles[ruleNbr][0][i] !== undefined) {
-                    console.log('on a trouvé une seule règle à modifier, la n° ', ruleNbr)
-                    oneRuleToModify = [true, ruleNbr];
+            for (let i = 0; i < grille.grid[0].length; i++) {
+                if(reglesbools[ruleNbr].condition.eval(config.getNeighborhood(i, -2, 2))){
+                    rulesToModify.add(ruleNbr)
                 }
+
             }
         }
-        if (oneRuleToModify[0]) {
-            console.log('modification de la règle', oneRuleToModify[1])
-            updateRule(oneRuleToModify[1]);
+
+        if (rulesToModify.size === 0) {
+            console.log('pas de règle à modifier, on ajoute une nouvelle règle');
+            handleSaveRule();
+        }
+        if (rulesToModify.size === 1) {
+            console.log('modification de la règle', rulesToModify)
+            updateRule(rulesToModify.values().next().value);
         } else {
-            console.log('ajout d\'une règle (entre autre), on a pas exactement cet input dans une règle');
-            addUnexpectedRule();
+            console.log('ajout de règles and stuff', rulesToModify);
+            addUnexpectedRule(rulesToModify);
         }
     };
 
-    const addUnexpectedRule = () => {
+    const addUnexpectedRule = (setListRules) => {
         let activeRulesOnly = [];
-        for (let i = 0; i < activeRules.length; i++) {
-            if (activeRules[i]) {
-                activeRulesOnly.push(creerReglebool(regles[i]));
-            }
+        for (let rulenbr of setListRules) {
+            activeRulesOnly.push(reglesbools[rulenbr])
         }
-        console.log('regles concernées : ', activeRulesOnly);
-
-        const auto = new Automaton();
-        auto.setRules(activeRulesOnly);
-        auto.updateParameters();
-        let confInit = new Configuration(grille.grid.length);
-        for (let i = 0; i < grille.grid[0].length; i++) {
-            confInit.cells[i] = grille.grid[0][i].getSignals();
-        }
-        //PAS BIEN LE 1 !!
-        const confInal = auto.makeDiagram(confInit, 1)
-        confInal.shift();
-        console.log('output des règles sur l\'input de la grille', confInal);
-
-        //PAS BIEN, mais pour l'instant.. pour chaque configuration (il en reste une seule pour le moment, j'espère !!)
-        if (confInal.length > 1) {
-            console.error('Trop de configurations en sortie de la grille');
-            return;
-        }
+        const configOutput = getOutputFromRules(activeRulesOnly);
         //si l'output généré est le même que celui de la grille, on fait rien on return c'est gg
+        //pour l'instant pas géré
         let outputdifferent = false;
-        //PAS BIEN, FAIRE DOUBLE BOUCLE SI ON EST RP !
-        for (let i = 0; i < grille.grid[0].length; i++) {
-            if (!setEquals(grille.grid[1][i].signals, confInal[0].cells[i].signals)) {
-                outputdifferent = true;
-            }
-        }
-        if (!outputdifferent) {
+        if (outputdifferent) {
             console.log('les outputs sont les mêmes, on ne fait rien');
             return;
         }
@@ -91,28 +73,41 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         const rulesModified = modifRulesWithNegation(newRuleBool, activeRulesOnly);
 
 
-        //on supprime les règles actives et on ajoute toutes les nouvelles règles créées
-        //PAS BIEN, un peu bizarre de modifier la liste comme ça..
-        for (let i = 0; i < activeRules.length; i++) {
-            if (activeRules[i]) {
-                deleteRule(i);
-            }
-        }
-        for (let rules in rulesModified){
-            regles.push(rules)
+        let rules = [...regles]
+
+        //si le n° d'indice de la règle est dans activeRulesOnly alors on le supprime
+        rules.filter((_, i) => !activeRulesOnly.includes(i));
+
+        for (let rules of rulesModified) {
+            rules.push(rules)
         }
         //on ajoute la nouvelle règle
-        regles.push(newRule.grid);
+        rules.push(newRule.grid);-
         //PAS BIEN ???
-        setRegles(regles);
+        setRegles(rules);
+        console.log('dans l\'idée on a fais les modifs qui faut :', reglesbools)
     };
+
+    const getOutputFromRules = (activeRulesOnly) => {
+        const auto = new Automaton();
+        auto.setRules(activeRulesOnly);
+        auto.updateParameters();
+        let confInit = new Configuration(grille.grid.length);
+        for (let i = 0; i < grille.grid[0].length; i++) {
+            confInit.cells[i] = grille.grid[0][i].getSignals();
+        }
+        //PAS BIEN LE 1 !!
+        const confInal = auto.makeDiagram(confInit, 1)
+        confInal.shift();
+        return confInal;
+    }
 
     const modifRulesWithNegation = (newRuleBool, activeRulesOnly) => {
         let newRulesReadyToUse = [];
-        for (let i=0; i<activeRulesOnly.length; i++){
+        for (let i = 0; i < activeRulesOnly.length; i++) {
             let newRules = new Conjunction([activeRulesOnly[i].condition, new Negation(newRuleBool.condition)]).toDNF();
-            for (let j=0; j<newRules.subclauses.length; j++){
-                newRulesReadyToUse.push(tabFromRuleBool(newRules.subclauses[j],newRuleBool.outputs));
+            for (let j = 0; j < newRules.subclauses.length; j++) {
+                newRulesReadyToUse.push(tabFromRuleBool(newRules.subclauses[j], newRuleBool.outputs));
             }
         }
         console.log('la liste des nouvelles règles à rajouter ! : ', newRulesReadyToUse)
@@ -122,14 +117,15 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
     const tabFromRuleBool = (clause, output) => {
         let tab = new Grille(grille.grid.length, grille.grid[0].length);
         for (let i = 0; i < grille.grid[0].length; i++) {
-            for (let j=0; j<clause.getLiterals().length; j++){
-                if (clause.getLiterals()[j].position === i){
-                    tab.grid[0][i].signals.add(clause.getLiterals()[j].signal);
+            for (let j = 0; j < clause.getLiterals().length; j++) {
+                if (clause.getLiterals()[j].position === i) {
+                    //PAS BIEN, faire le rayon !!
+                    tab.grid[0][i + 2].signals.add(clause.getLiterals()[j].signal);
                 }
             }
-            for (let j=0; j<output.length; j++){
-                if (output[j].neighbor === i){
-                    tab.grid[output[j].futureStep][i].signals.add(output[j].signal);
+            for (let j = 0; j < output.length; j++) {
+                if (output[j].neighbor === i) {
+                    tab.grid[output[j].futureStep][i + 2].signals.add(output[j].signal);
                 }
             }
         }
@@ -150,15 +146,14 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
     };
 
     const updateRule = (index) => {
-        const configuration = grille.grid.map(row =>
-            row.map(caseObj => ({...caseObj, signals: new Set(caseObj.signals)}))
+        const newConfigurations = regles.map((config, i) =>
+            i === index
+                ? grille.grid.map(row =>
+                    row.map(cell => ({...cell, signals: new Set(cell.signals)}))
+                )
+                : config
         );
-        if (regles.some(config => JSON.stringify(config) === JSON.stringify(configuration))) {
-            return;
-        }
-        const newConfigurations = regles.map((config, i) => i === index ? configuration : config);
         setRegles(newConfigurations);
-
     };
 
     const updateRuleSignal = (oldValue, newValue) => {
@@ -167,7 +162,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
                 row.map(cell => ({
                     ...cell,
                     signals: new Set(Array.from(cell.signals).map(signal =>
-                        signal === oldValue ? newValue : (signal === '!' + oldValue ? '!' + newValue : signal)
+                        signal === oldValue ? newValue : (Symbol.keyFor(signal) === '!' + Symbol.keyFor(oldValue) ? '!' + Symbol.keyFor(newValue) : signal)
                     ))
                 }))
             )
@@ -197,14 +192,12 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
 
     const creerOutput = (tab) => {
         const outputs = [];
-        console.log('tab de output', tab);
 
         tab.forEach((row, rowIndex) => {
             row.forEach((cellule, colIndex) => {
                 if (cellule.signals.size > 0) {
                     cellule.signals.forEach(signal => {
                         let ruleOutput = new RuleOutput(colIndex - Math.floor(tab[0].length / 2), signal, rowIndex + 1);
-                        console.log('outputs de la Rule : ', ruleOutput);
                         outputs.push(ruleOutput);
                     });
                 }
@@ -225,7 +218,6 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
                 }
             }
         });
-        console.log('clauses (sous forme de conjonction) : ', new Conjunction(clauses));
         return new Conjunction(clauses);
     };
 
@@ -236,7 +228,6 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         const clause = creerClause(clausePart);
         if (outputs.length === 0 && clause.subclauses.length === 0) {
             console.error("Aucun signal n'a été trouvé.");
-            console.log("tu m'as donné ça : ", regle);
             return;
         }
         return new Rule(clause, outputs);
@@ -246,7 +237,6 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         let auto = new Automaton();
         auto.parseRules(input);
         let rules = auto.getRules();
-        console.log(rules);
         for (let regle of rules) {
             let tabNewRule = new Grille(grille.grid.length, grille.grid[0].length);
             for (let literal of regle.condition.getLiterals()) {
@@ -255,7 +245,6 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
             for (let ruleOut of regle.outputs) {
                 tabNewRule.grid[ruleOut.futureStep][ruleOut.neighbor + (grille.grid[0].length - 1) / 2].signals.add(ruleOut.signal);  // Remplacement de ruleOut.signal par ruleOut.signal.description
             }
-            console.log(tabNewRule.grid);
             const newRegles = [...regles, tabNewRule.grid];
             setRegles(newRegles);
         }
@@ -269,6 +258,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
     }, [reglesbools, setAutomaton]);
 
     useEffect(() => {
+        console.log('regles a changé , ', regles)
         setReglesbools(regles.map(creerReglebool));
     }, [regles]);
 
@@ -295,11 +285,3 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
 
 export default ManagerRegles;
 
-// Helper function to compare two sets for equality
-const setEquals = (a, b) => {
-    if (a.size !== b.size) return false;
-    for (let item of a) {
-        if (!b.has(item)) return false;
-    }
-    return true;
-};

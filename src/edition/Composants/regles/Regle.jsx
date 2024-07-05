@@ -1,5 +1,5 @@
 import React from 'react';
-import Cell from '../../../components/Diagram.tsx';
+import {Cell} from '../../../components/Diagram.tsx';
 import '../../../style/Cell.css';
 
 const Regle = ({ grille, onLoadRule, onDeleteRule, onUpdateRule, activeRule }) => {

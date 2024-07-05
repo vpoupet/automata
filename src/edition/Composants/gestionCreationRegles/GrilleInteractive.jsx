@@ -1,6 +1,6 @@
 import React from 'react';
 import GestionnaireSignauxGrille from './GestionnaireSignauxGrille';
-import Cell from '../../../components/Diagram.tsx';
+import {Cell} from '../../../components/Diagram.tsx';
 import '../../../style/Cell.css';
 
 const GrilleInteractive = ({
