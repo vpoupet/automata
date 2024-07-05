@@ -1,0 +1,37 @@
+.App {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.top-section {
+    display: flex;
+    justify-content: space-between;
+}
+
+.grille-interactive {
+    flex: 1;
+    margin-right: 20px;
+}
+
+.gestion-signaux {
+    flex: 1;
+    margin-left: 20px;
+}
+
+.middle-section {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.liste-regles {
+    flex: 1;
+}
+
+.diagram {
+    align-self: center;
+    margin-top: 20px;
+}

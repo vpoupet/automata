@@ -4,6 +4,7 @@ import {Automaton, Rule, RuleOutput} from "../../../classes/Automaton.ts";
 import Grille from "../../Objets/Grille.js";
 import {act} from "react-dom/test-utils";
 import {Configuration} from "../../../classes/Configuration.ts";
+import Cellule from "../../Objets/Cellule.js";
 
 const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles, setRegles, activeRules) => {
 
@@ -18,32 +19,23 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
     };
 
     const modifyRule = () => {
+
         let oneRuleToModify = [false, 0];
         console.log('les regles', regles)
         for (let ruleNbr = 0; ruleNbr < regles.length; ruleNbr++) {
             //manque un étage, on descend pas assez bas pour comparer les signaux
-            if (regles[ruleNbr][0].signals === grille.grid[0].signals && regles[ruleNbr][0] !== undefined) {
-                console.log('on a trouvé une règle à modifier', ruleNbr)
+            if (regles[ruleNbr][0] === grille.grid[0] && regles[ruleNbr][0] !== undefined) {
+                console.log('on a trouvé une seule règle à modifier, la n° ', ruleNbr)
                 oneRuleToModify = [true, ruleNbr];
             }
         }
         if (oneRuleToModify[0]) {
             console.log('modification de la règle', oneRuleToModify[1])
-            modifExistingRules(oneRuleToModify[1]);
+            updateRule(oneRuleToModify[1]);
         } else {
             console.log('ajout d\'une règle (entre autre), on a pas exactement cet input dans une règle');
             addUnexpectedRule();
         }
-    };
-
-    const modifExistingRules = (valueRule) => {
-        let newRule = new Grille(grille.grid.length, grille.grid[0].length);
-        newRule.grid = grille.grid.map(row =>
-            row.map(cell => ({...cell, signals: [...cell.signals]}))
-        );
-        let newRegles = regles;
-        newRegles[valueRule] = newRule.grid;
-        setRegles(newRegles);
     };
 
     const addUnexpectedRule = () => {
@@ -76,7 +68,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
         let outputdifferent = false;
         //PAS BIEN, FAIRE DOUBLE BOUCLE SI ON EST RP !
         for (let i = 0; i < grille.grid[0].length; i++) {
-            if (grille.grid[1][i].signals.toSet() !== confInal[0].cells[i]) {
+            if (grille.grid[1][i].toSet() !== confInal[0].cells[i]) {
                 outputdifferent = true;
             }
         }
@@ -93,14 +85,16 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
             row.map(cell => ({...cell, signals: [...cell.signals]}))
         );
 
+        //on créé la regle bool de la nouvelle regle
         let newRuleBool = creerReglebool(newRule.grid);
-        const RulesToModify = modifRulesWithNegation(newRuleBool, activeRulesOnly);
+        //on ajoute la négation de l'input de la nouvelle règle à chaque règle active
+        const rulesModified = modifRulesWithNegation(newRuleBool, activeRulesOnly);
 
         //on modifie les règles existantes
         let j=0;
         for (let i = 0; i < activeRules.length; i++) {
             if (activeRules[i]) {
-                regles[i]=RulesToModify[i-j];
+                regles[i]=rulesModified[i-j];
             }
             else{
                 j--;
@@ -113,7 +107,7 @@ const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles
     };
 
     const modifRulesWithNegation = (newRuleBool, activeRulesOnly) => {
-        //on ajoute la négation de l'input de la grille
+        //comment
     };
     const printReglesConsole = () => {
         let stringRule = "";

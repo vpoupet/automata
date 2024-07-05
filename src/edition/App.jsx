@@ -1,7 +1,7 @@
 import GrilleInteractive from './Composants/gestionCreationRegles/GrilleInteractive.jsx';
 import ListeRegles from './Composants/regles/ListeRegles';
 import {useState} from "react";
-
+import './App.css';
 import GestionSignaux from "./Composants/gestionSignaux/GestionSignaux";
 import ManagerGrilleInteractive from "./Composants/hooks/ManagerGrilleInteractive";
 import ManagerSignaux from "./Composants/hooks/ManagerSignaux";
@@ -87,45 +87,50 @@ function App() {
 
     return (
         <div className="App">
-            <div>
-                <GrilleInteractive
-                    grille={grille}
-                    activeCells={activeCells}
-                    regles={regles}
-                    listeSignaux={listeSignaux}
-                    handleAddSignal={handleAddSignal}
-                    handleRemoveSignal={handleRemoveSignal}
-                    handleAddAllSignals={handleAddAllToCell}
-                    handleRemoveAllSignals={handleRemoveAllSignals}
-                    handleRemoveAllSignalsFromGrid={handleRemoveAllSignalsFromGrid}
-                    handleCaseClick={handleCaseClick}
-                    handleSaveRule={handleSaveRule}
-                    applyRules={applyRulesGrid}
-                    modifyRule={modifyRule}
-                />
+            <div className="top-section">
+                <div className="grille-interactive">
+                    <GrilleInteractive
+                        grille={grille}
+                        activeCells={activeCells}
+                        regles={regles}
+                        listeSignaux={listeSignaux}
+                        handleAddSignal={handleAddSignal}
+                        handleRemoveSignal={handleRemoveSignal}
+                        handleAddAllSignals={handleAddAllToCell}
+                        handleRemoveAllSignals={handleRemoveAllSignals}
+                        handleRemoveAllSignalsFromGrid={handleRemoveAllSignalsFromGrid}
+                        handleCaseClick={handleCaseClick}
+                        handleSaveRule={handleSaveRule}
+                        applyRules={applyRulesGrid}
+                        modifyRule={modifyRule}
+                    />
+                </div>
+                <div className="gestion-signaux">
+                    <GestionSignaux
+                        listeSignaux={listeSignaux}
+                        onAddSignal={handleAddNewSignal}
+                        onUpdateSignal={handleUpdateSignal}
+                        onDeleteSignal={handleDeleteSignal}
+                    />
+                </div>
             </div>
-            <div>
-                <ListeRegles
-                    regles={regles}
-                    reglesbools={reglesbools}
-                    onLoadRule={sendLoadRuleToGrid}
-                    onUpdateRule={updateRule}
-                    onDeleteRule={deleteRule}
-                    activeRules={activeRules}
-                    printReglesConsole={printReglesConsole}
-                    addRuleFromString={addRuleFromString}
-                />
+            <div className="middle-section">
+                <div className="liste-regles">
+                    <ListeRegles
+                        regles={regles}
+                        reglesbools={reglesbools}
+                        onLoadRule={sendLoadRuleToGrid}
+                        onUpdateRule={updateRule}
+                        onDeleteRule={deleteRule}
+                        activeRules={activeRules}
+                        printReglesConsole={printReglesConsole}
+                        addRuleFromString={addRuleFromString}
+                    />
+                </div>
             </div>
-            <div>
-                <GestionSignaux
-                    listeSignaux={listeSignaux}
-                    onAddSignal={handleAddNewSignal}
-                    onUpdateSignal={handleUpdateSignal}
-                    onDeleteSignal={handleDeleteSignal}
-                />
+            <div className="diagram">
+                <Diagram automaton={automaton} settings={settings} onCellClick={handleCellClick} />
             </div>
-
-            <Diagram automaton={automaton} settings={settings} onCellClick={handleCellClick} />
         </div>
     );
 }
