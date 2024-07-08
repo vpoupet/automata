@@ -1,17 +1,29 @@
-import React, {useRef} from 'react';
-import Regle from "./Regle";
+import { useRef } from "react";
+import Regle from "./Regle.tsx";
+import Cellule from "../../Objets/Cellule.ts";
+
+type ListeReglesProps = {
+    regles: Cellule[][][];
+    reglesbools: boolean[];
+    onLoadRule: (index: number) => void;
+    onDeleteRule: (index: number) => void;
+    onUpdateRule: (index: number) => void;
+    activeRules: boolean[];
+    printReglesConsole: () => void;
+    addRuleFromString: (rule: string) => void;
+};
 
 const ListeRegles = ({
-                         regles,
-                         reglesbools,
-                         onLoadRule,
-                         onDeleteRule,
-                         onUpdateRule,
-                         activeRules,
-                         printReglesConsole,
-                         addRuleFromString
-                     }) => {
-    const textAreaRef = useRef(null);
+    regles,
+    reglesbools,
+    onLoadRule,
+    onDeleteRule,
+    onUpdateRule,
+    activeRules,
+    printReglesConsole,
+    addRuleFromString,
+}: ListeReglesProps): JSX.Element => {
+    const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
     const handleAddRule = () => {
         if (textAreaRef.current) {
@@ -24,7 +36,7 @@ const ListeRegles = ({
         <div>
             <h2>Règles enregistrées</h2>
             {regles.map((regle, index) => (
-                <div key={index} style={{marginBottom: '10px'}}>
+                <div key={index} style={{ marginBottom: "10px" }}>
                     <Regle
                         grille={regle}
                         activeRule={activeRules[index]}
@@ -32,20 +44,23 @@ const ListeRegles = ({
                         onDeleteRule={() => onDeleteRule(index)}
                         onUpdateRule={() => onUpdateRule(index)}
                     />
-                    {reglesbools[index] !== null && reglesbools[index] !== undefined ? reglesbools[index].toString() : ''}
+                    {reglesbools[index] !== null &&
+                    reglesbools[index] !== undefined
+                        ? reglesbools[index].toString()
+                        : ""}
                 </div>
             ))}
             <button onClick={printReglesConsole}>Sortir règles en texte</button>
             <textarea
                 id="rulesText"
-                rows="10"
-                cols="50"
+                rows={10}
+                cols={50}
                 ref={textAreaRef}
                 placeholder="Mettez votre règle ici"
             />
             <button onClick={handleAddRule}>Ajouter règle depuis texte</button>
         </div>
     );
-}
+};
 
 export default ListeRegles;
