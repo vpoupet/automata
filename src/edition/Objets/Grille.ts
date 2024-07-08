@@ -1,7 +1,9 @@
 import Cellule from './Cellule';
 
 class Grille {
-    constructor(rows, cols) {
+    grid: Cellule[][];
+
+    constructor(rows: number, cols: number) {
         this.grid = [];
         for (let i = 0; i < rows; i++) {
             const row = [];
@@ -12,14 +14,9 @@ class Grille {
         }
     }
 
-    getCase(row, col) {
-        if (row >= 0 && row < this.grid.length && col >= 0 && col < this.grid[row].length) {
-            return this.grid[row][col];
-        }
-        return null;
+    getCase(row: number, col: number): Cellule | undefined {
+        return this.grid[row]?.[col];
     }
-
-
 }
 
 export default Grille;

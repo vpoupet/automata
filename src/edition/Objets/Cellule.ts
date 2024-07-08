@@ -1,21 +1,26 @@
+import { Signal } from "../../classes/types";
+
 class Cellule {
+    signals: Set<Signal>;
+
     constructor() {
         this.signals = new Set();
     }
 
-    get(signal) {
+    get(signal: Signal): boolean {
         return this.signals.has(signal);
     }
 
-    addSignal(signal) {
+    addSignal(signal: Signal) {
         // Assure que le signal est un Symbol
         if (typeof signal !== 'symbol') {
             signal = Symbol.for(signal);
         }
 
         // Supprime le signal opposé si présent
-        if (signal.description.startsWith('!')) {
-            const nonNegatedSignal = Symbol.for(Symbol.keyFor(signal).substring(1));
+        // TODO reprendre ce passage avec un ensemble de signaux et un ensemble de négations de signaux
+        if (Symbol.keyFor(signal)!.startsWith('!')) {
+            const nonNegatedSignal = Symbol.for(Symbol.keyFor(signal)!.substring(1));
             this.removeSignal(nonNegatedSignal);
         }
         else {
@@ -33,7 +38,7 @@ class Cellule {
         }
     }
 
-    removeSignal(signal) {
+    removeSignal(signal: Signal) {
         // Assure que le signal est un Symbol
         if (typeof signal !== 'symbol') {
             signal = Symbol.for(signal);
@@ -49,7 +54,7 @@ class Cellule {
         return this.signals;
     }
 
-    initFromSet(signalSet) {
+    initFromSet(signalSet: Set<Signal>) {
         this.signals = new Set(signalSet);
     }
 }
