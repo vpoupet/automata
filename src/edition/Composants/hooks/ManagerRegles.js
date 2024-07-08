@@ -1,9 +1,8 @@
-import {useEffect, useState, useCallback} from 'react';
-import {Clause, Conjunction, Literal, Negation} from "../../../classes/Clause.ts";
-import {Automaton, Rule, RuleOutput} from "../../../classes/Automaton.ts";
-import Grille from "../../Objets/Grille.js";
-import {Configuration} from "../../../classes/Configuration.ts";
-import Cellule from "../../Objets/Cellule.js";
+import { useCallback, useEffect } from 'react';
+import { Automaton, Rule, RuleOutput } from "../../../classes/Automaton.ts";
+import { Conjunction, Literal, Negation } from "../../../classes/Clause.ts";
+import { Configuration } from "../../../classes/Configuration.ts";
+import Grille from "../../Objets/Grille.ts";
 
 const ManagerRegles = (grille, setAutomaton, setReglesbools, reglesbools, regles, setRegles, activeRules) => {
 

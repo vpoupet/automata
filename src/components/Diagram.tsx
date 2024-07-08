@@ -66,7 +66,7 @@ function handleCellClick(index: number, cells: Set<Signal>[], onCellClick: (cell
 
 interface CellProps {
     cell: Set<Signal>;
-    onClick?: () => void;
+    onClick?: (event?: React.MouseEvent) => void;
     className?: string;
 }
 

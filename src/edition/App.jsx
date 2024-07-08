@@ -1,4 +1,4 @@
-import GrilleInteractive from './Composants/gestionCreationRegles/GrilleInteractive.jsx';
+import GrilleInteractive from './Composants/gestionCreationRegles/GrilleInteractive.tsx';
 import ListeRegles from './Composants/regles/ListeRegles';
 import {useState} from "react";
 import './App.css';
