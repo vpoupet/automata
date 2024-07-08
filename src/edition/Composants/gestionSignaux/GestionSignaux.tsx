@@ -1,9 +1,22 @@
 import { useState } from "react";
+import { Signal } from "../../../classes/types";
 
-const GestionSignaux = ({ listeSignaux, onAddSignal, onUpdateSignal, onDeleteSignal }) => {
-    const [newSignalValue, setNewSignalValue] = useState("");
-    const [editIndex, setEditIndex] = useState(null);
-    const [editSignalValue, setEditSignalValue] = useState("");
+type GestionSignauxProps = {
+    listeSignaux: Signal[];
+    onAddSignal: (signal: Signal) => void;
+    onUpdateSignal: (index: number, signal: Signal) => void;
+    onDeleteSignal: (index: number) => void;
+};
+
+export default function GestionSignaux({
+    listeSignaux,
+    onAddSignal,
+    onUpdateSignal,
+    onDeleteSignal,
+}: GestionSignauxProps): JSX.Element {
+    const [newSignalValue, setNewSignalValue] = useState<string>("");
+    const [editIndex, setEditIndex] = useState<number | undefined>(undefined);
+    const [editSignalValue, setEditSignalValue] = useState<string>("");
 
     const handleAddSignal = () => {
         if (newSignalValue.trim()) {
@@ -12,15 +25,18 @@ const GestionSignaux = ({ listeSignaux, onAddSignal, onUpdateSignal, onDeleteSig
         }
     };
 
-    const handleEditSignal = (index, value) => {
-        setEditIndex(index);
-        setEditSignalValue(Symbol.keyFor(value));
+    const handleEditSignal = (index: number, value: Signal) => {
+        const symbolName = Symbol.keyFor(value);
+        if (symbolName !== undefined) {
+            setEditIndex(index);
+            setEditSignalValue(symbolName);
+        }
     };
 
     const handleUpdateSignal = () => {
-        if (editSignalValue.trim()) {
+        if (editIndex !== undefined && editSignalValue.trim()) {
             onUpdateSignal(editIndex, Symbol.for(editSignalValue));
-            setEditIndex(null);
+            setEditIndex(undefined);
             setEditSignalValue("");
         }
     };
@@ -35,7 +51,9 @@ const GestionSignaux = ({ listeSignaux, onAddSignal, onUpdateSignal, onDeleteSig
                             <input
                                 type="text"
                                 value={editSignalValue}
-                                onChange={(e) => setEditSignalValue(e.target.value)}
+                                onChange={(e) =>
+                                    setEditSignalValue(e.target.value)
+                                }
                             />
                         ) : (
                             Symbol.keyFor(signal)
@@ -50,9 +68,7 @@ const GestionSignaux = ({ listeSignaux, onAddSignal, onUpdateSignal, onDeleteSig
                 ))}
             </ul>
             {editIndex !== null && (
-                <button onClick={handleUpdateSignal}>
-                    Sauvegarder
-                </button>
+                <button onClick={handleUpdateSignal}>Sauvegarder</button>
             )}
             <input
                 type="text"
@@ -64,5 +80,3 @@ const GestionSignaux = ({ listeSignaux, onAddSignal, onUpdateSignal, onDeleteSig
         </div>
     );
 }
-
-export default GestionSignaux;
