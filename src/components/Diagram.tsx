@@ -12,7 +12,7 @@ import { Signal } from '../classes/types.ts';  // Mise à jour de l'importation
 interface DiagramProps {
     automaton: Automaton;
     settings: SettingsInterface;
-    onCellClick: (cells: CellProps[]) => void;
+    onCellClick: (cells: Cellule[]) => void;
 }
 
 export function Diagram({ automaton, settings, onCellClick }: DiagramProps) {
@@ -34,39 +34,35 @@ export function Diagram({ automaton, settings, onCellClick }: DiagramProps) {
 
 interface DiagramRowProps {
     config: Configuration;
-    onCellClick: (cells: CellProps[]) => void;
+    onCellClick: (cells: Cellule[]) => void;
 }
 
 function DiagramRow({ config, onCellClick }: DiagramRowProps) {
+    const cellules = config.cells.map((c) => new Cellule(c));
     return (
         <div className={styles.row}>
             {config.cells.map((cell, i) => (
                 <Cell
                     key={i}
                     cell={cell}
-                    onClick={() => handleCellClick(i, config.cells, onCellClick)}
+                    onClick={() => handleCellClick(i, cellules, onCellClick)}
                 />
             ))}
         </div>
     );
 }
 
-function handleCellClick(index: number, cells: Set<Signal>[], onCellClick: (cells: CellProps[]) => void) {
-    const getCellOrEmpty = (i: number) => cells[i] || new Set<Signal>();
-    const cellList = [
-        { cell: getCellOrEmpty(index - 2), key: `${index - 2}` },
-        { cell: getCellOrEmpty(index - 1), key: `${index - 1}` },
-        { cell: getCellOrEmpty(index), key: `${index}` },
-        { cell: getCellOrEmpty(index + 1), key: `${index + 1}` },
-        { cell: getCellOrEmpty(index + 2), key: `${index + 2}` },
-    ];
-
+function handleCellClick(index: number, cells: Cellule[], onCellClick: (cells: Cellule[]) => void) {
+    const cellList: Cellule[] = [];
+    for (let i = -2; i <= 2; i++) {
+        cellList.push(cells[index + i] || new Cellule());
+    }
     onCellClick(cellList);
 }
 
 interface CellProps {
     cell: Set<Signal>;
-    onClick?: (event?: React.MouseEvent) => void;
+    onClick?: (event: React.MouseEvent) => void;
     className?: string;
 }
 

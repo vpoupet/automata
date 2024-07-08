@@ -14,9 +14,9 @@ type GrilleInteractiveProps = {
     handleRemoveAllSignals: () => void;
     handleRemoveAllSignalsFromGrid: () => void;
     handleCaseClick: (
-        row: number,
-        col: number,
-        event?: React.MouseEvent
+        rowIndex: number,
+        colIndex: number,
+        event: React.MouseEvent<Element, MouseEvent>
     ) => void;
     handleSaveRule: () => void;
     applyRules: () => void;

@@ -3,14 +3,18 @@ import { Signal } from "../../classes/types";
 class Cellule {
     signals: Set<Signal>;
 
-    constructor() {
-        this.signals = new Set();
+    constructor(signals: Set<Signal> = new Set()) {
+        this.signals = new Set(signals);
     }
 
     get(signal: Signal): boolean {
         return this.signals.has(signal);
     }
 
+    clone(): Cellule {
+        return new Cellule(new Set(this.signals));
+    }
+    
     addSignal(signal: Signal) {
         // Assure que le signal est un Symbol
         if (typeof signal !== 'symbol') {

@@ -1,23 +1,31 @@
-import GrilleInteractive from './Composants/gestionCreationRegles/GrilleInteractive.tsx';
-import ListeRegles from './Composants/regles/ListeRegles';
-import {useState} from "react";
-import './App.css';
-import GestionSignaux from "./Composants/gestionSignaux/GestionSignaux";
-import ManagerGrilleInteractive from "./Composants/hooks/ManagerGrilleInteractive";
-import ManagerSignaux from "./Composants/hooks/ManagerSignaux";
-import ManagerRegles from "./Composants/hooks/ManagerRegles";
-import {Diagram} from "../components/Diagram.tsx";
-import {Automaton} from "../classes/Automaton.ts";
+import { useState } from "react";
+import { Automaton, Rule } from "../classes/Automaton.ts";
+import { Diagram } from "../components/Diagram.tsx";
+import "./App.css";
+import GrilleInteractive from "./Composants/gestionCreationRegles/GrilleInteractive.tsx";
+import GestionSignaux from "./Composants/gestionSignaux/GestionSignaux.js";
+import ManagerGrilleInteractive from "./Composants/hooks/ManagerGrilleInteractive.ts";
+import ManagerRegles from "./Composants/hooks/ManagerRegles.ts";
+import ManagerSignaux from "./Composants/hooks/ManagerSignaux.ts";
+import ListeRegles from "./Composants/regles/ListeRegles.js";
+import Cellule from "./Objets/Cellule.ts";
+import { Signal } from "../classes/types.ts";
+
+type SettingsInterface = {
+    nbCells: number;
+    nbSteps: number;
+    timeGoesUp: boolean;
+};
 
 function App() {
-    const [rows] = useState(2);
-    const [cols] = useState(5);
-    const [regles, setRegles] = useState([]);
-    const [reglesbools, setReglesbools] = useState([]);
-    const [activeRules, setActiveRule]= useState([])
+    const [rows] = useState<number>(2);
+    const [cols] = useState<number>(5);
+    const [regles, setRegles] = useState<Cellule[][][]>([]);
+    const [reglesbools, setReglesbools] = useState<Rule[]>([]);
+    const [activeRules, setActiveRules] = useState<boolean[]>([]);
 
-    const [automaton, setAutomaton] = useState(new Automaton());
-    const [settings, setSettings] = useState({
+    const [automaton, setAutomaton] = useState<Automaton>(new Automaton());
+    const [settings] = useState<SettingsInterface>({
         nbCells: 40,
         nbSteps: 60,
         timeGoesUp: true,
@@ -37,14 +45,19 @@ function App() {
         updateSignalInGrid,
         handleUpdateFromDiagramme,
         applyRulesGrid,
-    } = ManagerGrilleInteractive(rows, cols, automaton, reglesbools, setAutomaton, setActiveRule, regles, reglesbools, activeRules);
+    } = ManagerGrilleInteractive(
+        rows,
+        cols,
+        automaton,
+        reglesbools,
+        setAutomaton,
+        setActiveRules,
+        regles,
+        activeRules
+    );
 
-    const {
-        listeSignaux,
-        handleAddNewSignal,
-        deleteSignal,
-        updateSignal
-    } = ManagerSignaux();
+    const { listeSignaux, handleAddNewSignal, deleteSignal, updateSignal } =
+        ManagerSignaux();
 
     const {
         deleteSignalInRules,
@@ -54,34 +67,46 @@ function App() {
         updateRuleSignal,
         modifyRule,
         printReglesConsole,
-        addRuleFromString
-    } = ManagerRegles(grille, setAutomaton, setReglesbools, reglesbools, regles, setRegles, activeRules);
+        addRuleFromString,
+    } = ManagerRegles(
+        grille,
+        setAutomaton,
+        setReglesbools,
+        reglesbools,
+        regles,
+        setRegles,
+    );
 
-    const sendLoadRuleToGrid = (index) => {
+    const sendLoadRuleToGrid = (index: number) => {
         const configuration = regles[index];
         updateGrilleFromRule(configuration);
     };
 
-    const handleUpdateSignal = (index, newValue) => {
-        const { success, oldValue, newValue: updatedValue } = updateSignal(index, newValue);
+    const handleUpdateSignal = (index: number, newValue: Signal) => {
+        const {
+            oldValue,
+            newValue: updatedValue,
+        } = updateSignal(index, newValue);
 
-        if (success) {
+        if (oldValue && updatedValue) {
             updateRuleSignal(oldValue, updatedValue);
             updateSignalInGrid(oldValue, updatedValue);
         }
     };
 
-    const handleDeleteSignal = (index) => {
-        const signalValue = deleteSignal(index);
-        deleteSignalInRules(signalValue);
-        deleteSignalInGrid(signalValue);
+    const handleDeleteSignal = (index: number) => {
+        const signal = deleteSignal(index);
+        if (signal) {
+            deleteSignalInRules(signal);
+            deleteSignalInGrid(signal);
+        }
     };
 
     const handleAddAllToCell = () => {
         handleAddAllSignals(listeSignaux);
-    }
+    };
 
-    const handleCellClick = (cells) => {
+    const handleCellClick = (cells: Cellule[]) => {
         handleUpdateFromDiagramme(cells);
     };
 
@@ -92,13 +117,14 @@ function App() {
                     <GrilleInteractive
                         grille={grille}
                         activeCells={activeCells}
-                        regles={regles}
                         listeSignaux={listeSignaux}
                         handleAddSignal={handleAddSignal}
                         handleRemoveSignal={handleRemoveSignal}
                         handleAddAllSignals={handleAddAllToCell}
                         handleRemoveAllSignals={handleRemoveAllSignals}
-                        handleRemoveAllSignalsFromGrid={handleRemoveAllSignalsFromGrid}
+                        handleRemoveAllSignalsFromGrid={
+                            handleRemoveAllSignalsFromGrid
+                        }
                         handleCaseClick={handleCaseClick}
                         handleSaveRule={handleSaveRule}
                         applyRules={applyRulesGrid}
@@ -129,7 +155,11 @@ function App() {
                 </div>
             </div>
             <div className="diagram">
-                <Diagram automaton={automaton} settings={settings} onCellClick={handleCellClick} />
+                <Diagram
+                    automaton={automaton}
+                    settings={settings}
+                    onCellClick={handleCellClick}
+                />
             </div>
         </div>
     );

@@ -1,4 +1,4 @@
-import Cellule from './Cellule';
+import Cellule from "./Cellule";
 
 class Grille {
     grid: Cellule[][];
@@ -12,6 +12,14 @@ class Grille {
             }
             this.grid.push(row);
         }
+    }
+
+    clone(): Grille {
+        const newGrille = new Grille(this.grid.length, this.grid[0].length);
+        newGrille.grid = this.grid.map((row) =>
+            row.map((cell) => cell.clone())
+        );
+        return newGrille;
     }
 
     getCase(row: number, col: number): Cellule | undefined {

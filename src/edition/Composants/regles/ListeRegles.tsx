@@ -1,10 +1,11 @@
 import { useRef } from "react";
 import Regle from "./Regle.tsx";
 import Cellule from "../../Objets/Cellule.ts";
+import { Rule } from "../../../classes/Automaton.ts";
 
 type ListeReglesProps = {
     regles: Cellule[][][];
-    reglesbools: boolean[];
+    reglesbools: Rule[];
     onLoadRule: (index: number) => void;
     onDeleteRule: (index: number) => void;
     onUpdateRule: (index: number) => void;
