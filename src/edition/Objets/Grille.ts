@@ -1,14 +1,14 @@
-import Cellule from "./Cellule";
+import { Cell } from "../../classes/Cell";
 
 class Grille {
-    grid: Cellule[][];
+    grid: Cell[][];
 
     constructor(rows: number, cols: number) {
         this.grid = [];
         for (let i = 0; i < rows; i++) {
             const row = [];
             for (let j = 0; j < cols; j++) {
-                row.push(new Cellule());
+                row.push(new Cell());
             }
             this.grid.push(row);
         }
@@ -22,11 +22,11 @@ class Grille {
         return newGrille;
     }
 
-    getCase(row: number, col: number): Cellule | undefined {
+    getCase(row: number, col: number): Cell | undefined {
         return this.grid[row]?.[col];
     }
 
-    equals(grille : Grille.prototype.grid): boolean {
+    equals(grille : Cell[][]): boolean {
         for(let i=0; i<this.grid.length; i++){
             for (let j=0; j<this.grid[0].length; j++){
                 if (this.grid[i][j].signals.values()!==grille[i][j].signals.values()){

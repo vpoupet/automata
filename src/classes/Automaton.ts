@@ -230,7 +230,7 @@ export class Automaton {
                             ) {
                                 diagram[t + output.futureStep].cells[
                                     targetCell
-                                ].add(output.signal);
+                                ].addSignal(output.signal);
                             }
                         });
                     }

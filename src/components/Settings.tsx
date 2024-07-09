@@ -1,4 +1,4 @@
-import { SettingsInterface } from "../App";
+import { SettingsInterface } from "../classes/types";
 
 interface SettingsProps {
     settings: SettingsInterface;

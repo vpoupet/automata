@@ -1,9 +1,9 @@
-import { Cell } from "../../../components/Diagram.tsx";
+import { Cell } from "../../../classes/Cell.ts";
+import { DiagramCell } from "../../../components/Diagram.tsx";
 import "../../../style/Cell.css";
-import Cellule from "../../Objets/Cellule.ts";
 
 type RegleProps = {
-    grille: Cellule[][];
+    grille: Cell[][];
     onLoadRule: () => void;
     onDeleteRule: () => void;
     onUpdateRule: () => void;
@@ -32,9 +32,9 @@ const Regle = ({
                     .reverse()
                     .map((row, rowIndex) =>
                         row.map((cell, colIndex) => (
-                            <Cell
+                            <DiagramCell
                                 key={`${rowIndex}-${colIndex}`}
-                                cell={cell.signals}
+                                cell={cell}
                                 className=""
                             />
                         ))

@@ -1,5 +1,5 @@
 import { Signal } from "../../../classes/types.ts";
-import { Cell } from "../../../components/Diagram.tsx";
+import { DiagramCell } from "../../../components/Diagram.tsx";
 import "../../../style/Cell.css";
 import Grille from "../../Objets/Grille.ts";
 import GestionnaireSignauxGrille from "./GestionnaireSignauxGrille.tsx";
@@ -92,9 +92,9 @@ const GrilleInteractive = ({
                                         );
                                         return (
                                             caseObj && (
-                                                <Cell
+                                                <DiagramCell
                                                     key={rowIndex}
-                                                    cell={caseObj.signals}
+                                                    cell={caseObj}
                                                     onClick={(event) =>
                                                         handleCaseClick(
                                                             grille.grid.length -
