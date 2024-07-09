@@ -4,11 +4,10 @@ import { Diagram } from "../components/Diagram.tsx";
 import "./App.css";
 import GrilleInteractive from "./Composants/gestionCreationRegles/GrilleInteractive.tsx";
 import GestionSignaux from "./Composants/gestionSignaux/GestionSignaux.js";
-import ManagerGrilleInteractive from "./Composants/hooks/ManagerGrilleInteractive.ts";
 import ManagerRegles from "./Composants/hooks/ManagerRegles.ts";
 import ManagerSignaux from "./Composants/hooks/ManagerSignaux.ts";
+import ManagerGrilleInteractive from "./Composants/hooks/ManagerGrilleInteractive.ts";
 import ListeRegles from "./Composants/regles/ListeRegles.js";
-import { SettingsInterface, Signal } from "../classes/types.ts";
 import { Cell } from "../classes/Cell.ts";
 import { Configuration } from "../classes/Configuration.ts";
 import { Signal } from "../classes/types.ts";
@@ -54,9 +53,9 @@ function App() {
         automaton,
         reglesbools,
         setAutomaton,
-        setActiveRules,
-        rulesGrid,
-        activeRules
+        // setActiveRules,
+        // rulesGrid,
+        // activeRules
     );
 
     const { listeSignaux, handleAddNewSignal, deleteSignal, updateSignal } =
@@ -67,7 +66,7 @@ function App() {
         handleSaveRule,
         updateRule,
         deleteRule,
-        updateRuleSignal,
+        updateSignalInRule,
         modifyRule,
         printReglesConsole,
         addRuleFromString,
@@ -92,7 +91,7 @@ function App() {
         } = updateSignal(index, newValue);
 
         if (oldValue && updatedValue) {
-            updateRuleSignal(oldValue, updatedValue);
+            updateSignalInRule(oldValue, updatedValue);
             updateSignalInGrid(oldValue, updatedValue);
         }
     };

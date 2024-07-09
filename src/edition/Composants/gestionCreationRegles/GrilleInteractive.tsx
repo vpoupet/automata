@@ -3,6 +3,7 @@ import { DiagramCell } from "../../../components/Diagram.tsx";
 import "../../../style/Cell.css";
 import GestionnaireSignauxGrille from "./GestionnaireSignauxGrille.tsx";
 import RuleGrid from "../../Objets/RuleGrid.ts";
+import {Cell} from "../../../classes/Cell.ts";
 
 type GrilleInteractiveProps = {
     grid: RuleGrid;
@@ -130,9 +131,8 @@ const GrilleInteractive = ({
                                     {colIndex + 1}
                                 </div>
                                 {grid.inputs[colIndex] && (
-                                    <Cell
-                                        key={colIndex}
-                                        cell={grid.inputs[colIndex].signals}
+                                    <DiagramCell
+                                        cell={new Cell(grid.inputs[colIndex].signals)}
                                         onClick={(event) =>
                                             handleCaseClick(-1, colIndex, event)
                                         }

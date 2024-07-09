@@ -26,6 +26,10 @@ export class Cell {
     removeAllSignals() {
         this.signals.clear();
     }
+
+    equals(cell: Cell): boolean {
+        return(cell.signals===this.signals);
+    }
 }
 
 export class InputCell extends Cell {

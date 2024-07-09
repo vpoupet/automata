@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-import { Configuration } from "../../../classes/Configuration.ts";
+import {useState } from "react";
 import { Automaton, Rule } from "../../../classes/Automaton.ts";
 import { Coordinates, Signal } from "../../../classes/types.ts";
 import { Cell } from "../../../classes/Cell.ts";
 import RuleGrid from "../../Objets/RuleGrid.ts";
+import ruleGrid from "../../Objets/RuleGrid.ts";
 
 
 const ManagerGrilleInteractive = (
@@ -12,9 +12,9 @@ const ManagerGrilleInteractive = (
     automaton: Automaton,
     reglesbools: Rule[],
     setAutomaton: (automaton: Automaton) => void,
-    setActiveRules: React.Dispatch<React.SetStateAction<boolean[]>>,
-    regles: RuleGrid[],
-    activeRules: boolean[],
+    // setActiveRules: React.Dispatch<React.SetStateAction<boolean[]>>,
+    // regles: RuleGrid[],
+    // activeRules: boolean[],
 ) => {
     const [grid, setGrid] = useState<RuleGrid>(new RuleGrid(rows, cols));
     const [activeCells, setActiveCells] = useState<Coordinates[]>([]);
@@ -145,20 +145,12 @@ const ManagerGrilleInteractive = (
         for (let rows=0; rows<grid.outputs.length; rows++){
             for (let cells=0; cells<grid.outputs[rows].length; cells++){
                 if (rows===0){
-                    newGrid.inputs[cells].signals.forEach((signal) => {
-                        if (signal === oldSignal){
-                            newGrid.inputs[cells].removeSignal(signal);
-                            newGrid.inputs[cells].addSignal(newSignal);
-                        }
-                    });
+                    if(newGrid.inputs[cells].signals.delete(oldSignal)){
+                        newGrid.inputs[cells].addSignal(newSignal);
+                    }
                 }
-                else {
-                    newGrid.outputs[rows-1][cells].signals.forEach((signal) => {
-                        if (signal === oldSignal) {
-                            newGrid.outputs[rows-1][cells].removeSignal(signal);
-                            newGrid.outputs[rows-1][cells].addSignal(newSignal);
-                        }
-                    })
+                if(newGrid.outputs[rows][cells].signals.delete(oldSignal)){
+                    newGrid.outputs[rows][cells].addSignal(newSignal);
                 }
             }
         }
@@ -188,74 +180,48 @@ const ManagerGrilleInteractive = (
         setGrid(newGrid);
     };
 
-    const handleUpdateFromDiagramme = (cells: Cell[]) => {
-        const newGrille = new Grille(rows, cols);
-
-        cells.forEach((cell, index) => {
-            cell.signals.forEach((signal) => {
-                newGrille.grid[0][index].addSignal(signal);
-            });
-        });
-        setGrille(newGrille);
-    };
-
     const applyRulesGrid = () => {
-        const newGrille = new Grille(rows, cols);
-        const conffromgrid = new Configuration(grille.grid.length);
-        for (let i = 0; i < grille.grid[0].length; i++) {
-            conffromgrid.cells[i] = grille.grid[0][i].getSignals();
-        }
+        const newGrille = new ruleGrid(rows, cols);
+        const conffromgrid = newGrille.getConfigurationFromGrid();
         automaton.setRules(reglesbools);
         automaton.updateParameters();
         setAutomaton(automaton);
         const conf = automaton.makeDiagram(
             conffromgrid,
-            grille.grid.length - 1
+            grid.outputs.length
         );
-        for (let i = 0; i < conf.length; i++) {
-            for (let j = 0; j < conf[i].cells.length; j++) {
-                const cellSet = conf[i].cells[j];
-                const cell = new Cell();
+        newGrille.setGridFromConfigurations(conf);
+    }
     const handleUpdateFromDiagramme = (cells: Cell[]) => {
         const newGrid = new RuleGrid(rows, cols);
-                newGrid.inputs[index].addSignal(signal);
-        setGrid(newGrid);
-        const newGrid = new RuleGrid(rows, cols);
-        newGrid.inputs = grid.inputs;
-        const conf = newGrid.getConfigurationFromGrid()
-        const configurations= automaton.makeDiagram(conf, newGrid.outputs.length);
-        for (let i = 0; i < newGrid.outputs.length; i++) {
-            for (let j = 0; j < newGrid.outputs[i].length; j++) {
-                newGrid.outputs[i][j].signals = configurations[i].cells[j];
-            }
-        }
+        newGrid.inputs = cells.slice(0, cols);
         setGrid(newGrid);
     };
 
-    useEffect(() => {
-        const config = new Configuration(cols);
-        for (let i = 0; i < cols; i++) {
-            config.cells[i] = grid.inputs[i].getSignals();
-        }
-        for (let i = 0; i < regles.length; i++) {
-            setActiveRules((prevRules) => {
-                const newRules = [...prevRules];
-                newRules[i] = false;
-                return newRules;
-            });
-        }
-
-        for (let i = 0; i < cols; i++) {
-            const neighborhood = config.getNeighborhood(i, -2, 2);
-            for (let j = 0; j < regles.length; j++) {
-                if (reglesbools[j].condition.eval(neighborhood)) {
-                    const newRules = [...activeRules];
-                    newRules[j] = true;
-                    setActiveRules(newRules);
-                }
-            }
-        }
-    }, [grid]);
+    // useEffect(() => {
+    //     const config = new Configuration(cols);
+    //     for (let i = 0; i < cols; i++) {
+    //         config.cells[i] = grid.inputs[i].getSignals();
+    //     }
+    //     for (let i = 0; i < regles.length; i++) {
+    //         setActiveRules((prevRules) => {
+    //             const newRules = [...prevRules];
+    //             newRules[i] = false;
+    //             return newRules;
+    //         });
+    //     }
+    //
+    //     for (let i = 0; i < cols; i++) {
+    //         const neighborhood = config.getNeighborhood(i, -2, 2);
+    //         for (let j = 0; j < regles.length; j++) {
+    //             if (reglesbools[j].condition.eval(neighborhood)) {
+    //                 const newRules = [...activeRules];
+    //                 newRules[j] = true;
+    //                 setActiveRules(newRules);
+    //             }
+    //         }
+    //     }
+    // }, [grid]);
 
     return {
         grid,

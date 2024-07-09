@@ -6,6 +6,9 @@ class RuleGrid {
     inputs: Cell[];
     outputs : Cell[][];
 
+    /***
+     *  Génère autant de ligne d'outputs que de rows passé en paramètre
+     ***/
     constructor(rows: number, cols: number) {
         this.inputs = new Array(cols);
         this.outputs = new Array(rows);
@@ -62,16 +65,45 @@ class RuleGrid {
             for (let col =0 ; col < this.inputs.length; col++) {
                 if (row === 0) {
                     new Set(this.inputs[row].signals).forEach((signal) => {
-                        conf.cells[row].add(signal);
+                        conf.cells[row].signals.add(signal);
                     })
                 } else {
                     new Set(this.outputs[row-1][col].signals).forEach((signal) => {
-                        conf.cells[row].add(signal);
+                        conf.cells[row].signals.add(signal);
                     })
                 }
             }
         }
         return conf;
+    }
+    setGridFromConfiguration(conf: Configuration) {
+        for (let i=0; i<conf.cells.length;i++){
+            if (i<this.inputs.length){
+                this.inputs[i].signals = conf.cells[i].signals;
+            }
+            else{
+                const row=Math.trunc(i/this.inputs.length)
+                const col=i%this.inputs.length
+                this.outputs[row][col].signals = conf.cells[i].signals;
+            }
+        }
+    }
+
+    setGridFromConfigurations(configurations: Configuration[]) {
+        for(let i=0; i<configurations.length; i++){
+            if (i===0){
+                for (let j=0; j<this.inputs.length; j++){
+                    this.inputs[j].signals = configurations[0].cells[j].signals;
+                }
+            }
+            else{
+                for (let row=0; row<this.outputs.length; row++){
+                    for (let col=0; col<this.outputs[row].length; col++){
+                        this.outputs[row][col].signals = configurations[i].cells[col].signals;
+                    }
+                }
+            }
+        }
     }
 }
 
