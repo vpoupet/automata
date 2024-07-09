@@ -1,9 +1,10 @@
-import Cellule from "./Cellule";
+
 import {Configuration} from "../../classes/Configuration.ts";
+import {Cell} from "../../classes/Cell.ts";
 
 class RuleGrid {
-    inputs: Cellule[];
-    outputs : Cellule[][];
+    inputs: Cell[];
+    outputs : Cell[][];
 
     constructor(rows: number, cols: number) {
         this.inputs = new Array(cols);
@@ -11,9 +12,9 @@ class RuleGrid {
         for (let i=0; i<rows; i++){
             this.outputs[i] = new Array(cols);
            for (let j=0; j<cols; j++){
-                this.outputs[i][j] = new Cellule();
+                this.outputs[i][j] = new Cell();
               if (i===0) {
-                  this.inputs[j] = new Cellule();
+                  this.inputs[j] = new Cell();
               }
            }
         }
@@ -28,7 +29,7 @@ class RuleGrid {
         return newGrid;
     }
 
-    getCase(row : number, col: number): Cellule | undefined {
+    getCase(row : number, col: number): Cell | undefined {
         if (row ===-1){
             return this.inputs[col];
         }
@@ -40,11 +41,11 @@ class RuleGrid {
     equals(ruleGrid: RuleGrid): boolean {
         return this.equalsInputs(ruleGrid.inputs) && this.equalsOutputs(ruleGrid.outputs);
     }
-    equalsInputs(inputs: Cellule[]): boolean {
+    equalsInputs(inputs: Cell[]): boolean {
         return this.inputs.length === inputs.length && this.inputs.every((v, i) => v.equals(inputs[i]));
     }
 
-    equalsOutputs(outputs: Cellule[][]): boolean {
+    equalsOutputs(outputs: Cell[][]): boolean {
         for (let row = 0; row < this.outputs.length; row++){
             for (let col = 0; col < this.outputs[row].length; col++){
                 if (!this.outputs[row][col].equals(outputs[row][col])){

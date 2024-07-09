@@ -8,11 +8,11 @@ import {
 } from "../../../classes/Clause.ts";
 import { Configuration } from "../../../classes/Configuration.ts";
 import { Signal } from "../../../classes/types.ts";
-import Grille from "../../Objets/Grille.ts";
 import { Cell } from "../../../classes/Cell.ts";
+import RuleGrid from "../../Objets/RuleGrid.ts";
 
 const ManagerRegles = (
-    grille: Grille,
+    grille: RuleGrid,
     setAutomaton: React.Dispatch<React.SetStateAction<Automaton>>,
     setReglesbools: React.Dispatch<React.SetStateAction<Rule[]>>,
     reglesbools: Rule[],
