@@ -5,12 +5,7 @@ import { Diagram } from "./components/Diagram";
 import { Rulebox } from "./components/Rulebox";
 import { Settings } from "./components/Settings";
 import { Automaton } from "./classes/Automaton";
-
-export interface SettingsInterface {
-    nbCells: number;
-    nbSteps: number;
-    timeGoesUp: boolean;
-}
+import { Configuration } from "./classes/Configuration";
 
 export default function App() {
     const initialRules = `\
@@ -51,19 +46,20 @@ Mark:
         timeGoesUp: true,
     });
 
-    const onCellClick = () => {
-        console.log("");
-    }
+    const initialConfiguration = new Configuration(settings.nbCells);
+    initialConfiguration.cells[0].addSignal(Symbol.for("Init"));
 
     return (
         <main>
             <h1>Signal Automaton</h1>
             <Settings settings={settings} setSettings={setSettings} />
-            <Rulebox
-                rules={initialRules}
-                setAutomaton={setAutomaton}
+            <Rulebox rules={initialRules} setAutomaton={setAutomaton} />
+            <Diagram
+                automaton={automaton}
+                initialConfiguration={initialConfiguration}
+                nbSteps={settings.nbSteps}
+                timeGoesUp={settings.timeGoesUp}
             />
-            <Diagram automaton={automaton} settings={settings} onCellClick={onCellClick} />
         </main>
     );
 }

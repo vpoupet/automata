@@ -1,25 +1,23 @@
-import React, {useCallback, useEffect} from "react";
-import {Automaton, Rule, RuleOutput} from "../../../classes/Automaton.ts";
+import React, { useCallback, useEffect } from "react";
+import { Automaton, Rule, RuleOutput } from "../../../classes/Automaton.ts";
 import {
-    Clause,
     Conjunction,
     ConjunctionOfLiterals, DNFClause,
     Literal,
-    Negation,
+    Negation
 } from "../../../classes/Clause.ts";
-import {Configuration} from "../../../classes/Configuration.ts";
-import {Signal} from "../../../classes/types.ts";
-import Cellule from "../../Objets/Cellule.ts";
-import Grille from "../../Objets/RuleGrid.ts";
-import {rules} from "@typescript-eslint/eslint-plugin";
+import { Configuration } from "../../../classes/Configuration.ts";
+import { Signal } from "../../../classes/types.ts";
+import Grille from "../../Objets/Grille.ts";
+import { Cell } from "../../../classes/Cell.ts";
 
 const ManagerRegles = (
     grille: Grille,
     setAutomaton: React.Dispatch<React.SetStateAction<Automaton>>,
     setReglesbools: React.Dispatch<React.SetStateAction<Rule[]>>,
     reglesbools: Rule[],
-    regles: Cellule[][][],
-    setRegles: React.Dispatch<React.SetStateAction<Cellule[][][]>>
+    regles: Cell[][][],
+    setRegles: React.Dispatch<React.SetStateAction<Cell[][][]>>
 ) => {
     const handleSaveRule = () => {
         setRegles([...regles, grille.clone().grid]);
@@ -29,7 +27,7 @@ const ManagerRegles = (
         const rulesToModify = new Set<number>();
         const config = new Configuration(grille.grid[0].length);
         for (let i = 0; i < grille.grid[0].length; i++) {
-            config.cells[i] = grille.grid[0][i].getSignals();
+            config.cells[i] = grille.grid[0][i];
         }
 
         for (let ruleNbr = 0; ruleNbr < regles.length; ruleNbr++) {
@@ -109,7 +107,7 @@ const ManagerRegles = (
         auto.updateParameters();
         const confInit = new Configuration(grille.grid.length);
         for (let i = 0; i < grille.grid[0].length; i++) {
-            confInit.cells[i] = grille.grid[0][i].getSignals();
+            confInit.cells[i] = grille.grid[0][i];
         }
         //PAS BIEN LE 1 !!
         const confInal = auto.makeDiagram(confInit, 1);
@@ -117,8 +115,8 @@ const ManagerRegles = (
         return confInal;
     };
 
-    function modifRulesWithNegation(newRuleBool: Rule, activeRulesOnly: Set<Rule>): Cellule[][][] {
-        const newRulesReadyToUse: Cellule[][][] = [];
+    function modifRulesWithNegation(newRuleBool: Rule, activeRulesOnly: Set<Rule>): Cell[][][] {
+        const newRulesReadyToUse: Cell[][][] = [];
         for (const rule of activeRulesOnly) {
             const newRule = new Conjunction([
                 rule.condition,
@@ -158,14 +156,14 @@ const ManagerRegles = (
 
     const updateRuleSignal = (oldValue: Signal, newValue: Signal) => {
         // TODO: revenir sur cette fonction après avoir ajouté les signaux négatifs à la Cellule
-        const newRegles: Cellule[][][] = regles.map((regle) =>
+        const newRegles: Cell[][][] = regles.map((regle) =>
             regle.map((row) =>
                 row.map((cell) => {
                     const newSignals = new Set(cell.signals);
                     if (newSignals.delete(oldValue)) {
                         newSignals.add(newValue);
                     }
-                    return new Cellule(newSignals);
+                    return new Cell(newSignals);
                 })
             )
         );
@@ -184,14 +182,14 @@ const ManagerRegles = (
                 row.map((cell) => {
                     const signals = new Set(cell.signals);
                     signals.delete(signalValue);
-                    return new Cellule(signals);
+                    return new Cell(signals);
                 })
             )
         );
         setRegles(newConfigurations);
     }
 
-    const creerOutput = (tab: Cellule[][]) => {
+    const creerOutput = (tab: Cell[][]) => {
         const outputs: RuleOutput[] = [];
 
         tab.forEach((row, rowIndex) => {
@@ -212,7 +210,7 @@ const ManagerRegles = (
         return outputs;
     };
 
-    function creerClause(tab: Cellule[][]): ConjunctionOfLiterals {
+    function creerClause(tab: Cell[][]): ConjunctionOfLiterals {
         // TODO: reprendre après signaux négatifs dans Cellule
         const literals: Literal[] = [];
         tab.forEach((row) => {
@@ -227,7 +225,7 @@ const ManagerRegles = (
         return new Conjunction(literals) as ConjunctionOfLiterals;
     }
 
-    function creerReglebool(regle: Cellule[][]): Rule {
+    function creerReglebool(regle: Cell[][]): Rule {
         // TODO: faire la vérification que la règle n'est pas vide ailleurs (avant ou après l'appel à cette fonction)
         const clausePart = regle.slice(0, 1);
         const outputPart = regle.slice(1);
@@ -260,8 +258,8 @@ const ManagerRegles = (
         }
     }
 
-    function getInputsFromDNF(DNF: DNFClause): Cellule [][][] {
-        const inputs: Cellule[][][] = [];
+    function getInputsFromDNF(DNF: DNFClause): Cell[][][] {
+        const inputs: Cell[][][] = [];
         for (let conj = 0; conj < DNF.subclauses.length; conj++) {
             const conjunction = DNF.subclauses[conj]
             inputs.push(new Grille(grille.grid.length, grille.grid[0].length).grid);
@@ -280,8 +278,8 @@ const ManagerRegles = (
         return inputs;
     }
 
-    function getRuleGridFromBool(regleBool: Rule): Cellule[][] {
-        const ruleGrid: Cellule[][] = new Grille(grille.grid.length, grille.grid[0].length).grid;
+    function getRuleGridFromBool(regleBool: Rule): Cell[][] {
+        const ruleGrid: Cell[][] = new Grille(grille.grid.length, grille.grid[0].length).grid;
         for (const literal of regleBool.condition.getLiterals()) {
             for (let cellidx = 0; cellidx < grille.grid[0].length; cellidx++) {
                 if (literal.position === cellidx - 2) {

@@ -1,7 +1,7 @@
-import { Cell } from "../../../components/Diagram.tsx";
+import { Cell } from "../../../classes/Cell.ts";
+import { DiagramCell } from "../../../components/Diagram.tsx";
 import "../../../style/Cell.css";
 import RuleGrid from "../../Objets/RuleGrid.ts";
-import Cellule from "../../Objets/Cellule.ts";
 
 type RegleProps = {
     grid: RuleGrid;
@@ -31,18 +31,18 @@ const Regle = ({
                 {grid.outputs
                     .slice()
                     .reverse()
-                    .map((row : Cellule[], rowIndex : number) =>
-                        row.map((cell: { signals: Set<symbol>; }, colIndex: any) => (
-                            <Cell
-                                key={`${rowIndex}-${colIndex}`}
-                                cell={cell.signals}
+                    .map((row, rowIndex) =>
+                        row.map((cell, colIndex) => (
+                            <DiagramCell
+                                key={`${rowIndex+1}-${colIndex}`}
+                                cell={cell}
                                 className=""
                             />
                         ))
                     )}
                 {grid.inputs.slice().reverse().map((cell: { signals: Set<symbol>; }, colIndex: number) => (
-                    <Cell
-                        key={`input-${colIndex}`}
+                    <DiagramCell
+                        key={`0-${colIndex}`}
                         cell={cell.signals}
                         className=""
                     />

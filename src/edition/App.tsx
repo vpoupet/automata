@@ -8,7 +8,9 @@ import ManagerGrilleInteractive from "./Composants/hooks/ManagerGrilleInteractiv
 import ManagerRegles from "./Composants/hooks/ManagerRegles.ts";
 import ManagerSignaux from "./Composants/hooks/ManagerSignaux.ts";
 import ListeRegles from "./Composants/regles/ListeRegles.js";
-import Cellule from "./Objets/Cellule.ts";
+import { SettingsInterface, Signal } from "../classes/types.ts";
+import { Cell } from "../classes/Cell.ts";
+import { Configuration } from "../classes/Configuration.ts";
 import { Signal } from "../classes/types.ts";
 import RuleGrid from "./Objets/RuleGrid.ts";
 
@@ -107,9 +109,12 @@ function App() {
         handleAddAllSignals(listeSignaux);
     };
 
-    const handleCellClick = (cells: Cellule[]) => {
+    const handleCellClick = (cells: Cell[]) => {
         handleUpdateFromDiagramme(cells);
     };
+
+    const initialConfiguration = new Configuration(settings.nbCells);
+    initialConfiguration.cells[0].addSignal(Symbol.for("Init"));
 
     return (
         <div className="App">
@@ -158,8 +163,8 @@ function App() {
             <div className="diagram">
                 <Diagram
                     automaton={automaton}
-                    settings={settings}
-                    onCellClick={handleCellClick}
+                    initialConfiguration={initialConfiguration}
+                    nbSteps={settings.nbSteps}
                 />
             </div>
         </div>

@@ -1,31 +1,33 @@
-import { SettingsInterface } from "../App";
 import { Automaton } from "../classes/Automaton";
 import { Configuration } from "../classes/Configuration";
-import styles from "../style/Diagram.module.scss";
 import "../style/Cell.css";
+import styles from "../style/Diagram.module.scss";
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import Cellule from '../edition/Objets/Cellule';
-import { Signal } from '../classes/types.ts';  // Mise à jour de l'importation
+import { Cell } from "../classes/Cell.ts";
 
 interface DiagramProps {
     automaton: Automaton;
-    settings: SettingsInterface;
-    onCellClick: (cells: Cellule[]) => void;
+    initialConfiguration: Configuration;
+    nbSteps: number;
+    onClickCell?: (row: number, col: number) => void;
 }
 
-export function Diagram({ automaton, settings, onCellClick }: DiagramProps) {
-    const initialConfiguration = new Configuration(settings.nbCells);
-    initialConfiguration.cells[0].add(Symbol.for("Init"));  // Utilisation de Symbol.for pour ajouter un signal initial
-    const diagram = automaton.makeDiagram(initialConfiguration, settings.nbSteps);
+export function Diagram({
+    automaton,
+    initialConfiguration,
+    nbSteps,
+    onClickCell,
+}: DiagramProps) {
+    const diagram = automaton.makeDiagram(initialConfiguration, nbSteps);
     return (
         <div className={styles.diagram}>
-            {diagram.reverse().map((config, i) => (
+            {diagram.reverse().map((config, row) => (
                 <DiagramRow
-                    key={i}
+                    key={row}
                     config={config}
-                    onCellClick={onCellClick}
+                    onClickCell={
+                        onClickCell && ((col) => onClickCell(row, col))
+                    }
                 />
             ))}
         </div>
@@ -34,44 +36,32 @@ export function Diagram({ automaton, settings, onCellClick }: DiagramProps) {
 
 interface DiagramRowProps {
     config: Configuration;
-    onCellClick: (cells: Cellule[]) => void;
+    onClickCell?: (col: number) => void;
 }
 
-function DiagramRow({ config, onCellClick }: DiagramRowProps) {
-    const cellules = config.cells.map((c) => new Cellule(c));
+function DiagramRow({ config, onClickCell }: DiagramRowProps) {
     return (
         <div className={styles.row}>
-            {config.cells.map((cell, i) => (
-                <Cell
-                    key={i}
+            {config.cells.map((cell, col) => (
+                <DiagramCell
+                    key={col}
                     cell={cell}
-                    onClick={() => handleCellClick(i, cellules, onCellClick)}
+                    onClick={onClickCell && (() => onClickCell(col))}
                 />
             ))}
         </div>
     );
 }
 
-function handleCellClick(index: number, cells: Cellule[], onCellClick: (cells: Cellule[]) => void) {
-    const cellList: Cellule[] = [];
-    for (let i = -2; i <= 2; i++) {
-        cellList.push(cells[index + i] || new Cellule());
-    }
-    onCellClick(cellList);
-}
-
 interface CellProps {
-    cell: Set<Signal>;
+    cell: Cell;
     onClick?: (event: React.MouseEvent) => void;
     className?: string;
 }
 
-export function Cell({ cell, onClick, className }: CellProps) {
-    const cellule = new Cellule();
-    cellule.setSignalsFromSet(cell); // Initialise la cellule avec le Set de signaux
-
+export function DiagramCell({ cell, onClick, className }: CellProps) {
     const signalNames: string[] = [];
-    for (const signal of cellule.signals) {
+    for (const signal of cell.signals) {
         const signalName = signal.description; // Utilisation de description pour obtenir le nom du symbole
         if (signalName !== undefined) {
             signalNames.push(signalName);
@@ -81,12 +71,12 @@ export function Cell({ cell, onClick, className }: CellProps) {
     return (
         <div
             className={`cell ${className}`}
-            data-tooltip={signalNames.length > 0 ? signalNames.join(" ") : undefined}
+            data-tooltip={
+                signalNames.length > 0 ? signalNames.join(" ") : undefined
+            }
             onClick={onClick}
         >
-            <div className='cellContent'>
-                {signalNames}
-            </div>
+            <div className="cellContent">{signalNames}</div>
         </div>
     );
 }
