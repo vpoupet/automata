@@ -1,10 +1,10 @@
 import { useRef } from "react";
 import Regle from "./Regle.tsx";
-import Cellule from "../../Objets/Cellule.ts";
 import { Rule } from "../../../classes/Automaton.ts";
+import RuleGrid from "../../Objets/RuleGrid.ts";
 
 type ListeReglesProps = {
-    regles: Cellule[][][];
+    rulesGrid: RuleGrid[];
     reglesbools: Rule[];
     onLoadRule: (index: number) => void;
     onDeleteRule: (index: number) => void;
@@ -15,7 +15,7 @@ type ListeReglesProps = {
 };
 
 const ListeRegles = ({
-    regles,
+    rulesGrid,
     reglesbools,
     onLoadRule,
     onDeleteRule,
@@ -36,10 +36,10 @@ const ListeRegles = ({
     return (
         <div>
             <h2>Règles enregistrées</h2>
-            {regles.map((regle, index) => (
+            {rulesGrid.map((rule, index) => (
                 <div key={index} style={{ marginBottom: "10px" }}>
                     <Regle
-                        grille={regle}
+                        grid={rule}
                         activeRule={activeRules[index]}
                         onLoadRule={() => onLoadRule(index)}
                         onDeleteRule={() => onDeleteRule(index)}
@@ -54,7 +54,7 @@ const ListeRegles = ({
             <button onClick={printReglesConsole}>Sortir règles en texte</button>
             <textarea
                 id="rulesText"
-                rows={10}
+                rows={5}
                 cols={50}
                 ref={textAreaRef}
                 placeholder="Mettez votre règle ici"

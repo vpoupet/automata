@@ -10,7 +10,7 @@ import {
 import {Configuration} from "../../../classes/Configuration.ts";
 import {Signal} from "../../../classes/types.ts";
 import Cellule from "../../Objets/Cellule.ts";
-import Grille from "../../Objets/Grille.ts";
+import Grille from "../../Objets/RuleGrid.ts";
 import {rules} from "@typescript-eslint/eslint-plugin";
 
 const ManagerRegles = (

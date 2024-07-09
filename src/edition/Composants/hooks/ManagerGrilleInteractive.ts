@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import Grille from "../../Objets/Grille.ts";
+import Grille from "../../Objets/RuleGrid.ts";
 import Cellule from "../../Objets/Cellule.ts";
 import { Configuration } from "../../../classes/Configuration.ts";
 import { Automaton, Rule } from "../../../classes/Automaton.ts";
 import { Coordinates, Signal } from "../../../classes/types.ts";
+import RuleGrid from "../../Objets/RuleGrid.ts";
 
 
 const ManagerGrilleInteractive = (
@@ -16,7 +17,7 @@ const ManagerGrilleInteractive = (
     regles: Cellule[][][],
     activeRules: boolean[],
 ) => {
-    const [grille, setGrille] = useState<Grille>(new Grille(rows, cols));
+    const [grid, setGrid] = useState<Grille>(new RuleGrid(rows, cols));
     const [activeCells, setActiveCells] = useState<Coordinates[]>([]);
 
     const updateGrille = (callback: (cellule: Cellule) => void) => {
@@ -35,7 +36,7 @@ const ManagerGrilleInteractive = (
                 return newCase;
             })
         );
-        setGrille(newGrille);
+        setGrid(newGrille);
     };
 
     const handleCaseClick = (rowIndex: number, colIndex: number, event: React.MouseEvent) => {
@@ -108,13 +109,13 @@ const ManagerGrilleInteractive = (
 
     const handleRemoveAllSignalsFromGrid = () => {
         const newGrille = new Grille(rows, cols);
-        newGrille.grid = grille.grid.map((row) =>
+        newGrille.grid = grid.grid.map((row) =>
             row.map(() => {
                 const newCase = new Cellule();
                 return newCase;
             })
         );
-        setGrille(newGrille);
+        setGrid(newGrille);
     };
 
     const updateGrilleFromRule = (configuration: Cellule[][]) => {
@@ -126,7 +127,7 @@ const ManagerGrilleInteractive = (
                 return newCase;
             })
         );
-        setGrille(newGrille);
+        setGrid(newGrille);
     };
 
     const handleAddAllSignals = (listeSignaux: Signal[]) => {
@@ -153,8 +154,8 @@ const ManagerGrilleInteractive = (
             console.error("Invalid signal value:", oldSignal, newSignal);
             return;
         }
-        const newGrille = new Grille(grille.grid.length, grille.grid[0].length);
-        newGrille.grid = grille.grid.map((row) =>
+        const newGrille = new Grille(grid.grid.length, grid.grid[0].length);
+        newGrille.grid = grid.grid.map((row) =>
             row.map((cell) => {
                 const newCase = new Cellule();
                 cell.signals.forEach((signal) => {
@@ -173,12 +174,12 @@ const ManagerGrilleInteractive = (
                 return newCase;
             })
         );
-        setGrille(newGrille);
+        setGrid(newGrille);
     };
 
     const deleteSignalInGrid = (signal: Signal) => {
-        const newGrille = new Grille(grille.grid.length, grille.grid[0].length);
-        newGrille.grid = grille.grid.map((row) =>
+        const newGrille = new Grille(grid.grid.length, grid.grid[0].length);
+        newGrille.grid = grid.grid.map((row) =>
             row.map((cell) => {
                 const newCase = new Cellule();
                 cell.signals.forEach((s) => {
@@ -192,7 +193,7 @@ const ManagerGrilleInteractive = (
                 return newCase;
             })
         );
-        setGrille(newGrille);
+        setGrid(newGrille);
     };
 
     const handleUpdateFromDiagramme = (cells: Cellule[]) => {
@@ -203,21 +204,21 @@ const ManagerGrilleInteractive = (
                 newGrille.grid[0][index].addSignal(signal);
             });
         });
-        setGrille(newGrille);
+        setGrid(newGrille);
     };
 
     const applyRulesGrid = () => {
         const newGrille = new Grille(rows, cols);
-        const conffromgrid = new Configuration(grille.grid.length);
-        for (let i = 0; i < grille.grid[0].length; i++) {
-            conffromgrid.cells[i] = grille.grid[0][i].getSignals();
+        const conffromgrid = new Configuration(grid.grid.length);
+        for (let i = 0; i < grid.grid[0].length; i++) {
+            conffromgrid.cells[i] = grid.grid[0][i].getSignals();
         }
         automaton.setRules(reglesbools);
         automaton.updateParameters();
         setAutomaton(automaton);
         const conf = automaton.makeDiagram(
             conffromgrid,
-            grille.grid.length - 1
+            grid.grid.length - 1
         );
         for (let i = 0; i < conf.length; i++) {
             for (let j = 0; j < conf[i].cells.length; j++) {
@@ -227,13 +228,13 @@ const ManagerGrilleInteractive = (
                 newGrille.grid[i][j] = cell;
             }
         }
-        setGrille(newGrille);
+        setGrid(newGrille);
     };
 
     useEffect(() => {
-        const config = new Configuration(grille.grid[0].length);
-        for (let i = 0; i < grille.grid[0].length; i++) {
-            config.cells[i] = grille.grid[0][i].getSignals();
+        const config = new Configuration(grid.grid[0].length);
+        for (let i = 0; i < grid.grid[0].length; i++) {
+            config.cells[i] = grid.grid[0][i].getSignals();
         }
         for (let i = 0; i < regles.length; i++) {
             setActiveRules((prevRules) => {
@@ -243,7 +244,7 @@ const ManagerGrilleInteractive = (
             });
         }
 
-        for (let i = 0; i < grille.grid[0].length; i++) {
+        for (let i = 0; i < grid.grid[0].length; i++) {
             const neighborhood = config.getNeighborhood(i, -2, 2);
             for (let j = 0; j < regles.length; j++) {
                 if (reglesbools[j].condition.eval(neighborhood)) {
@@ -253,10 +254,10 @@ const ManagerGrilleInteractive = (
                 }
             }
         }
-    }, [grille]);
+    }, [grid]);
 
     return {
-        grille,
+        grid,
         activeCells,
         setActiveCells,
         handleAddSignal,

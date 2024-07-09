@@ -1,11 +1,11 @@
 import { Signal } from "../../../classes/types.ts";
 import { Cell } from "../../../components/Diagram.tsx";
 import "../../../style/Cell.css";
-import Grille from "../../Objets/Grille.ts";
 import GestionnaireSignauxGrille from "./GestionnaireSignauxGrille.tsx";
+import RuleGrid from "../../Objets/RuleGrid.ts";
 
 type GrilleInteractiveProps = {
-    grille: Grille;
+    grid: RuleGrid;
     activeCells: { row: number; col: number }[];
     listeSignaux: Signal[];
     handleAddSignal: (signal: Signal) => void;
@@ -24,7 +24,7 @@ type GrilleInteractiveProps = {
 };
 
 const GrilleInteractive = ({
-    grille,
+    grid,
     activeCells,
     listeSignaux,
     handleAddSignal,
@@ -43,7 +43,7 @@ const GrilleInteractive = ({
         }
         const signals: Set<Signal> = new Set();
         activeCells.forEach((cell) => {
-            const cellule = grille.getCase(cell.row, cell.col);
+            const cellule = grid.getCase(cell.row, cell.col);
             if (cellule) {
                 cellule.signals.forEach((signal) => {
                     signals.add(signal);
@@ -52,7 +52,7 @@ const GrilleInteractive = ({
         });
         return Array.from(signals).filter((signal: Signal) =>
             activeCells.every((cell) => {
-                const cellule = grille.getCase(cell.row, cell.col);
+                const cellule = grid.getCase(cell.row, cell.col);
                 return cellule && cellule.signals.has(signal);
             })
         );
@@ -63,7 +63,7 @@ const GrilleInteractive = ({
             <div>
                 <h1>Grille Interactive</h1>
                 <div className="grid-container">
-                    {Array.from({ length: grille.grid[0].length }).map(
+                    {Array.from({ length: grid.outputs[0].length }).map(
                         (_, colIndex) => (
                             <div key={colIndex} className="row">
                                 <div
@@ -76,16 +76,17 @@ const GrilleInteractive = ({
                                 >
                                     {colIndex + 1}
                                 </div>
-                                {Array.from({ length: grille.grid.length }).map(
+                                {Array.from({ length: grid.outputs.length }).map(
                                     (_, rowIndex) => {
-                                        const caseObj = grille.getCase(
-                                            grille.grid.length - 1 - rowIndex,
+                                        const caseObj = grid.getCase(
+                                            //Todo : à vérif c'est bizarre
+                                            grid.outputs.length - 1 - rowIndex,
                                             colIndex
                                         );
                                         const isActive = activeCells.some(
                                             (cell) =>
                                                 cell.row ===
-                                                    grille.grid.length -
+                                                    grid.outputs.length -
                                                         1 -
                                                         rowIndex &&
                                                 cell.col === colIndex
@@ -97,7 +98,7 @@ const GrilleInteractive = ({
                                                     cell={caseObj.signals}
                                                     onClick={(event) =>
                                                         handleCaseClick(
-                                                            grille.grid.length -
+                                                            grid.outputs.length -
                                                                 1 -
                                                                 rowIndex,
                                                             colIndex,
@@ -115,6 +116,41 @@ const GrilleInteractive = ({
                             </div>
                         )
                     )}
+                    {Array.from({ length: grid.inputs.length }).map(
+                        (_, colIndex) => (
+                            <div key={colIndex} className="row">
+                                <div
+                                    style={{
+                                        width: "30px",
+                                        textAlign: "center",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                    }}
+                                >
+                                    {colIndex + 1}
+                                </div>
+                                {grid.inputs[colIndex] && (
+                                    <Cell
+                                        key={colIndex}
+                                        cell={grid.inputs[colIndex].signals}
+                                        onClick={(event) =>
+                                            handleCaseClick(-1, colIndex, event)
+                                        }
+                                        className={
+                                            activeCells.some(
+                                                (cell) =>
+                                                    cell.row === -1 &&
+                                                    cell.col === colIndex
+                                            )
+                                                ? "active"
+                                                : ""
+                                        }
+                                    />
+                                )}
+                            </div>
+                        )
+                    )
+                    }
                 </div>
                 <div>
                     <button onClick={handleRemoveAllSignalsFromGrid}>

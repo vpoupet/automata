@@ -10,6 +10,7 @@ import ManagerSignaux from "./Composants/hooks/ManagerSignaux.ts";
 import ListeRegles from "./Composants/regles/ListeRegles.js";
 import Cellule from "./Objets/Cellule.ts";
 import { Signal } from "../classes/types.ts";
+import RuleGrid from "./Objets/RuleGrid.ts";
 
 type SettingsInterface = {
     nbCells: number;
@@ -20,7 +21,7 @@ type SettingsInterface = {
 function App() {
     const [rows] = useState<number>(2);
     const [cols] = useState<number>(5);
-    const [regles, setRegles] = useState<Cellule[][][]>([]);
+    const [rulesGrid, setrulesGrid] = useState<RuleGrid[]>([]);
     const [reglesbools, setReglesbools] = useState<Rule[]>([]);
     const [activeRules, setActiveRules] = useState<boolean[]>([]);
 
@@ -32,7 +33,7 @@ function App() {
     });
 
     const {
-        grille,
+        grid,
         activeCells,
         deleteSignalInGrid,
         updateGrilleFromRule,
@@ -52,7 +53,7 @@ function App() {
         reglesbools,
         setAutomaton,
         setActiveRules,
-        regles,
+        rulesGrid,
         activeRules
     );
 
@@ -69,16 +70,16 @@ function App() {
         printReglesConsole,
         addRuleFromString,
     } = ManagerRegles(
-        grille,
+        grid,
         setAutomaton,
         setReglesbools,
         reglesbools,
-        regles,
-        setRegles,
+        rulesGrid,
+        setrulesGrid,
     );
 
     const sendLoadRuleToGrid = (index: number) => {
-        const configuration = regles[index];
+        const configuration = rulesGrid[index];
         updateGrilleFromRule(configuration);
     };
 
@@ -115,7 +116,7 @@ function App() {
             <div className="top-section">
                 <div className="grille-interactive">
                     <GrilleInteractive
-                        grille={grille}
+                        grid={grid}
                         activeCells={activeCells}
                         listeSignaux={listeSignaux}
                         handleAddSignal={handleAddSignal}
@@ -143,7 +144,7 @@ function App() {
             <div className="middle-section">
                 <div className="liste-regles">
                     <ListeRegles
-                        regles={regles}
+                        rulesGrid={rulesGrid}
                         reglesbools={reglesbools}
                         onLoadRule={sendLoadRuleToGrid}
                         onUpdateRule={updateRule}

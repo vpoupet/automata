@@ -4,14 +4,27 @@ class RuleGrid {
     inputs: Cellule[];
     outputs : Cellule[][];
 
-    constructor(inputs: Cellule[], outputs: Cellule[][]) {
-        this.inputs = inputs;
-        this.outputs = outputs;
+    constructor(rows: number, cols: number) {
+        this.inputs = new Array(cols);
+        this.outputs = new Array(rows);
+        for (let i=0; i<rows; i++){
+            this.outputs[i] = new Array(cols);
+           for (let j=0; j<cols; j++){
+                this.outputs[i][j] = new Cellule();
+              if (i===0) {
+                  this.inputs[j] = new Cellule();
+              }
+           }
+        }
     }
 
 
+
     clone(): RuleGrid {
-        return new RuleGrid(this.inputs, this.outputs);
+        const newGrid = new RuleGrid(this.outputs.length, this.outputs[0].length);
+        newGrid.inputs = this.inputs.map((cell) => cell.clone());
+        newGrid.outputs = this.outputs.map((row) => row.map((cell) => cell.clone()));
+        return newGrid;
     }
 
     getCase(row : number, col: number): Cellule | undefined {
