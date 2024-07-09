@@ -1,9 +1,9 @@
 import { Signal } from "../../../classes/types.ts";
-import { DiagramCell } from "../../../components/Diagram.tsx";
 import "../../../style/Cell.css";
 import GestionnaireSignauxGrille from "./GestionnaireSignauxGrille.tsx";
 import RuleGrid from "../../Objets/RuleGrid.ts";
-import {Cell} from "../../../classes/Cell.ts";
+import RowOutputs from "./RowOutputs.tsx";
+import RowInputs from "./RowInputs.tsx";
 
 type GrilleInteractiveProps = {
     grid: RuleGrid;
@@ -25,19 +25,19 @@ type GrilleInteractiveProps = {
 };
 
 const GrilleInteractive = ({
-    grid,
-    activeCells,
-    listeSignaux,
-    handleAddSignal,
-    handleRemoveSignal,
-    handleAddAllSignals,
-    handleRemoveAllSignals,
-    handleRemoveAllSignalsFromGrid,
-    handleCaseClick,
-    handleSaveRule,
-    applyRules,
-    modifyRule,
-}: GrilleInteractiveProps): JSX.Element => {
+                               grid,
+                               activeCells,
+                               listeSignaux,
+                               handleAddSignal,
+                               handleRemoveSignal,
+                               handleAddAllSignals,
+                               handleRemoveAllSignals,
+                               handleRemoveAllSignalsFromGrid,
+                               handleCaseClick,
+                               handleSaveRule,
+                               applyRules,
+                               modifyRule,
+                           }: GrilleInteractiveProps): JSX.Element => {
     function setActiveSignals(): Signal[] {
         if (activeCells.length === 0) {
             return [];
@@ -66,89 +66,27 @@ const GrilleInteractive = ({
                 <div className="grid-container">
                     {Array.from({ length: grid.outputs[0].length }).map(
                         (_, colIndex) => (
-                            <div key={colIndex} className="row">
-                                <div
-                                    style={{
-                                        width: "30px",
-                                        textAlign: "center",
-                                        display: "flex",
-                                        flexDirection: "column",
-                                    }}
-                                >
-                                    {colIndex + 1}
-                                </div>
-                                {Array.from({ length: grid.outputs.length }).map(
-                                    (_, rowIndex) => {
-                                        const caseObj = grid.getCaseOutput(
-                                            //Todo : à vérif c'est bizarre
-                                            rowIndex,
-                                            colIndex
-                                        );
-                                        const isActive = activeCells.some(
-                                            (cell) =>
-                                                cell.row === rowIndex
-                                                &&
-                                                cell.col === colIndex
-                                        );
-                                        return (
-                                            caseObj && (
-                                                <DiagramCell
-                                                    key={rowIndex}
-                                                    cell={caseObj}
-                                                    onClick={(event) =>
-                                                        handleCaseClick(
-                                                            grid.outputs.length -
-                                                                1 -
-                                                                rowIndex,
-                                                            colIndex,
-                                                            event
-                                                        )
-                                                    }
-                                                    className={
-                                                        isActive ? "active" : ""
-                                                    }
-                                                />
-                                            )
-                                        );
-                                    }
-                                )}
-                            </div>
+                            <RowOutputs
+                                key={colIndex}
+                                rowIndex={-1}
+                                colIndex={colIndex}
+                                grid={grid}
+                                activeCells={activeCells}
+                                handleCaseClick={handleCaseClick}
+                            />
                         )
                     )}
                     {Array.from({ length: grid.inputs.length }).map(
                         (_, colIndex) => (
-                            <div key={colIndex} className="row">
-                                <div
-                                    style={{
-                                        width: "30px",
-                                        textAlign: "center",
-                                        display: "flex",
-                                        flexDirection: "column",
-                                    }}
-                                >
-                                    {colIndex + 1}
-                                </div>
-                                {grid.inputs[colIndex] && (
-                                    <DiagramCell
-                                        cell={new Cell(grid.inputs[colIndex].signals)}
-                                        onClick={(event) =>
-                                            handleCaseClick(-1, colIndex, event)
-                                        }
-                                        className={
-                                            activeCells.some(
-                                                (cell) =>
-                                                    cell.row === -1 &&
-                                                    cell.col === colIndex
-                                            )
-                                                ? "active"
-                                                : ""
-                                        }
-                                    />
-                                )}
-                            </div>
+                            <RowInputs
+                                key={colIndex}
+                                colIndex={colIndex}
+                                grid={grid}
+                                activeCells={activeCells}
+                                handleCaseClick={handleCaseClick}
+                            />
                         )
-                    )
-                    }
+                    )}
                 </div>
                 <div>
                     <button onClick={handleRemoveAllSignalsFromGrid}>
