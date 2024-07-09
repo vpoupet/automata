@@ -61,6 +61,10 @@ class Cellule {
     initFromSet(signalSet: Set<Signal>) {
         this.signals = new Set(signalSet);
     }
+
+    equals(cell: Cellule): boolean {
+        return this.signals.size === cell.signals.size && Array.from(this.signals).every((signal) => cell.signals.has(signal));
+    }
 }
 
 export default Cellule;
