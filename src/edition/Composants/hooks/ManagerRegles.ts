@@ -1,16 +1,17 @@
-import React, { useCallback, useEffect } from "react";
-import { Automaton, Rule, RuleOutput } from "../../../classes/Automaton.ts";
+import React, {useCallback, useEffect} from "react";
+import {Automaton, Rule, RuleOutput} from "../../../classes/Automaton.ts";
 import {
     Clause,
     Conjunction,
-    ConjunctionOfLiterals,
+    ConjunctionOfLiterals, DNFClause,
     Literal,
     Negation,
 } from "../../../classes/Clause.ts";
-import { Configuration } from "../../../classes/Configuration.ts";
-import { Signal } from "../../../classes/types.ts";
+import {Configuration} from "../../../classes/Configuration.ts";
+import {Signal} from "../../../classes/types.ts";
 import Cellule from "../../Objets/Cellule.ts";
 import Grille from "../../Objets/Grille.ts";
+import {rules} from "@typescript-eslint/eslint-plugin";
 
 const ManagerRegles = (
     grille: Grille,
@@ -43,22 +44,19 @@ const ManagerRegles = (
             }
         }
 
+
         if (rulesToModify.size === 0) {
             console.log(
                 "pas de règle à modifier, on ajoute une nouvelle règle"
             );
             handleSaveRule();
-        }
-        if (rulesToModify.size === 1) {
-            console.log("modification de la règle", rulesToModify);
-            updateRule(rulesToModify.values().next().value);
         } else {
             console.log("ajout de règles and stuff", rulesToModify);
-            addUnexpectedRule(rulesToModify);
+            addAdaptedRules(rulesToModify);
         }
     };
 
-    const addUnexpectedRule = (setListRules: Set<number>) => {
+    const addAdaptedRules = (setListRules: Set<number>) => {
         const activeRulesOnly: Set<Rule> = new Set();
         for (const rulenbr of setListRules) {
             activeRulesOnly.add(reglesbools[rulenbr]);
@@ -119,10 +117,7 @@ const ManagerRegles = (
         return confInal;
     };
 
-    function modifRulesWithNegation(
-        newRuleBool: Rule,
-        activeRulesOnly: Set<Rule>
-    ): Cellule[][][] {
+    function modifRulesWithNegation(newRuleBool: Rule, activeRulesOnly: Set<Rule>): Cellule[][][] {
         const newRulesReadyToUse: Cellule[][][] = [];
         for (const rule of activeRulesOnly) {
             const newRule = new Conjunction([
@@ -131,7 +126,7 @@ const ManagerRegles = (
             ]).toDNF();
             for (let j = 0; j < newRule.subclauses.length; j++) {
                 newRulesReadyToUse.push(
-                    tabFromRuleBool(newRule.subclauses[j], newRuleBool.outputs)
+                    getRuleGridFromBool(new Rule(newRule.subclauses[j], newRuleBool.outputs))
                 );
             }
         }
@@ -141,28 +136,6 @@ const ManagerRegles = (
         );
         return newRulesReadyToUse;
     }
-
-    const tabFromRuleBool = (clause: Clause, output: RuleOutput[]) => {
-        const tab = new Grille(grille.grid.length, grille.grid[0].length);
-        for (let i = 0; i < grille.grid[0].length; i++) {
-            for (let j = 0; j < clause.getLiterals().length; j++) {
-                if (clause.getLiterals()[j].position === i) {
-                    //PAS BIEN, faire le rayon !!
-                    tab.grid[0][i + 2].signals.add(
-                        clause.getLiterals()[j].signal
-                    );
-                }
-            }
-            for (let j = 0; j < output.length; j++) {
-                if (output[j].neighbor === i) {
-                    tab.grid[output[j].futureStep][i + 2].signals.add(
-                        output[j].signal
-                    );
-                }
-            }
-        }
-        return tab.grid;
-    };
 
     const printReglesConsole = () => {
         let stringRule = "";
@@ -274,18 +247,60 @@ const ManagerRegles = (
             );
             for (const literal of regle.condition.getLiterals()) {
                 tabNewRule.grid[0][
-                    literal.position + (grille.grid[0].length - 1) / 2
-                ].signals.add(literal.signal); // Remplacement de literal.signal par literal.signal.description
+                literal.position + (grille.grid[0].length - 1) / 2
+                    ].signals.add(literal.signal); // Remplacement de literal.signal par literal.signal.description
             }
             for (const ruleOut of regle.outputs) {
                 tabNewRule.grid[ruleOut.futureStep][
-                    ruleOut.neighbor + (grille.grid[0].length - 1) / 2
-                ].signals.add(ruleOut.signal); // Remplacement de ruleOut.signal par ruleOut.signal.description
+                ruleOut.neighbor + (grille.grid[0].length - 1) / 2
+                    ].signals.add(ruleOut.signal); // Remplacement de ruleOut.signal par ruleOut.signal.description
             }
             const newRegles = [...regles, tabNewRule.grid];
             setRegles(newRegles);
         }
     }
+
+    function getInputsFromDNF(DNF: DNFClause): Cellule [][][] {
+        const inputs: Cellule[][][] = [];
+        for (let conj = 0; conj < DNF.subclauses.length; conj++) {
+            const conjunction = DNF.subclauses[conj]
+            inputs.push(new Grille(grille.grid.length, grille.grid[0].length).grid);
+            for (let i = 0; i < conjunction.subclauses.length; i++) {
+                for (let cellidx = 0; cellidx < grille.grid[0].length; cellidx++) {
+                    for (const literal of conjunction.subclauses[i].getLiterals()) {
+                        //PAS BIEN : cellidx - rayon
+                        if (literal.position === cellidx - 2) {
+                            //TODO : la négation ?
+                            inputs[conj][i][cellidx].signals.add(literal.signal)
+                        }
+                    }
+                }
+            }
+        }
+        return inputs;
+    }
+
+    function getRuleGridFromBool(regleBool: Rule): Cellule[][] {
+        const ruleGrid: Cellule[][] = new Grille(grille.grid.length, grille.grid[0].length).grid;
+        for (const literal of regleBool.condition.getLiterals()) {
+            for (let cellidx = 0; cellidx < grille.grid[0].length; cellidx++) {
+                if (literal.position === cellidx - 2) {
+                    //TODO : la négation !
+                    ruleGrid[0][cellidx].signals.add(literal.signal)
+                }
+            }
+        }
+        for (const ruleOut of regleBool.outputs){
+            for (let cellidx=0; cellidx<grille.grid[1].length;cellidx++ ){
+                if (ruleOut.neighbor===cellidx - 2){
+                    //PAS BIEN : on prend pas en compte si une grille plus grande
+                    ruleGrid[1][cellidx].signals.add(ruleOut.signal)
+                }
+            }
+        }
+        return ruleGrid;
+    }
+
 
     const applyRules = useCallback(() => {
         const auto = new Automaton();
@@ -295,7 +310,6 @@ const ManagerRegles = (
     }, [reglesbools, setAutomaton]);
 
     useEffect(() => {
-        console.log("regles a changé , ", regles);
         setReglesbools(regles.map(creerReglebool));
     }, [regles]);
 

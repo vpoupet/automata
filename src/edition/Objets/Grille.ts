@@ -25,6 +25,17 @@ class Grille {
     getCase(row: number, col: number): Cellule | undefined {
         return this.grid[row]?.[col];
     }
+
+    equals(grille : Grille.prototype.grid): boolean {
+        for(let i=0; i<this.grid.length; i++){
+            for (let j=0; j<this.grid[0].length; j++){
+                if (this.grid[i][j].signals.values()!==grille[i][j].signals.values()){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 }
 
 export default Grille;
