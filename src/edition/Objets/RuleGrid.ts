@@ -7,11 +7,11 @@ class RuleGrid {
     outputs : Cell[][];
 
     /***
-     *  Génère autant de ligne d'outputs que de rows passé en paramètre
+     *  Génère rows - 1 lignes d'outputs et une ligne d'inputs
      ***/
     constructor(rows: number, cols: number) {
         this.inputs = new Array(cols);
-        this.outputs = new Array(rows);
+        this.outputs = new Array(rows-1);
         for (let i=0; i<rows; i++){
             this.outputs[i] = new Array(cols);
            for (let j=0; j<cols; j++){
@@ -33,13 +33,19 @@ class RuleGrid {
     }
 
     getCase(row : number, col: number): Cell | undefined {
-        if (row ===-1){
+        if (row ===0){
             return this.inputs[col];
         }
         else {
-            return this.outputs[row][col];
+            return this.outputs[row-1][col];
         }
     }
+    getCaseOutput(row : number, col: number): Cell | undefined {
+            return this.outputs[row][col];
+}
+    // getCaseInput(col: number): Cell | undefined {
+    //     return this.inputs[col];
+    // }
 
     equals(ruleGrid: RuleGrid): boolean {
         return this.equalsInputs(ruleGrid.inputs) && this.equalsOutputs(ruleGrid.outputs);

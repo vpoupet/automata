@@ -79,17 +79,15 @@ const GrilleInteractive = ({
                                 </div>
                                 {Array.from({ length: grid.outputs.length }).map(
                                     (_, rowIndex) => {
-                                        const caseObj = grid.getCase(
+                                        const caseObj = grid.getCaseOutput(
                                             //Todo : à vérif c'est bizarre
-                                            grid.outputs.length - 1 - rowIndex,
+                                            rowIndex,
                                             colIndex
                                         );
                                         const isActive = activeCells.some(
                                             (cell) =>
-                                                cell.row ===
-                                                    grid.outputs.length -
-                                                        1 -
-                                                        rowIndex &&
+                                                cell.row === rowIndex
+                                                &&
                                                 cell.col === colIndex
                                         );
                                         return (

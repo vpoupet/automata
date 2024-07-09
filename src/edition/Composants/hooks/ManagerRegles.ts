@@ -20,6 +20,9 @@ const ManagerRegles = (
     setrulesGrid: React.Dispatch<React.SetStateAction<RuleGrid[]>>
 ) => {
     const handleSaveRule = () => {
+        if (rulesGrid.length === 0) {
+            setrulesGrid([grid.clone()]);
+        }
         setrulesGrid([...rulesGrid, grid.clone()]);
     };
 
