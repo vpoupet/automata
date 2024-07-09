@@ -1,4 +1,5 @@
 import Cellule from "./Cellule";
+import {Configuration} from "../../classes/Configuration.ts";
 
 class RuleGrid {
     inputs: Cellule[];
@@ -52,6 +53,24 @@ class RuleGrid {
             }
         }
         return true
+    }
+
+    getConfigurationFromGrid() : Configuration {
+        const conf = new Configuration(this.inputs.length);
+        for (let row = 0; row < this.outputs.length+1; row++) {
+            for (let col =0 ; col < this.inputs.length; col++) {
+                if (row === 0) {
+                    new Set(this.inputs[row].signals).forEach((signal) => {
+                        conf.cells[row].add(signal);
+                    })
+                } else {
+                    new Set(this.outputs[row-1][col].signals).forEach((signal) => {
+                        conf.cells[row].add(signal);
+                    })
+                }
+            }
+        }
+        return conf;
     }
 }
 

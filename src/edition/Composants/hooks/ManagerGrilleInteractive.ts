@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import Grille from "../../Objets/RuleGrid.ts";
+import React, { useEffect, useState} from "react";
 import Cellule from "../../Objets/Cellule.ts";
 import { Configuration } from "../../../classes/Configuration.ts";
 import { Automaton, Rule } from "../../../classes/Automaton.ts";
@@ -14,29 +13,46 @@ const ManagerGrilleInteractive = (
     reglesbools: Rule[],
     setAutomaton: (automaton: Automaton) => void,
     setActiveRules: React.Dispatch<React.SetStateAction<boolean[]>>,
-    regles: Cellule[][][],
+    regles: RuleGrid[],
     activeRules: boolean[],
 ) => {
-    const [grid, setGrid] = useState<Grille>(new RuleGrid(rows, cols));
+    const [grid, setGrid] = useState<RuleGrid>(new RuleGrid(rows, cols));
     const [activeCells, setActiveCells] = useState<Coordinates[]>([]);
 
     const updateGrille = (callback: (cellule: Cellule) => void) => {
-        const newGrille = new Grille(grille.grid.length, grille.grid[0].length);
-        newGrille.grid = grille.grid.map((r, rowIndex) =>
-            r.map((c, colIndex) => {
-                const newCase = new Cellule();
-                newCase.signals = new Set(c.signals);
-                if (
-                    activeCells.some(
-                        (cell) => cell.row === rowIndex && cell.col === colIndex
-                    )
-                ) {
-                    callback(newCase);
+        const newGrid = new RuleGrid(rows, cols);
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+                if (i === 0) {
+                    const cell = new Cellule();
+                    grid.inputs[j].signals.forEach((signal) => cell.addSignal(signal));
+                    callback(cell);
+                    newGrid.inputs[j] = cell;
+                } else {
+                    const cell = new Cellule();
+                    grid.outputs[i-1][j].signals.forEach((signal) => cell.addSignal(signal));
+                    callback(cell);
+                    newGrid.outputs[i][j] = cell;
                 }
-                return newCase;
-            })
-        );
-        setGrid(newGrille);
+            }
+        }
+        setGrid(newGrid);
+        // const newGrid = new Grille(grille.grid.length, grille.grid[0].length);
+        // newGrid.grid = grille.grid.map((r, rowIndex) =>
+        //     r.map((c, colIndex) => {
+        //         const newCase = new Cellule();
+        //         newCase.signals = new Set(c.signals);
+        //         if (
+        //             activeCells.some(
+        //                 (cell) => cell.row === rowIndex && cell.col === colIndex
+        //             )
+        //         ) {
+        //             callback(newCase);
+        //         }
+        //         return newCase;
+        //     })
+        // );
+        // setGrid(newGrid);
     };
 
     const handleCaseClick = (rowIndex: number, colIndex: number, event: React.MouseEvent) => {
@@ -108,133 +124,98 @@ const ManagerGrilleInteractive = (
     };
 
     const handleRemoveAllSignalsFromGrid = () => {
-        const newGrille = new Grille(rows, cols);
-        newGrille.grid = grid.grid.map((row) =>
-            row.map(() => {
-                const newCase = new Cellule();
-                return newCase;
-            })
-        );
-        setGrid(newGrille);
+        const newGrid = new RuleGrid(rows, cols);
+        setGrid(newGrid);
     };
 
-    const updateGrilleFromRule = (configuration: Cellule[][]) => {
-        const newGrille = new Grille(rows, cols);
-        newGrille.grid = configuration.map((row) =>
-            row.map((cell) => {
-                const newCase = new Cellule();
-                cell.signals.forEach((signal) => newCase.addSignal(signal));
-                return newCase;
-            })
-        );
-        setGrid(newGrille);
+    const updateGrilleFromRule = (ruleToCopy: RuleGrid) => {
+        setGrid(ruleToCopy.clone());
     };
 
     const handleAddAllSignals = (listeSignaux: Signal[]) => {
         updateGrille((caseObj: Cellule) => {
-            if (Array.isArray(listeSignaux)) {
-                listeSignaux.forEach((signal) => {
-                    if (typeof signal === "symbol") {
-                        caseObj.addSignal(signal);
-                    } else {
-                        console.error(
-                            "Invalid signal in listeSignaux:",
-                            signal
-                        );
-                    }
-                });
-            } else {
-                console.error("Invalid listeSignaux:", listeSignaux);
-            }
+            listeSignaux.forEach((signal) => caseObj.addSignal(signal));
         });
     };
 
     const updateSignalInGrid = (oldSignal: Signal, newSignal: Signal) => {
-        if (typeof oldSignal !== "symbol" || typeof newSignal !== "symbol") {
-            console.error("Invalid signal value:", oldSignal, newSignal);
-            return;
+        const newGrid = grid.clone();
+        for (let rows=0; rows<grid.outputs.length; rows++){
+            for (let cells=0; cells<grid.outputs[rows].length; cells++){
+                if (rows===0){
+                    newGrid.inputs[cells].signals.forEach((signal) => {
+                        if (signal === oldSignal){
+                            newGrid.inputs[cells].removeSignal(signal);
+                            newGrid.inputs[cells].addSignal(newSignal);
+                        }
+                    });
+                }
+                else {
+                    newGrid.outputs[rows-1][cells].signals.forEach((signal) => {
+                        if (signal === oldSignal) {
+                            newGrid.outputs[rows-1][cells].removeSignal(signal);
+                            newGrid.outputs[rows-1][cells].addSignal(newSignal);
+                        }
+                    })
+                }
+            }
         }
-        const newGrille = new Grille(grid.grid.length, grid.grid[0].length);
-        newGrille.grid = grid.grid.map((row) =>
-            row.map((cell) => {
-                const newCase = new Cellule();
-                cell.signals.forEach((signal) => {
-                    if (signal === oldSignal) {
-                        newCase.addSignal(newSignal);
-                    } else if (
-                        signal === Symbol.for("!" + Symbol.keyFor(oldSignal))
-                    ) {
-                        newCase.addSignal(
-                            Symbol.for("!" + Symbol.keyFor(newSignal))
-                        );
-                    } else {
-                        newCase.addSignal(signal);
-                    }
-                });
-                return newCase;
-            })
-        );
-        setGrid(newGrille);
+        setGrid(newGrid);
     };
 
     const deleteSignalInGrid = (signal: Signal) => {
-        const newGrille = new Grille(grid.grid.length, grid.grid[0].length);
-        newGrille.grid = grid.grid.map((row) =>
-            row.map((cell) => {
-                const newCase = new Cellule();
-                cell.signals.forEach((s) => {
-                    if (
-                        s !== signal &&
-                        s !== Symbol.for("!" + Symbol.keyFor(signal))
-                    ) {
-                        newCase.addSignal(s);
-                    }
-                });
-                return newCase;
-            })
-        );
-        setGrid(newGrille);
+        const newGrid = grid.clone();
+        for (let row=0; row<grid.outputs.length; row++){
+            for (let cells=0; cells<grid.outputs[row].length; cells++){
+                if (row===0){
+                    newGrid.inputs[cells].signals.forEach((s) => {
+                        if (s === signal) {
+                            newGrid.inputs[cells].removeSignal(signal);
+                        }
+                    });
+                }
+                else {
+                    newGrid.outputs[row-1][cells].signals.forEach((s) => {
+                        if (s === signal) {
+                            newGrid.outputs[row-1][cells].removeSignal(signal);
+                        }
+                    });
+                }
+            }
+        }
+        setGrid(newGrid);
     };
 
     const handleUpdateFromDiagramme = (cells: Cellule[]) => {
-        const newGrille = new Grille(rows, cols);
-
+        const newGrid = new RuleGrid(rows, cols);
         cells.forEach((cell, index) => {
             cell.signals.forEach((signal) => {
-                newGrille.grid[0][index].addSignal(signal);
+                newGrid.inputs[index].addSignal(signal);
             });
         });
-        setGrid(newGrille);
+        setGrid(newGrid);
     };
 
     const applyRulesGrid = () => {
-        const newGrille = new Grille(rows, cols);
-        const conffromgrid = new Configuration(grid.grid.length);
-        for (let i = 0; i < grid.grid[0].length; i++) {
-            conffromgrid.cells[i] = grid.grid[0][i].getSignals();
-        }
+        const newGrid = new RuleGrid(rows, cols);
+        newGrid.inputs = grid.inputs;
+        const conf = newGrid.getConfigurationFromGrid()
         automaton.setRules(reglesbools);
         automaton.updateParameters();
         setAutomaton(automaton);
-        const conf = automaton.makeDiagram(
-            conffromgrid,
-            grid.grid.length - 1
-        );
-        for (let i = 0; i < conf.length; i++) {
-            for (let j = 0; j < conf[i].cells.length; j++) {
-                const cellSet = conf[i].cells[j];
-                const cell = new Cellule();
-                cell.initFromSet(cellSet);
-                newGrille.grid[i][j] = cell;
+        const configurations= automaton.makeDiagram(conf, newGrid.outputs.length);
+        for (let i = 0; i < newGrid.outputs.length; i++) {
+            for (let j = 0; j < newGrid.outputs[i].length; j++) {
+                newGrid.outputs[i][j].signals = configurations[i].cells[j];
             }
         }
-        setGrid(newGrille);
+        setGrid(newGrid);
     };
 
     useEffect(() => {
-        const config = new Configuration(grid.grid[0].length);
-        for (let i = 0; i < grid.grid[0].length; i++) {
-            config.cells[i] = grid.grid[0][i].getSignals();
+        const config = new Configuration(cols);
+        for (let i = 0; i < cols; i++) {
+            config.cells[i] = grid.inputs[i].getSignals();
         }
         for (let i = 0; i < regles.length; i++) {
             setActiveRules((prevRules) => {
@@ -244,7 +225,7 @@ const ManagerGrilleInteractive = (
             });
         }
 
-        for (let i = 0; i < grid.grid[0].length; i++) {
+        for (let i = 0; i < cols; i++) {
             const neighborhood = config.getNeighborhood(i, -2, 2);
             for (let j = 0; j < regles.length; j++) {
                 if (reglesbools[j].condition.eval(neighborhood)) {

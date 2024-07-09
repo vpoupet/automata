@@ -58,7 +58,7 @@ class Cellule {
         return this.signals;
     }
 
-    initFromSet(signalSet: Set<Signal>) {
+    setSignalsFromSet(signalSet: Set<Signal>) {
         this.signals = new Set(signalSet);
     }
 
