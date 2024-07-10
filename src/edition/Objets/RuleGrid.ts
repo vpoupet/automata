@@ -11,7 +11,7 @@ class RuleGrid {
     constructor(rows: number, cols: number) {
         this.inputs = new Array(cols);
         this.outputs = new Array(rows - 1);
-        for (let i = 0; i < rows - 1; i++) {  // Changement ici : rows - 1
+        for (let i = 0; i < rows - 1; i++) {
             this.outputs[i] = new Array(cols);
             for (let j = 0; j < cols; j++) {
                 this.outputs[i][j] = new Cell();
@@ -32,13 +32,17 @@ class RuleGrid {
     getCase(row: number, col: number): Cell | undefined {
         if (row === 0) {
             return this.inputs[col];
-        } else {
-            return this.outputs[row][col];
+        } else if (row > 0 && row <= this.outputs.length) {
+            return this.outputs[row - 1][col];
         }
+        return undefined;
     }
 
     getCaseOutput(row: number, col: number): Cell | undefined {
-        return this.outputs[row][col];
+        if (row >= 0 && row < this.outputs.length && col >= 0 && col < this.outputs[row].length) {
+            return this.outputs[row][col];
+        }
+        return undefined;
     }
 
     equals(ruleGrid: RuleGrid): boolean {

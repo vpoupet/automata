@@ -60,33 +60,29 @@ const GrilleInteractive = ({
     }
 
     return (
-        <div style={{ display: "flex" }}>
+        <div style={{display: "flex"}}>
             <div>
                 <h1>Grille Interactive</h1>
                 <div className="grid-container">
-                    {Array.from({ length: grid.outputs[0].length }).map(
-                        (_, colIndex) => (
-                            <RowOutputs
-                                key={colIndex}
-                                rowIndex={-1}
-                                colIndex={colIndex}
-                                grid={grid}
-                                activeCells={activeCells}
-                                handleCaseClick={handleCaseClick}
-                            />
-                        )
-                    )}
-                    {Array.from({ length: grid.inputs.length }).map(
-                        (_, colIndex) => (
-                            <RowInputs
-                                key={colIndex}
-                                colIndex={colIndex}
-                                grid={grid}
-                                activeCells={activeCells}
-                                handleCaseClick={handleCaseClick}
-                            />
-                        )
-                    )}
+                    {Array.from({length: grid.outputs[0].length}).map((_, colIndex) => (
+                        <RowOutputs
+                            key={colIndex}
+                            rowIndex={-1}
+                            colIndex={colIndex}
+                            grid={grid}
+                            activeCells={activeCells}
+                            handleCaseClick={handleCaseClick}
+                        />
+                    ))}
+                    {Array.from({length: grid.inputs.length}).map((_, colIndex) => (
+                        <RowInputs
+                            key={colIndex}
+                            colIndex={colIndex}
+                            grid={grid}
+                            activeCells={activeCells}
+                            handleCaseClick={handleCaseClick}
+                        />
+                    ))}
                 </div>
                 <div>
                     <button onClick={handleRemoveAllSignalsFromGrid}>
@@ -111,6 +107,6 @@ const GrilleInteractive = ({
             </div>
         </div>
     );
-};
+}
 
 export default GrilleInteractive;
