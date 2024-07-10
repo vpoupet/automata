@@ -67,7 +67,7 @@ const GrilleInteractive = ({
                     {Array.from({length: grid.outputs[0].length}).map((_, colIndex) => (
                         <RowOutputs
                             key={colIndex}
-                            rowIndex={-1}
+                            rowIndex={0}
                             colIndex={colIndex}
                             grid={grid}
                             activeCells={activeCells}
