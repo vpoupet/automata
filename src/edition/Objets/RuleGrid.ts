@@ -2,7 +2,7 @@ import { Configuration } from "../../classes/Configuration.ts";
 import {Cell, InputCell} from "../../classes/Cell.ts";
 
 class RuleGrid {
-    inputs: Cell[];
+    inputs: InputCell[];
     outputs: Cell[][];
 
     /***
@@ -43,7 +43,10 @@ class RuleGrid {
         if (row >= 0 && row < this.outputs.length && col >= 0 && col < this.outputs[row].length) {
             return this.outputs[row][col];
         }
-        return undefined;
+        else {
+            console.log("la cellule n'existe pas")
+            return undefined;
+        }
     }
 
     equals(ruleGrid: RuleGrid): boolean {

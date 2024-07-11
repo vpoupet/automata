@@ -11,6 +11,7 @@ type GrilleInteractiveProps = {
     listeSignaux: Signal[];
     handleAddSignal: (signal: Signal) => void;
     handleRemoveSignal: (signal: Signal) => void;
+    handleAddNegatedSignal : (signal: Signal) => void
     handleAddAllSignals: () => void;
     handleRemoveAllSignals: () => void;
     handleRemoveAllSignalsFromGrid: () => void;
@@ -38,6 +39,7 @@ const GrilleInteractive = ({
                                handleSaveRule,
                                applyRules,
                                modifyRule,
+                               handleAddNegatedSignal,
                            }: GrilleInteractiveProps): JSX.Element => {
     function setActiveSignals(): Signal[] {
         if (activeCells.length === 0) {
@@ -98,6 +100,7 @@ const GrilleInteractive = ({
                         onRemoveSignal={handleRemoveSignal}
                         onAddAllSignals={handleAddAllSignals}
                         onRemoveAllSignals={handleRemoveAllSignals}
+                        onAddNegatedSignal={handleAddNegatedSignal}
                     />
                 )}
                 <button onClick={handleSaveRule}>Ajouter règle</button>

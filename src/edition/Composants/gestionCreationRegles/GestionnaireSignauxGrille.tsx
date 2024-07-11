@@ -8,6 +8,7 @@ type GestionnaireSignauxGrilleProps = {
     onRemoveSignal: (signal: Signal) => void;
     onAddAllSignals: () => void;
     onRemoveAllSignals: () => void;
+    onAddNegatedSignal: (signal: Signal) => void;
 };
 
 const GestionnaireSignauxGrille = ({
@@ -16,7 +17,7 @@ const GestionnaireSignauxGrille = ({
     onAddSignal,
     onRemoveSignal,
     onAddAllSignals,
-    onRemoveAllSignals,
+    onRemoveAllSignals, onAddNegatedSignal,
 }: GestionnaireSignauxGrilleProps): JSX.Element => {
     const aucunsignal = activeSignals.length === 0;
 
@@ -42,11 +43,10 @@ const GestionnaireSignauxGrille = ({
         signal: Signal,
         e: ChangeEvent<HTMLInputElement>
     ) => {
-        const negatedSignal = Symbol.for("!" + Symbol.keyFor(signal));
         if (e.target.checked) {
-            onAddSignal(negatedSignal);
+            onAddNegatedSignal(signal);
         } else {
-            onRemoveSignal(negatedSignal);
+            onRemoveSignal(signal);
         }
     };
 
