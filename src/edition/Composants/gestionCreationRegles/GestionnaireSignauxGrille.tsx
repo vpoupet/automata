@@ -1,24 +1,29 @@
-import { Signal } from "../../../classes/types";
-import { ChangeEvent } from "react";
+import {Signal} from "../../../classes/types";
+import {ChangeEvent} from "react";
 
 type GestionnaireSignauxGrilleProps = {
     activeSignals: Signal[];
     allSignals: Signal[];
+    negatedSignals: Signal[];
     onAddSignal: (signal: Signal) => void;
     onRemoveSignal: (signal: Signal) => void;
     onAddAllSignals: () => void;
     onRemoveAllSignals: () => void;
     onAddNegatedSignal: (signal: Signal) => void;
+    onRemoveNegatedSignal: (signal: Signal) => void;
 };
 
 const GestionnaireSignauxGrille = ({
-    activeSignals,
-    allSignals,
-    onAddSignal,
-    onRemoveSignal,
-    onAddAllSignals,
-    onRemoveAllSignals, onAddNegatedSignal,
-}: GestionnaireSignauxGrilleProps): JSX.Element => {
+                                       activeSignals,
+                                       allSignals,
+                                       negatedSignals,
+                                       onAddSignal,
+                                       onRemoveSignal,
+                                       onAddAllSignals,
+                                       onRemoveAllSignals,
+                                       onAddNegatedSignal,
+                                       onRemoveNegatedSignal
+                                   }: GestionnaireSignauxGrilleProps): JSX.Element => {
     const aucunsignal = activeSignals.length === 0;
 
     const handleToggleAllSignals = (e: ChangeEvent<HTMLInputElement>) => {
@@ -28,6 +33,7 @@ const GestionnaireSignauxGrille = ({
             onAddAllSignals();
         }
     };
+
     const handleLeftCheckboxChange = (
         signal: Signal,
         e: ChangeEvent<HTMLInputElement>
@@ -46,7 +52,7 @@ const GestionnaireSignauxGrille = ({
         if (e.target.checked) {
             onAddNegatedSignal(signal);
         } else {
-            onRemoveSignal(signal);
+            onRemoveNegatedSignal(signal);
         }
     };
 
@@ -69,18 +75,12 @@ const GestionnaireSignauxGrille = ({
                         <input
                             type="checkbox"
                             checked={activeSignals.includes(signal)}
-                            onChange={(e) =>
-                                handleLeftCheckboxChange(signal, e)
-                            }
+                            onChange={(e) => handleLeftCheckboxChange(signal, e)}
                         />
                         <input
                             type="checkbox"
-                            checked={activeSignals.includes(
-                                Symbol.for("!" + Symbol.keyFor(signal))
-                            )}
-                            onChange={(e) =>
-                                handleRightCheckboxChange(signal, e)
-                            }
+                            checked={negatedSignals.includes(signal)} // Modifier ceci
+                            onChange={(e) => handleRightCheckboxChange(signal, e)}
                         />
                         {Symbol.keyFor(signal)}
                     </label>

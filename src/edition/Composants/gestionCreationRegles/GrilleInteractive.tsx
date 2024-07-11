@@ -4,6 +4,7 @@ import GestionnaireSignauxGrille from "./GestionnaireSignauxGrille.tsx";
 import RuleGrid from "../../Objets/RuleGrid.ts";
 import RowOutputs from "./RowOutputs.tsx";
 import RowInputs from "./RowInputs.tsx";
+import {InputCell} from "../../../classes/Cell.ts";
 
 type GrilleInteractiveProps = {
     grid: RuleGrid;
@@ -12,6 +13,7 @@ type GrilleInteractiveProps = {
     handleAddSignal: (signal: Signal) => void;
     handleRemoveSignal: (signal: Signal) => void;
     handleAddNegatedSignal : (signal: Signal) => void
+    handleRemoveNegatedSignal:(signal : Signal) => void 
     handleAddAllSignals: () => void;
     handleRemoveAllSignals: () => void;
     handleRemoveAllSignalsFromGrid: () => void;
@@ -40,46 +42,46 @@ const GrilleInteractive = ({
                                applyRules,
                                modifyRule,
                                handleAddNegatedSignal,
+                               handleRemoveNegatedSignal
                            }: GrilleInteractiveProps): JSX.Element => {
-    function setActiveSignals(): Signal[] {
+    function setActiveSignals(): {active: Signal[], negated: Signal[]} {
         if (activeCells.length === 0) {
-            return [];
+            return { active: [], negated: [] };
         }
-        const signals: Set<Signal> = new Set();
+        const activeSignals: Set<Signal> = new Set();
+        const negatedSignals: Set<Signal> = new Set();
         activeCells.forEach((cell) => {
             let cellule;
-            if (cell.isInput){
-                cellule=grid.getCaseInput(cell.col);
-            }
-            else {
-                cellule=grid.getCaseOutput(cell.row, cell.col)
+            if (cell.isInput) {
+                cellule = grid.getCaseInput(cell.col);
+            } else {
+                cellule = grid.getCaseOutput(cell.row, cell.col);
             }
             if (cellule) {
                 cellule.signals.forEach((signal) => {
-                    signals.add(signal);
+                    activeSignals.add(signal);
                 });
+                if (cellule instanceof InputCell) {
+                    cellule.negatedSignals.forEach((signal) => {
+                        negatedSignals.add(signal);
+                    });
+                }
             }
         });
-        return Array.from(signals).filter((signal: Signal) =>
-            activeCells.every((cell) => {
-                let cellule;
-                if (cell.isInput){
-                    cellule=grid.getCaseInput(cell.col)
-                }
-                else{
-                    cellule=grid.getCaseOutput(cell.row, cell.col)
-                }
-                return cellule && cellule.signals.has(signal);
-            })
-        );
+        return {
+            active: Array.from(activeSignals),
+            negated: Array.from(negatedSignals)
+        };
     }
 
+    const { active, negated } = setActiveSignals();
+
     return (
-        <div style={{display: "flex"}}>
+        <div style={{ display: "flex" }}>
             <div>
                 <h1>Grille Interactive</h1>
                 <div className="grid-container">
-                    {Array.from({length: grid.outputs[0].length}).map((_, colIndex) => (
+                    {Array.from({ length: grid.outputs[0].length }).map((_, colIndex) => (
                         <RowOutputs
                             key={colIndex}
                             rowIndex={0}
@@ -89,7 +91,7 @@ const GrilleInteractive = ({
                             handleCaseClick={handleCaseClick}
                         />
                     ))}
-                    {Array.from({length: grid.inputs.length}).map((_, colIndex) => (
+                    {Array.from({ length: grid.inputs.length }).map((_, colIndex) => (
                         <RowInputs
                             key={colIndex}
                             colIndex={colIndex}
@@ -106,13 +108,15 @@ const GrilleInteractive = ({
                 </div>
                 {activeCells.length > 0 && (
                     <GestionnaireSignauxGrille
-                        activeSignals={setActiveSignals()}
+                        activeSignals={active}
                         allSignals={listeSignaux}
+                        negatedSignals={negated} // Passer ceci
                         onAddSignal={handleAddSignal}
                         onRemoveSignal={handleRemoveSignal}
                         onAddAllSignals={handleAddAllSignals}
                         onRemoveAllSignals={handleRemoveAllSignals}
                         onAddNegatedSignal={handleAddNegatedSignal}
+                        onRemoveNegatedSignal={handleRemoveNegatedSignal}
                     />
                 )}
                 <button onClick={handleSaveRule}>Ajouter règle</button>

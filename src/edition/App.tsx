@@ -48,6 +48,7 @@ function App() {
         handleUpdateFromDiagramme,
         applyRulesGrid,
         handleAddNegatedSignal,
+        handleRemoveNegatedSignal,
     } = ManagerGrilleInteractive(
         rows,
         cols,
@@ -136,6 +137,7 @@ function App() {
                         applyRules={applyRulesGrid}
                         modifyRule={modifyRule}
                         handleAddNegatedSignal={handleAddNegatedSignal}
+                        handleRemoveNegatedSignal={handleRemoveNegatedSignal}
                     />
                 </div>
                 <div className="gestion-signaux">

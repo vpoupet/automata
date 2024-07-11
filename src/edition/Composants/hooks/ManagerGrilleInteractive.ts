@@ -99,7 +99,10 @@ const ManagerGrilleInteractive = (
         const handleAddNegatedSignal = (signal: Signal) => {
             updateGrille((caseObj: Cell) => caseObj.addNegatedSignal(signal));
             console.log('updaaaaaate')
+        }
 
+        const handleRemoveNegatedSignal = (signal : Signal) => {
+            updateGrille((caseObj:Cell) => caseObj.removeNegatedSignal(signal))
         }
 
         const handleRemoveAllSignals = () => {
@@ -224,6 +227,7 @@ const ManagerGrilleInteractive = (
             handleUpdateFromDiagramme,
             applyRulesGrid,
             handleAddNegatedSignal,
+            handleRemoveNegatedSignal
         };
     }
 ;
