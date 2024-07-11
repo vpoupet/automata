@@ -61,4 +61,8 @@ export class InputCell extends Cell {
     isInput(): boolean {
         return true;
     }
+
+    clone(): InputCell {
+        return new InputCell(this.signals, this.negatedSignals)
+    }
 }

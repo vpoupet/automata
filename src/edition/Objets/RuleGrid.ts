@@ -23,7 +23,7 @@ class RuleGrid {
     }
 
     clone(): RuleGrid {
-        const newGrid = new RuleGrid(this.outputs.length + 1, this.outputs[0].length);  // Changement ici
+        const newGrid = new RuleGrid(this.outputs.length + 1, this.inputs.length);  // Changement ici
         newGrid.inputs = this.inputs.map((cell) => cell.clone());
         newGrid.outputs = this.outputs.map((row) => row.map((cell) => cell.clone()));
         return newGrid;

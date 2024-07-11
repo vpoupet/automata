@@ -33,6 +33,14 @@ const ManagerGrilleInteractive = (
             setGrid(newGrid);
         };
 
+        const updateGrilleInput = (callback : (cellule: InputCell) => void ) => {
+            const newGrid = grid.clone()
+            activeCells.forEach(({col}) => {
+                callback(newGrid.inputs[col]);
+            });
+            setGrid(newGrid);
+        };
+
         const handleCaseClick = (
             rowIndex: number,
             colIndex: number,
@@ -97,7 +105,7 @@ const ManagerGrilleInteractive = (
             updateGrille((caseObj: Cell) => caseObj.addSignal(signal));
         };
         const handleAddNegatedSignal = (signal: Signal) => {
-            updateGrille((caseObj: InputCell) => caseObj.addNegatedSignal(signal));
+            updateGrilleInput((caseObj: InputCell) => caseObj.addNegatedSignal(signal));
         }
 
         const handleRemoveAllSignals = () => {
