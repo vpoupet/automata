@@ -29,31 +29,21 @@ class RuleGrid {
         return newGrid;
     }
 
-    getCase(row: number, col: number, isInput: boolean): Cell | undefined {
-        if (isInput) {
-            return this.inputs[col];
-        } else if (row >= 0 && row < this.outputs.length) {
-            return this.outputs[row][col];
-        }
-        return undefined;
+
+    getCaseInput(col :number): InputCell {
+        return this.inputs[col];
     }
 
 
-    getCaseOutput(row: number, col: number): Cell | undefined {
-        if (row >= 0 && row < this.outputs.length && col >= 0 && col < this.outputs[row].length) {
-            return this.outputs[row][col];
-        }
-        else {
-            console.log("la cellule n'existe pas")
-            return undefined;
-        }
+    getCaseOutput(row: number, col: number): Cell {
+        return this.outputs[row][col];
     }
 
     equals(ruleGrid: RuleGrid): boolean {
         return this.equalsInputs(ruleGrid.inputs) && this.equalsOutputs(ruleGrid.outputs);
     }
 
-    equalsInputs(inputs: Cell[]): boolean {
+    equalsInputs(inputs: InputCell[]): boolean {
         return this.inputs.length === inputs.length && this.inputs.every((v, i) => v.equals(inputs[i]));
     }
 

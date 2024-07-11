@@ -166,6 +166,7 @@ function App() {
                     automaton={automaton}
                     initialConfiguration={initialConfiguration}
                     nbSteps={settings.nbSteps}
+                    onClickCell={handleCellClick}
                 />
             </div>
         </div>

@@ -47,7 +47,13 @@ const GrilleInteractive = ({
         }
         const signals: Set<Signal> = new Set();
         activeCells.forEach((cell) => {
-            const cellule = grid.getCase(cell.row, cell.col, cell.isInput);
+            let cellule;
+            if (cell.isInput){
+                cellule=grid.getCaseInput(cell.col);
+            }
+            else {
+                cellule=grid.getCaseOutput(cell.row, cell.col)
+            }
             if (cellule) {
                 cellule.signals.forEach((signal) => {
                     signals.add(signal);
@@ -56,7 +62,13 @@ const GrilleInteractive = ({
         });
         return Array.from(signals).filter((signal: Signal) =>
             activeCells.every((cell) => {
-                const cellule = grid.getCase(cell.row, cell.col, cell.isInput);
+                let cellule;
+                if (cell.isInput){
+                    cellule=grid.getCaseInput(cell.col)
+                }
+                else{
+                    cellule=grid.getCaseOutput(cell.row, cell.col)
+                }
                 return cellule && cellule.signals.has(signal);
             })
         );

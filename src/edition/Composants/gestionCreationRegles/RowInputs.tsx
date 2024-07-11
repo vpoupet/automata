@@ -1,5 +1,5 @@
 import { DiagramCell } from "../../../components/Diagram.tsx";
-import { Cell } from "../../../classes/Cell.ts";
+import {InputCell} from "../../../classes/Cell.ts";
 import RuleGrid from "../../Objets/RuleGrid.ts";
 
 type RowInputsProps = {
@@ -38,7 +38,7 @@ const RowInputs = ({
             </div>
             {grid.inputs[colIndex] && (
                 <DiagramCell
-                    cell={new Cell(grid.inputs[colIndex].signals)}
+                    cell={new InputCell(grid.inputs[colIndex].signals, grid.inputs[colIndex].negatedSignals)}
                     onClick={(event) => handleCaseClick(0, colIndex,true, event)}
                     className={isActive ? "active" : ""}
                 />

@@ -3,7 +3,7 @@ import { Configuration } from "../classes/Configuration";
 import "../style/Cell.css";
 import styles from "../style/Diagram.module.scss";
 
-import { Cell } from "../classes/Cell.ts";
+import {Cell, InputCell} from "../classes/Cell.ts";
 
 interface DiagramProps {
     automaton: Automaton;
@@ -61,6 +61,12 @@ interface CellProps {
 
 export function DiagramCell({ cell, onClick, className }: CellProps) {
     const signalNames: string[] = [];
+    if (cell instanceof InputCell){
+        for (const negsign of cell.negatedSignals){
+            const signalName = "!" + negsign.description;
+            signalNames.push(signalName)
+        }
+    }
     for (const signal of cell.signals) {
         const signalName = signal.description; // Utilisation de description pour obtenir le nom du symbole
         if (signalName !== undefined) {

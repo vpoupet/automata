@@ -34,6 +34,11 @@ export class Cell {
     isInput(): boolean {
         return false;
     }
+
+    addNegatedSignal(signal : Signal): void {
+        this.signals.delete(signal);
+    }
+
 }
 
 export class InputCell extends Cell {
