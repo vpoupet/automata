@@ -7,7 +7,7 @@ import RowInputs from "./RowInputs.tsx";
 
 type GrilleInteractiveProps = {
     grid: RuleGrid;
-    activeCells: { row: number; col: number }[];
+    activeCells: { row: number; col: number, isInput : boolean }[];
     listeSignaux: Signal[];
     handleAddSignal: (signal: Signal) => void;
     handleRemoveSignal: (signal: Signal) => void;
@@ -17,6 +17,7 @@ type GrilleInteractiveProps = {
     handleCaseClick: (
         rowIndex: number,
         colIndex: number,
+        isInput: boolean,
         event: React.MouseEvent<Element, MouseEvent>
     ) => void;
     handleSaveRule: () => void;
@@ -44,7 +45,7 @@ const GrilleInteractive = ({
         }
         const signals: Set<Signal> = new Set();
         activeCells.forEach((cell) => {
-            const cellule = grid.getCase(cell.row, cell.col);
+            const cellule = grid.getCase(cell.row, cell.col, cell.isInput);
             if (cellule) {
                 cellule.signals.forEach((signal) => {
                     signals.add(signal);
@@ -53,7 +54,7 @@ const GrilleInteractive = ({
         });
         return Array.from(signals).filter((signal: Signal) =>
             activeCells.every((cell) => {
-                const cellule = grid.getCase(cell.row, cell.col);
+                const cellule = grid.getCase(cell.row, cell.col, cell.isInput);
                 return cellule && cellule.signals.has(signal);
             })
         );
@@ -91,7 +92,7 @@ const GrilleInteractive = ({
                 </div>
                 {activeCells.length > 0 && (
                     <GestionnaireSignauxGrille
-                        signals={setActiveSignals()}
+                        activeSignals={setActiveSignals()}
                         allSignals={listeSignaux}
                         onAddSignal={handleAddSignal}
                         onRemoveSignal={handleRemoveSignal}

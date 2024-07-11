@@ -5,10 +5,11 @@ import RuleGrid from "../../Objets/RuleGrid.ts";
 type RowInputsProps = {
     colIndex: number;
     grid: RuleGrid;
-    activeCells: { row: number; col: number }[];
+    activeCells: { row: number; col: number, isInput : boolean }[];
     handleCaseClick: (
         rowIndex: number,
         colIndex: number,
+        isInput: boolean,
         event: React.MouseEvent<Element, MouseEvent>
     ) => void;
 };
@@ -20,7 +21,7 @@ const RowInputs = ({
                                   handleCaseClick,
                               }: RowInputsProps): JSX.Element => {
     const isActive = activeCells.some(
-        (cell) => cell.row === -1 && cell.col === colIndex
+        (cell) => cell.row === 0 && cell.col === colIndex && cell.isInput
     );
 
     return (
@@ -38,7 +39,7 @@ const RowInputs = ({
             {grid.inputs[colIndex] && (
                 <DiagramCell
                     cell={new Cell(grid.inputs[colIndex].signals)}
-                    onClick={(event) => handleCaseClick(-1, colIndex, event)}
+                    onClick={(event) => handleCaseClick(0, colIndex,true, event)}
                     className={isActive ? "active" : ""}
                 />
             )}

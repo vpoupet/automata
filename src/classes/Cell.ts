@@ -30,6 +30,10 @@ export class Cell {
     equals(cell: Cell): boolean {
         return(cell.signals===this.signals);
     }
+
+    isInput(): boolean {
+        return false;
+    }
 }
 
 export class InputCell extends Cell {
@@ -52,5 +56,9 @@ export class InputCell extends Cell {
 
     removeNegatedSignal(signal: Signal): boolean {
         return this.negatedSignals.delete(signal);
+    }
+
+    isInput(): boolean {
+        return true;
     }
 }

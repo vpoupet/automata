@@ -1,5 +1,5 @@
 import { Configuration } from "../../classes/Configuration.ts";
-import { Cell } from "../../classes/Cell.ts";
+import {Cell, InputCell} from "../../classes/Cell.ts";
 
 class RuleGrid {
     inputs: Cell[];
@@ -16,7 +16,7 @@ class RuleGrid {
             for (let j = 0; j < cols; j++) {
                 this.outputs[i][j] = new Cell();
                 if (i === 0) {
-                    this.inputs[j] = new Cell();
+                    this.inputs[j] = new InputCell();
                 }
             }
         }
@@ -29,14 +29,15 @@ class RuleGrid {
         return newGrid;
     }
 
-    getCase(row: number, col: number): Cell | undefined {
-        if (row === 0) {
+    getCase(row: number, col: number, isInput: boolean): Cell | undefined {
+        if (isInput) {
             return this.inputs[col];
-        } else if (row > 0 && row <= this.outputs.length) {
-            return this.outputs[row - 1][col];
+        } else if (row >= 0 && row < this.outputs.length) {
+            return this.outputs[row][col];
         }
         return undefined;
     }
+
 
     getCaseOutput(row: number, col: number): Cell | undefined {
         if (row >= 0 && row < this.outputs.length && col >= 0 && col < this.outputs[row].length) {

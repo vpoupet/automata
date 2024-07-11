@@ -2,7 +2,7 @@ import { Signal } from "../../../classes/types";
 import { ChangeEvent } from "react";
 
 type GestionnaireSignauxGrilleProps = {
-    signals: Signal[];
+    activeSignals: Signal[];
     allSignals: Signal[];
     onAddSignal: (signal: Signal) => void;
     onRemoveSignal: (signal: Signal) => void;
@@ -11,14 +11,14 @@ type GestionnaireSignauxGrilleProps = {
 };
 
 const GestionnaireSignauxGrille = ({
-    signals,
+    activeSignals,
     allSignals,
     onAddSignal,
     onRemoveSignal,
     onAddAllSignals,
     onRemoveAllSignals,
 }: GestionnaireSignauxGrilleProps): JSX.Element => {
-    const aucunsignal = signals.length === 0;
+    const aucunsignal = activeSignals.length === 0;
 
     const handleToggleAllSignals = (e: ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) {
@@ -68,14 +68,14 @@ const GestionnaireSignauxGrille = ({
                     <label>
                         <input
                             type="checkbox"
-                            checked={signals.includes(signal)}
+                            checked={activeSignals.includes(signal)}
                             onChange={(e) =>
                                 handleLeftCheckboxChange(signal, e)
                             }
                         />
                         <input
                             type="checkbox"
-                            checked={signals.includes(
+                            checked={activeSignals.includes(
                                 Symbol.for("!" + Symbol.keyFor(signal))
                             )}
                             onChange={(e) =>

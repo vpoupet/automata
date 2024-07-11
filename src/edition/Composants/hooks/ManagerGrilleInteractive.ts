@@ -21,12 +21,12 @@ const ManagerGrilleInteractive = (
 
     const updateGrille = (callback: (cellule: Cell) => void) => {
         const newGrid = grid.clone();
-        activeCells.forEach(({row, col}) => {
+        activeCells.forEach(({row, col, isInput}) => {
             let cell;
-            if (row === 0) {
+            if (isInput) {
                 cell = newGrid.inputs[col];
             } else {
-                cell = newGrid.outputs[row - 1][col];
+                cell = newGrid.outputs[row][col];
             }
             callback(cell);
         });
@@ -36,6 +36,7 @@ const ManagerGrilleInteractive = (
 const handleCaseClick = (
     rowIndex: number,
     colIndex: number,
+    isInput: boolean,
     event: React.MouseEvent
 ) => {
     if (event.ctrlKey || event.metaKey) {
@@ -46,13 +47,14 @@ const handleCaseClick = (
             if (alreadySelected) {
                 return prev.filter(
                     (cell) =>
-                        !(cell.row === rowIndex && cell.col === colIndex)
+                        !(cell.row === rowIndex && cell.col === colIndex && cell.isInput=== isInput)
                 );
             } else {
-                return [...prev, {row: rowIndex, col: colIndex}];
+                return [...prev, {row: rowIndex, col: colIndex, isInput: isInput}];
             }
         });
     } else if (event.shiftKey) {
+        // @ts-ignore
         setActiveCells((prev) => {
             const alreadySelected = prev.some(
                 (cell) => cell.row === rowIndex && cell.col === colIndex
@@ -79,11 +81,11 @@ const handleCaseClick = (
 
                 return newActiveCells;
             } else {
-                return [...prev, {row: rowIndex, col: colIndex}];
+                return [...prev, {row: rowIndex, col: colIndex, isInput: isInput}];
             }
         });
     } else {
-        setActiveCells([{row: rowIndex, col: colIndex}]);
+        setActiveCells([{row: rowIndex, col: colIndex, isInput: isInput}]);
     }
 };
 

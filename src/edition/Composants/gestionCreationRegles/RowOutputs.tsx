@@ -5,10 +5,11 @@ type RowOutputsProps = {
     rowIndex: number;
     colIndex: number;
     grid: RuleGrid;
-    activeCells: { row: number; col: number }[];
+    activeCells: { row: number; col: number, isInput: boolean}[];
     handleCaseClick: (
         rowIndex: number,
         colIndex: number,
+        isInput: boolean,
         event: React.MouseEvent<Element, MouseEvent>
     ) => void;
 };
@@ -22,7 +23,7 @@ const RowOutputs = ({
                         }: RowOutputsProps): JSX.Element => {
     const caseObj = grid.getCaseOutput(rowIndex, colIndex);
     const isActive = activeCells.some(
-        (cell) => cell.row === rowIndex && cell.col === colIndex
+        (cell) => cell.row === rowIndex && cell.col === colIndex && !cell.isInput
     );
 
     return (
@@ -45,6 +46,7 @@ const RowOutputs = ({
                         handleCaseClick(
                             rowIndex,
                             colIndex,
+                            false,
                             event
                         )
                     }
