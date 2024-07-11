@@ -34,7 +34,7 @@ const RowInputs = ({
                     flexDirection: "column",
                 }}
             >
-                {colIndex + 1}
+
             </div>
             {grid.inputs[colIndex] && (
                 <DiagramCell
@@ -43,7 +43,9 @@ const RowInputs = ({
                     className={isActive ? "active" : ""}
                 />
             )}
+            <br></br>
         </div>
+
     );
 };
 

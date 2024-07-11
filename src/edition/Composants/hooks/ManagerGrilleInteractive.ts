@@ -31,63 +31,30 @@ const ManagerGrilleInteractive = (
                 callback(cell);
             });
             setGrid(newGrid);
-        };
-
-        const handleCaseClick = (
-            rowIndex: number,
-            colIndex: number,
-            isInput: boolean,
-            event: React.MouseEvent
-        ) => {
-            if (event.ctrlKey || event.metaKey) {
-                setActiveCells((prev) => {
-                    const alreadySelected = prev.some(
-                        (cell) => cell.row === rowIndex && cell.col === colIndex
+        };const handleCaseClick = (
+        rowIndex: number,
+        colIndex: number,
+        isInput: boolean,
+        event: React.MouseEvent
+    ) => {
+        if (event.ctrlKey || event.metaKey) {
+            setActiveCells((prev) => {
+                const alreadySelected = prev.some(
+                    (cell) => cell.row === rowIndex && cell.col === colIndex && cell.isInput === isInput
+                );
+                if (alreadySelected) {
+                    return prev.filter(
+                        (cell) =>
+                            !(cell.row === rowIndex && cell.col === colIndex && cell.isInput === isInput)
                     );
-                    if (alreadySelected) {
-                        return prev.filter(
-                            (cell) =>
-                                !(cell.row === rowIndex && cell.col === colIndex && cell.isInput === isInput)
-                        );
-                    } else {
-                        return [...prev, {row: rowIndex, col: colIndex, isInput: isInput}];
-                    }
-                });
-            }
-                // } else if (event.shiftKey) {
-                //     setActiveCells((prev) => {
-                //         const alreadySelected = prev.some(
-                //             (cell) => cell.row === rowIndex && cell.col === colIndex && cell.isInput===isInput
-                //         );
-                //         if (alreadySelected) {
-                //             return prev.filter(
-                //                 (cell) =>
-                //                     !(cell.row === rowIndex && cell.col === colIndex && cell.isInput==isInput)
-                //             );
-                //         } else if (prev.length === 1) {
-                //             const firstCell = prev[0];
-                //             const newActiveCells = [];
-                //
-                //             const minRow = Math.min(firstCell.row, rowIndex);
-                //             const maxRow = Math.max(firstCell.row, rowIndex);
-                //             const minCol = Math.min(firstCell.col, colIndex);
-                //             const maxCol = Math.max(firstCell.col, colIndex);
-                //
-                //             for (let i = minRow; i <= maxRow; i++) {
-                //                 for (let j = minCol; j <= maxCol; j++) {
-                //                     newActiveCells.push({row: i, col: j, });
-                //                 }
-                //             }
-                //
-                //             return newActiveCells;
-                //         } else {
-                //             return [...prev, {row: rowIndex, col: colIndex, isInput: isInput}];
-                //         }
-            //     });
-            else {
-                setActiveCells([{row: rowIndex, col: colIndex, isInput: isInput}]);
-            }
-        };
+                } else {
+                    return [...prev, {row: rowIndex, col: colIndex, isInput: isInput}];
+                }
+            });
+        } else {
+            setActiveCells([{row: rowIndex, col: colIndex, isInput: isInput}]);
+        }
+    };
 
         const handleRemoveSignal = (signal: Signal) => {
             updateGrille((caseObj: Cell) => caseObj.removeSignal(signal));

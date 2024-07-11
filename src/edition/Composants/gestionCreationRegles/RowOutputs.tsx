@@ -36,7 +36,6 @@ const RowOutputs = ({
                     flexDirection: "column",
                 }}
             >
-                {colIndex + 1}
             </div>
             {caseObj && (
                 <DiagramCell
