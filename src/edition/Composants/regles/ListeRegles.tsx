@@ -9,7 +9,6 @@ type ListeReglesProps = {
     onLoadRule: (index: number) => void;
     onDeleteRule: (index: number) => void;
     onUpdateRule: (index: number) => void;
-    activeRules: boolean[];
     printReglesConsole: () => void;
     addRuleFromString: (rule: string) => void;
 };
@@ -20,7 +19,6 @@ const ListeRegles = ({
     onLoadRule,
     onDeleteRule,
     onUpdateRule,
-    activeRules,
     printReglesConsole,
     addRuleFromString,
 }: ListeReglesProps): JSX.Element => {
@@ -40,7 +38,6 @@ const ListeRegles = ({
                 <div key={index} style={{ marginBottom: "10px" }}>
                     <Regle
                         grid={rule}
-                        activeRule={activeRules[index]}
                         onLoadRule={() => onLoadRule(index)}
                         onDeleteRule={() => onDeleteRule(index)}
                         onUpdateRule={() => onUpdateRule(index)}

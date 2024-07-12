@@ -24,7 +24,6 @@ function App() {
     const [cols] = useState<number>(5);
     const [rulesGrid, setrulesGrid] = useState<RuleGrid[]>([]);
     const [reglesbools, setReglesbools] = useState<Rule[]>([]);
-    const [activeRules, setActiveRules] = useState<boolean[]>([]);
 
     const [automaton, setAutomaton] = useState<Automaton>(new Automaton());
     const [settings] = useState<SettingsInterface>({
@@ -54,10 +53,7 @@ function App() {
         cols,
         automaton,
         reglesbools,
-        setAutomaton,
-        // setActiveRules,
-        // rulesGrid,
-        // activeRules
+        setAutomaton
     );
 
     const { listeSignaux, handleAddNewSignal, deleteSignal, updateSignal } =
@@ -157,7 +153,6 @@ function App() {
                         onLoadRule={sendLoadRuleToGrid}
                         onUpdateRule={updateRule}
                         onDeleteRule={deleteRule}
-                        activeRules={activeRules}
                         printReglesConsole={printReglesConsole}
                         addRuleFromString={addRuleFromString}
                     />

@@ -8,7 +8,6 @@ type RegleProps = {
     onLoadRule: () => void;
     onDeleteRule: () => void;
     onUpdateRule: () => void;
-    activeRule: boolean;
 };
 
 const Regle = ({
@@ -16,7 +15,6 @@ const Regle = ({
     onLoadRule,
     onDeleteRule,
     onUpdateRule,
-    activeRule,
 }: RegleProps): JSX.Element => {
     return (
         <div style={{ display: "inline-block" }}>
@@ -25,7 +23,6 @@ const Regle = ({
                     display: "grid",
                     gridTemplateColumns: `repeat(${grid.inputs.length}, 1fr)`,
                     gap: "0px",
-                    backgroundColor: activeRule ? "blue" : "white",
                 }}
             >
                 {grid.outputs
