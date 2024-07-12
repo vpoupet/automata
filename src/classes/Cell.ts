@@ -38,6 +38,8 @@ export class Cell {
     addNegatedSignal(signal : Signal): void {
         this.signals.delete(signal);
     }
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     removeNegatedSignal(signal: Signal): boolean {
         return false;
     }
