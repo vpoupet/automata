@@ -30,17 +30,22 @@ export function Diagram({
                 centeredCells.push(new Cell());
                 col1++;
             }
-            centeredCells.push(cellsoftherow[col]);
-            centeredCells.push(cellsoftherow[col+1]);
-            centeredCells.push(cellsoftherow[col+2]);
+            for (let i = 0; i < 3; i++) {
+                centeredCells.push(cellsoftherow[col + i]);
+            }
         }
         else if (col1 > nbrofCols-2){
-            centeredCells.push(cellsoftherow[col-2]);
-            centeredCells.push(cellsoftherow[col-1]);
-            centeredCells.push(cellsoftherow[col]);
+            for (let i = -2; i < 0; i++) {
+                centeredCells.push(cellsoftherow[col + i]);
+            }
             while (col1>nbrofCols-2){
                 centeredCells.push(new Cell());
                 col1--;
+            }
+        }
+        else{
+            for (let i = -2; i < 3; i++) {
+                centeredCells.push(cellsoftherow[col + i]);
             }
         }
 
