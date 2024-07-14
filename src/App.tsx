@@ -13,12 +13,12 @@ import { Diagram } from "./components/Diagram.tsx";
 import GestionSignaux from "./components/GestionSignaux.js";
 import GrilleInteractive from "./components/GrilleInteractive.tsx";
 import ListeRegles from "./components/ListeRegles.js";
-import { Coordinates, SettingsInterface, Signal } from "./types.ts";
+import { Coordinates, SettingsInterface } from "./types.ts";
 
 function App() {
     const [rows] = useState<number>(2);
     const [cols] = useState<number>(5);
-    const [rulesGrid, setRulesGrid] = useState<RuleGrid[]>([]);
+    const [rulesGrids, setRulesGrids] = useState<RuleGrid[]>([]);
     const [rules, setRules] = useState<Rule[]>([]);
 
     const [automaton, setAutomaton] = useState<Automaton>(new Automaton());
@@ -42,47 +42,6 @@ function App() {
         setGrid(ruleToCopy.clone());
     }
 
-    function updateSignalInGrid(oldSignal: Signal, newSignal: Signal) {
-        const newGrid = grid.clone();
-        for (let rows = 0; rows < grid.outputs.length; rows++) {
-            for (let cells = 0; cells < grid.outputs[rows].length; cells++) {
-                if (rows === 0) {
-                    if (newGrid.inputs[cells].signals.delete(oldSignal)) {
-                        newGrid.inputs[cells].addSignal(newSignal);
-                    }
-                }
-                if (newGrid.outputs[rows][cells].signals.delete(oldSignal)) {
-                    newGrid.outputs[rows][cells].addSignal(newSignal);
-                }
-            }
-        }
-        setGrid(newGrid);
-    }
-
-    function deleteSignalInGrid(signal: Signal) {
-        const newGrid = grid.clone();
-        for (let row = 0; row < grid.outputs.length; row++) {
-            for (let cells = 0; cells < grid.outputs[row].length; cells++) {
-                if (row === 0) {
-                    newGrid.inputs[cells].signals.forEach((s) => {
-                        if (s === signal) {
-                            newGrid.inputs[cells].removeSignal(signal);
-                        }
-                    });
-                } else {
-                    newGrid.outputs[row - 1][cells].signals.forEach((s) => {
-                        if (s === signal) {
-                            newGrid.outputs[row - 1][cells].removeSignal(
-                                signal
-                            );
-                        }
-                    });
-                }
-            }
-        }
-        setGrid(newGrid);
-    }
-
     function handleUpdateFromDiagramme(cells: Cell[]) {
         const newGrid = new RuleGrid(rows, cols);
         const cells1 = cells.slice(0, cols);
@@ -92,42 +51,6 @@ function App() {
         setGrid(newGrid);
     }
     // END: from ManagerGrilleInteractive
-
-    // BEGIN: from ManagerSignaux
-    function handleAddNewSignal(signalValue: Signal) {
-        if (listeSignaux.includes(signalValue)) {
-            alert(`Le signal ${signalValue.description} existe déjà.`);
-            return;
-        }
-        setListeSignaux((prev) => [...prev, signalValue]);
-    }
-
-    function updateSignal(
-        index: number,
-        newValue: Signal
-    ): { oldValue: Signal | null; newValue: Signal | null } {
-        const oldValue = listeSignaux[index];
-
-        if (
-            listeSignaux.some((signal, i) => signal === newValue && i !== index)
-        ) {
-            alert(`Le signal ${newValue.description} existe déjà.`);
-            return { oldValue: null, newValue: null };
-        }
-
-        setListeSignaux((prev) =>
-            prev.map((signal, i) => (i === index ? newValue : signal))
-        );
-
-        return { oldValue, newValue };
-    }
-
-    function deleteSignal(index: number): Signal | undefined {
-        const signal = listeSignaux[index];
-        setListeSignaux((prev) => prev.filter((_, i) => i !== index));
-        return signal;
-    }
-    // END: from ManagerSignaux
 
     // BEGIN: from ManagerRegles
     function printReglesConsole() {
@@ -140,51 +63,14 @@ function App() {
     }
 
     function updateRule(index: number) {
-        const newConfigurations = [...rulesGrid];
+        const newConfigurations = [...rulesGrids];
         newConfigurations[index] = grid.clone();
-        setRulesGrid(newConfigurations);
-    }
-
-    function updateSignalInRule(oldValue: Signal, newValue: Signal) {
-        // TODO: revenir sur cette fonction après avoir ajouté les signaux négatifs à la Cellule
-        const newRules: RuleGrid[] = [];
-        for (let i = 0; i < rulesGrid.length; i++) {
-            newRules.push(rulesGrid[i].clone());
-            for (let rows = 0; rows < grid.outputs.length; rows++) {
-                for (let col = 0; col < grid.inputs.length; col++) {
-                    if (rows === 0) {
-                        if (newRules[i].inputs[col].signals.delete(oldValue)) {
-                            newRules[i].inputs[col].signals.add(newValue);
-                        }
-                    }
-                    if (
-                        newRules[i].outputs[rows][col].signals.delete(oldValue)
-                    ) {
-                        newRules[i].outputs[rows][col].signals.add(newValue);
-                    }
-                }
-            }
-        }
+        setRulesGrids(newConfigurations);
     }
 
     function deleteRule(index: number) {
-        const newConfigurations = rulesGrid.filter((_, i) => i !== index);
-        setRulesGrid(newConfigurations);
-    }
-
-    function deleteSignalInRules(signalValue: Signal) {
-        const newRulesGrid = [];
-        newRulesGrid.push(...rulesGrid);
-        // TODO: reprendre la fonction après signaux négatifs dans Cellule
-        for (let i = 0; i < rulesGrid.length; i++) {
-            for (let j = 0; j < rulesGrid[i].inputs.length; j++) {
-                newRulesGrid[i].inputs[j].signals.delete(signalValue);
-                for (let k = 0; k < rulesGrid[i].outputs.length; k++) {
-                    newRulesGrid[i].outputs[k][j].signals.delete(signalValue);
-                }
-            }
-        }
-        setRulesGrid(newRulesGrid);
+        const newConfigurations = rulesGrids.filter((_, i) => i !== index);
+        setRulesGrids(newConfigurations);
     }
 
     function creerOutput(tab: Cell[][]) {
@@ -249,8 +135,8 @@ function App() {
                     ruleOut.neighbor + (grid.inputs.length - 1) / 2
                 ].signals.add(ruleOut.signal); // Remplacement de ruleOut.signal par ruleOut.signal.description
             }
-            const newRegles = [...rulesGrid, tabNewRule];
-            setRulesGrid(newRegles);
+            const newRegles = [...rulesGrids, tabNewRule];
+            setRulesGrids(newRegles);
         }
     }
 
@@ -263,8 +149,8 @@ function App() {
 
     // NOTE: attention aux useEffect
     useEffect(() => {
-        setRules(rulesGrid.map(creerReglebool));
-    }, [rulesGrid]);
+        setRules(rulesGrids.map(creerReglebool));
+    }, [rulesGrids]);
 
     useEffect(() => {
         applyRules();
@@ -272,28 +158,8 @@ function App() {
     // END: from ManagerRegles
 
     const sendLoadRuleToGrid = (index: number) => {
-        const configuration = rulesGrid[index];
+        const configuration = rulesGrids[index];
         updateGrilleFromRule(configuration);
-    };
-
-    const handleUpdateSignal = (index: number, newValue: Signal) => {
-        const { oldValue, newValue: updatedValue } = updateSignal(
-            index,
-            newValue
-        );
-
-        if (oldValue && updatedValue) {
-            updateSignalInRule(oldValue, updatedValue);
-            updateSignalInGrid(oldValue, updatedValue);
-        }
-    };
-
-    const handleDeleteSignal = (index: number) => {
-        const signal = deleteSignal(index);
-        if (signal) {
-            deleteSignalInRules(signal);
-            deleteSignalInGrid(signal);
-        }
     };
 
     const handleCellClick = (cells: Cell[]) => {
@@ -314,8 +180,8 @@ function App() {
                         cols={cols}
                         activeCells={activeCells}
                         setActiveCells={setActiveCells}
-                        rulesGrid={rulesGrid}
-                        setrulesGrid={setRulesGrid}
+                        rulesGrid={rulesGrids}
+                        setrulesGrid={setRulesGrids}
                         listeSignaux={listeSignaux}
                         automaton={automaton}
                         setAutomaton={setAutomaton}
@@ -325,16 +191,18 @@ function App() {
                 <div className="gestion-signaux">
                     <GestionSignaux
                         listeSignaux={listeSignaux}
-                        onAddSignal={handleAddNewSignal}
-                        onUpdateSignal={handleUpdateSignal}
-                        onDeleteSignal={handleDeleteSignal}
+                        setListeSignaux={setListeSignaux}
+                        grid={grid}
+                        setGrid={setGrid}
+                        rulesGrids={rulesGrids}
+                        setRulesGrids={setRulesGrids}
                     />
                 </div>
             </div>
             <div className="middle-section">
                 <div className="liste-regles">
                     <ListeRegles
-                        rulesGrid={rulesGrid}
+                        rulesGrid={rulesGrids}
                         reglesbools={rules}
                         onLoadRule={sendLoadRuleToGrid}
                         onUpdateRule={updateRule}
