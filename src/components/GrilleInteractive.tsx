@@ -46,7 +46,7 @@ const GrilleInteractive = ({
     rules: reglesbools,
     listeSignaux,
 }: GrilleInteractiveProps): JSX.Element => {
-    function applyFunctionToActiveCells(f: (cell: Cell) => void) {
+    function applyToActiveCells(f: (cell: Cell) => void) {
         const newGrid = grid.clone();
         activeInputCells.forEach((col) => {
             const cell = newGrid.inputs[col];
@@ -57,35 +57,6 @@ const GrilleInteractive = ({
             f(cell);
         });
         setGrid(newGrid);
-    }
-
-    function handleAddSignal(signal: Signal) {
-        applyFunctionToActiveCells((caseObj: Cell) => caseObj.addSignal(signal));
-    }
-
-    function handleRemoveSignal(signal: Signal) {
-        applyFunctionToActiveCells((caseObj: Cell) => caseObj.removeSignal(signal));
-    }
-
-    function handleAddNegatedSignal(signal: Signal) {
-        applyFunctionToActiveCells((caseObj: Cell) => caseObj.addNegatedSignal(signal));
-        console.log("updaaaaaate");
-    }
-
-    function handleRemoveNegatedSignal(signal: Signal) {
-        applyFunctionToActiveCells((caseObj: Cell) => caseObj.removeNegatedSignal(signal));
-    }
-
-    function handleAddAllSignals() {
-        applyFunctionToActiveCells((caseObj: Cell) => {
-            listeSignaux.forEach((signal) => caseObj.addSignal(signal));
-        });
-    }
-
-    function handleRemoveAllSignals() {
-        applyFunctionToActiveCells((caseObj: Cell) => {
-            caseObj.removeAllSignals();
-        });
     }
 
     function handleRemoveAllSignalsFromGrid() {
@@ -330,19 +301,12 @@ const GrilleInteractive = ({
                         Supprimer tous les signaux de la grille
                     </button>
                 </div>
-                {(activeInputCells.length + activeOutputCells.length > 0) && (
-                    <GestionnaireSignauxGrille
-                        activeSignals={active}
-                        allSignals={listeSignaux}
-                        negatedSignals={negated} // Passer ceci
-                        onAddSignal={handleAddSignal}
-                        onRemoveSignal={handleRemoveSignal}
-                        onAddAllSignals={handleAddAllSignals}
-                        onRemoveAllSignals={handleRemoveAllSignals}
-                        onAddNegatedSignal={handleAddNegatedSignal}
-                        onRemoveNegatedSignal={handleRemoveNegatedSignal}
-                    />
-                )}
+                <GestionnaireSignauxGrille
+                    activeSignals={active}
+                    allSignals={listeSignaux}
+                    negatedSignals={negated} // Passer ceci
+                    applyToActiveCells={applyToActiveCells}
+                />
                 <button onClick={handleSaveRule}>Ajouter règle</button>
                 <button onClick={applyRules}>
                     Appliquer règles sur la grille

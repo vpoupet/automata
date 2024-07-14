@@ -1,3 +1,4 @@
+import { Cell } from "../classes/Cell";
 import { Signal } from "../types";
 import { ChangeEvent } from "react";
 
@@ -5,68 +6,57 @@ type GestionnaireSignauxGrilleProps = {
     activeSignals: Signal[];
     allSignals: Signal[];
     negatedSignals: Signal[];
-    onAddSignal: (signal: Signal) => void;
-    onRemoveSignal: (signal: Signal) => void;
-    onAddAllSignals: () => void;
-    onRemoveAllSignals: () => void;
-    onAddNegatedSignal: (signal: Signal) => void;
-    onRemoveNegatedSignal: (signal: Signal) => void;
+    applyToActiveCells: (f: (cell: Cell) => void) => void;
 };
 
 const GestionnaireSignauxGrille = ({
     activeSignals,
     allSignals,
     negatedSignals,
-    onAddSignal,
-    onRemoveSignal,
-    onAddAllSignals,
-    onRemoveAllSignals,
-    onAddNegatedSignal,
-    onRemoveNegatedSignal,
+    applyToActiveCells: applyToActiveCells,
 }: GestionnaireSignauxGrilleProps): JSX.Element => {
-    const aucunsignal = activeSignals.length === 0;
-
-    const handleToggleAllSignals = (e: ChangeEvent<HTMLInputElement>) => {
-        if (e.target.checked) {
-            onRemoveAllSignals();
-        } else {
-            onAddAllSignals();
-        }
-    };
-
-    const handleLeftCheckboxChange = (
+    function handleLeftCheckboxChange(
         signal: Signal,
         e: ChangeEvent<HTMLInputElement>
-    ) => {
+    ) {
         if (e.target.checked) {
-            onAddSignal(signal);
+            applyToActiveCells((caseObj: Cell) =>
+                caseObj.addSignal(signal)
+            );
         } else {
-            onRemoveSignal(signal);
+            applyToActiveCells((caseObj: Cell) =>
+                caseObj.removeSignal(signal)
+            );
         }
-    };
+    }
 
-    const handleRightCheckboxChange = (
+    function handleRightCheckboxChange(
         signal: Signal,
         e: ChangeEvent<HTMLInputElement>
-    ) => {
+    ) {
         if (e.target.checked) {
-            onAddNegatedSignal(signal);
+            applyToActiveCells((caseObj: Cell) =>
+                caseObj.addNegatedSignal(signal)
+            );
         } else {
-            onRemoveNegatedSignal(signal);
+            applyToActiveCells((caseObj: Cell) =>
+                caseObj.removeNegatedSignal(signal)
+            );
         }
-    };
+    }
 
     return (
         <div>
             <h2>Gérer les signaux</h2>
             <div>
                 <label>
-                    <input
-                        type="checkbox"
-                        checked={aucunsignal}
-                        onChange={handleToggleAllSignals}
-                    />
-                    Enlever tous les signaux
+                    <button
+                        onClick={() =>
+                            applyToActiveCells((caseObj: Cell) => {
+                                caseObj.removeAllSignals();
+                            })
+                        }
+                    >Enlever tous les signaux</button>
                 </label>
             </div>
             {allSignals.map((signal) => (
