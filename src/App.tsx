@@ -31,7 +31,8 @@ export default function App() {
     const [grid, setGrid] = useState<RuleGrid>(
         RuleGrid.withSize(2 * gridRadius + 1, gridNbFutureSteps)
     );
-    const [activeCells, setActiveCells] = useState<Coordinates[]>([]);
+    const [activeInputCells, setActiveInputCells] = useState<number[]>([]);
+    const [activeOutputCells, setActiveOutputCells] = useState<Coordinates[]>([]);
 
     const [listeSignaux, setListeSignaux] = useState([
         Symbol.for("Init"),
@@ -108,10 +109,12 @@ export default function App() {
                     <GrilleInteractive
                         grid={grid}
                         setGrid={setGrid}
-                        rows={gridNbFutureSteps}
-                        cols={2 * gridRadius + 1}
-                        activeCells={activeCells}
-                        setActiveCells={setActiveCells}
+                        nbFutureSteps={gridNbFutureSteps}
+                        nbCells={2 * gridRadius + 1}
+                        activeInputCells={activeInputCells}
+                        setActiveInputCells={setActiveInputCells}
+                        activeOutputCells={activeOutputCells}
+                        setActiveOutputCells={setActiveOutputCells}
                         rulesGrid={rulesGrids}
                         setrulesGrid={setRulesGrids}
                         listeSignaux={listeSignaux}

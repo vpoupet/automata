@@ -1,20 +1,27 @@
-import { Coordinates, Signal } from "../types.ts";
-import "../style/Cell.css";
-import GestionnaireSignauxGrille from "./GestionnaireSignauxGrille.tsx";
-import RuleGrid from "../classes/RuleGrid.ts";
-import RowOutputs from "./RowOutputs.tsx";
-import RowInputs from "./RowInputs.tsx";
-import { Cell, InputCell } from "../classes/Cell.ts";
 import { Automaton, Rule, RuleOutput } from "../classes/Automaton.ts";
-import { Conjunction, ConjunctionOfLiterals, Literal, Negation } from "../classes/Clause.ts";
+import { Cell } from "../classes/Cell.ts";
+import {
+    Conjunction,
+    ConjunctionOfLiterals,
+    Literal,
+    Negation,
+} from "../classes/Clause.ts";
+import RuleGrid from "../classes/RuleGrid.ts";
+import "../style/Cell.css";
+import { Coordinates, Signal } from "../types.ts";
+import GestionnaireSignauxGrille from "./GestionnaireSignauxGrille.tsx";
+import InputsRow from "./GridInputsRow.tsx";
+import GridOutputsRow from "./GridOutputsRow.tsx";
 
 type GrilleInteractiveProps = {
     grid: RuleGrid;
     setGrid: (grid: RuleGrid) => void;
-    rows: number;
-    cols: number;
-    activeCells: { row: number; col: number; isInput: boolean }[];
-    setActiveCells: React.Dispatch<React.SetStateAction<Coordinates[]>>;
+    nbFutureSteps: number;
+    nbCells: number;
+    activeInputCells: number[];
+    setActiveInputCells: React.Dispatch<React.SetStateAction<number[]>>;
+    activeOutputCells: Coordinates[];
+    setActiveOutputCells: React.Dispatch<React.SetStateAction<Coordinates[]>>;
     rulesGrid: RuleGrid[];
     setrulesGrid: React.Dispatch<React.SetStateAction<RuleGrid[]>>;
     automaton: Automaton;
@@ -26,10 +33,12 @@ type GrilleInteractiveProps = {
 const GrilleInteractive = ({
     grid,
     setGrid,
-    rows,
-    cols,
-    activeCells,
-    setActiveCells,
+    nbCells,
+    nbFutureSteps,
+    activeInputCells,
+    setActiveInputCells,
+    activeOutputCells,
+    setActiveOutputCells,
     rulesGrid,
     setrulesGrid,
     automaton,
@@ -37,90 +46,51 @@ const GrilleInteractive = ({
     rules: reglesbools,
     listeSignaux,
 }: GrilleInteractiveProps): JSX.Element => {
-
-    function updateGrille(callback: (cellule: Cell) => void) {
+    function applyFunctionToActiveCells(f: (cell: Cell) => void) {
         const newGrid = grid.clone();
-        activeCells.forEach(({ row, col, isInput }) => {
-            let cell;
-            if (isInput) {
-                cell = newGrid.inputs[col];
-            } else {
-                cell = newGrid.outputs[row][col];
-            }
-            callback(cell);
+        activeInputCells.forEach((col) => {
+            const cell = newGrid.inputs[col];
+            f(cell);
+        });
+        activeOutputCells.forEach(({ row, col }) => {
+            const cell = newGrid.outputs[row][col];
+            f(cell);
         });
         setGrid(newGrid);
     }
-    
+
     function handleAddSignal(signal: Signal) {
-        updateGrille((caseObj: Cell) => caseObj.addSignal(signal));
+        applyFunctionToActiveCells((caseObj: Cell) => caseObj.addSignal(signal));
     }
 
     function handleRemoveSignal(signal: Signal) {
-        updateGrille((caseObj: Cell) => caseObj.removeSignal(signal));
+        applyFunctionToActiveCells((caseObj: Cell) => caseObj.removeSignal(signal));
     }
 
     function handleAddNegatedSignal(signal: Signal) {
-        updateGrille((caseObj: Cell) => caseObj.addNegatedSignal(signal));
+        applyFunctionToActiveCells((caseObj: Cell) => caseObj.addNegatedSignal(signal));
         console.log("updaaaaaate");
     }
 
     function handleRemoveNegatedSignal(signal: Signal) {
-        updateGrille((caseObj: Cell) => caseObj.removeNegatedSignal(signal));
+        applyFunctionToActiveCells((caseObj: Cell) => caseObj.removeNegatedSignal(signal));
     }
-    
+
     function handleAddAllSignals() {
-        updateGrille((caseObj: Cell) => {
+        applyFunctionToActiveCells((caseObj: Cell) => {
             listeSignaux.forEach((signal) => caseObj.addSignal(signal));
         });
     }
 
     function handleRemoveAllSignals() {
-        updateGrille((caseObj: Cell) => {
+        applyFunctionToActiveCells((caseObj: Cell) => {
             caseObj.removeAllSignals();
         });
     }
 
     function handleRemoveAllSignalsFromGrid() {
-        const newGrid = RuleGrid.withSize(cols, rows);
+        const newGrid = RuleGrid.withSize(nbCells, nbFutureSteps);
         setGrid(newGrid);
-    }
-
-    function handleCaseClick(
-        rowIndex: number,
-        colIndex: number,
-        isInput: boolean,
-        event: React.MouseEvent
-    ) {
-        if (event.ctrlKey || event.metaKey) {
-            setActiveCells((prev) => {
-                const alreadySelected = prev.some(
-                    (cell) =>
-                        cell.row === rowIndex &&
-                        cell.col === colIndex &&
-                        cell.isInput === isInput
-                );
-                if (alreadySelected) {
-                    return prev.filter(
-                        (cell) =>
-                            !(
-                                cell.row === rowIndex &&
-                                cell.col === colIndex &&
-                                cell.isInput === isInput
-                            )
-                    );
-                } else {
-                    return [
-                        ...prev,
-                        { row: rowIndex, col: colIndex, isInput: isInput },
-                    ];
-                }
-            });
-        } else {
-            setActiveCells([
-                { row: rowIndex, col: colIndex, isInput: isInput },
-            ]);
-        }
     }
 
     function handleSaveRule() {
@@ -131,7 +101,7 @@ const GrilleInteractive = ({
     }
 
     function applyRules() {
-        const newGrille = RuleGrid.withSize(cols, rows);
+        const newGrille = RuleGrid.withSize(nbCells, nbFutureSteps);
         const conffromgrid = newGrille.getConfigurationFromGrid();
         automaton.setRules(reglesbools);
         automaton.updateParameters();
@@ -175,7 +145,7 @@ const GrilleInteractive = ({
         });
         return new Conjunction(literals) as ConjunctionOfLiterals;
     }
-    
+
     function creerReglebool(rule: RuleGrid): Rule {
         // TODO: faire la vérification que la règle n'est pas vide ailleurs (avant ou après l'appel à cette fonction)
         const outputs = creerOutput(rule.outputs);
@@ -186,7 +156,7 @@ const GrilleInteractive = ({
     function getRuleGridFromBool(regleBool: Rule): RuleGrid {
         const ruleGrid: RuleGrid = RuleGrid.withSize(
             grid.inputs.length,
-            grid.outputs.length,
+            grid.outputs.length
         );
         for (const literal of regleBool.condition.getLiterals()) {
             for (let cellidx = 0; cellidx < grid.inputs.length; cellidx++) {
@@ -231,7 +201,7 @@ const GrilleInteractive = ({
         );
         return newRulesReadyToUse;
     }
-    
+
     function addAdaptedRules(setListRules: Set<number>) {
         const activeRulesOnly: Set<Rule> = new Set();
         for (const rulenbr of setListRules) {
@@ -304,27 +274,25 @@ const GrilleInteractive = ({
     }
 
     function setActiveSignals(): { active: Signal[]; negated: Signal[] } {
-        if (activeCells.length === 0) {
-            return { active: [], negated: [] };
-        }
         const activeSignals: Set<Signal> = new Set();
         const negatedSignals: Set<Signal> = new Set();
-        activeCells.forEach((cell) => {
-            let cellule;
-            if (cell.isInput) {
-                cellule = grid.getCaseInput(cell.col);
-            } else {
-                cellule = grid.getCaseOutput(cell.row, cell.col);
-            }
-            if (cellule) {
-                cellule.signals.forEach((signal) => {
+        activeInputCells.forEach((col) => {
+            const cell = grid.inputs[col];
+            if (cell) {
+                cell.signals.forEach((signal) => {
                     activeSignals.add(signal);
                 });
-                if (cellule instanceof InputCell) {
-                    cellule.negatedSignals.forEach((signal) => {
-                        negatedSignals.add(signal);
-                    });
-                }
+                cell.negatedSignals.forEach((signal) => {
+                    negatedSignals.add(signal);
+                });
+            }
+        });
+        activeOutputCells.forEach((coordinates) => {
+            const cell = grid.outputs[coordinates.row]?.[coordinates.col];
+            if (cell) {
+                cell.signals.forEach((signal) => {
+                    activeSignals.add(signal);
+                });
             }
         });
         return {
@@ -340,36 +308,29 @@ const GrilleInteractive = ({
             <div>
                 <h1>Grille Interactive</h1>
                 <div className="grid-container">
-                    {Array.from({ length: grid.outputs[0].length }).map(
-                        (_, colIndex) => (
-                            <RowOutputs
-                                key={colIndex}
-                                rowIndex={0}
-                                colIndex={colIndex}
-                                grid={grid}
-                                activeCells={activeCells}
-                                handleCaseClick={handleCaseClick}
-                            />
-                        )
-                    )}
-                    {Array.from({ length: grid.inputs.length }).map(
-                        (_, colIndex) => (
-                            <RowInputs
-                                key={colIndex}
-                                colIndex={colIndex}
-                                grid={grid}
-                                activeCells={activeCells}
-                                handleCaseClick={handleCaseClick}
-                            />
-                        )
-                    )}
+                    <InputsRow
+                        inputs={grid.inputs}
+                        activeInputCells={activeInputCells}
+                        setActiveInputCells={setActiveInputCells}
+                        setActiveOutputCells={setActiveOutputCells}
+                    />
+                    {grid.outputs.map((row, rowIndex) => (
+                        <GridOutputsRow
+                            key={rowIndex}
+                            outputs={row}
+                            rowIndex={rowIndex}
+                            activeOutputCells={activeOutputCells}
+                            setActiveInputCells={setActiveInputCells}
+                            setActiveOutputCells={setActiveOutputCells}
+                        />
+                    ))}
                 </div>
                 <div>
                     <button onClick={handleRemoveAllSignalsFromGrid}>
                         Supprimer tous les signaux de la grille
                     </button>
                 </div>
-                {activeCells.length > 0 && (
+                {(activeInputCells.length + activeOutputCells.length > 0) && (
                     <GestionnaireSignauxGrille
                         activeSignals={active}
                         allSignals={listeSignaux}

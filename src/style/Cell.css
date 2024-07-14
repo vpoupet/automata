@@ -11,12 +11,19 @@
     background-color: blue;
     color: white;
 }
+
 .grid-container {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr); /* 5 colonnes de largeur égale */
-    grid-gap: 10px; /* Espace entre les cellules */
+    display: flex;
+    flex-direction: column-reverse;
     width: fit-content; /* Ajuste la largeur du conteneur au contenu */
     margin: auto; /* Centre le conteneur */
+}
+
+.grid-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
 }
 
 .cellContent {
