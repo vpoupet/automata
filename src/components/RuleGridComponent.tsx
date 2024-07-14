@@ -3,19 +3,16 @@ import "../style/Cell.css";
 import RuleGrid from "../classes/RuleGrid.ts";
 import { InputCell } from "../classes/Cell.ts";
 
-type RegleProps = {
+type RuleGridComponentProps = {
     grid: RuleGrid;
     onLoadRule: () => void;
     onDeleteRule: () => void;
     onUpdateRule: () => void;
 };
 
-const Regle = ({
-    grid,
-    onLoadRule,
-    onDeleteRule,
-    onUpdateRule,
-}: RegleProps): JSX.Element => {
+export default function RuleGridComponent({
+    grid, onLoadRule, onDeleteRule, onUpdateRule,
+}: RuleGridComponentProps): JSX.Element {
     return (
         <div style={{ display: "inline-block" }}>
             <div
@@ -28,14 +25,12 @@ const Regle = ({
                 {grid.outputs
                     .slice()
                     .reverse()
-                    .map((row, rowIndex) =>
-                        row.map((cell, colIndex) => (
-                            <DiagramCell
-                                key={`${rowIndex + 1}-${colIndex}`}
-                                cell={cell}
-                                className=""
-                            />
-                        ))
+                    .map((row, rowIndex) => row.map((cell, colIndex) => (
+                        <DiagramCell
+                            key={`${rowIndex + 1}-${colIndex}`}
+                            cell={cell}
+                            className="" />
+                    ))
                     )}
                 {grid.inputs
                     .slice()
@@ -44,14 +39,11 @@ const Regle = ({
                         return (
                             <DiagramCell
                                 key={`0-${colIndex}`}
-                                cell={
-                                    new InputCell(
-                                        cell.signals,
-                                        cell.negatedSignals
-                                    )
-                                }
-                                className=""
-                            />
+                                cell={new InputCell(
+                                    cell.signals,
+                                    cell.negatedSignals
+                                )}
+                                className="" />
                         );
                     })}
             </div>
@@ -62,6 +54,4 @@ const Regle = ({
             </div>
         </div>
     );
-};
-
-export default Regle;
+}

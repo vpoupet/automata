@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Signal } from "../types";
 import RuleGrid from "../classes/RuleGrid";
 
-type GestionSignauxProps = {
+type SignalsListProps = {
     listeSignaux: Signal[];
     setListeSignaux: React.Dispatch<React.SetStateAction<Signal[]>>;
     grid: RuleGrid;
@@ -11,14 +11,14 @@ type GestionSignauxProps = {
     setRulesGrids: React.Dispatch<React.SetStateAction<RuleGrid[]>>;
 };
 
-export default function GestionSignaux({
+export default function SignalsList({
     listeSignaux,
     setListeSignaux,
     grid,
     setGrid,
     rulesGrids,
     setRulesGrids,
-}: GestionSignauxProps): JSX.Element {
+}: SignalsListProps): JSX.Element {
     const [newSignalValue, setNewSignalValue] = useState<string>("");
     const [editIndex, setEditIndex] = useState<number | undefined>(undefined);
     const [editSignalValue, setEditSignalValue] = useState<string>("");

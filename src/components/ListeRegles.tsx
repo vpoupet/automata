@@ -1,9 +1,9 @@
 import { useRef } from "react";
-import Regle from "./Regle.tsx";
+import RuleGridComponent from "./RuleGridComponent.tsx";
 import { Automaton, Rule } from "../classes/Automaton.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
 
-type ListeReglesProps = {
+type RuleGridsListProps = {
     grid: RuleGrid;
     setGrid: React.Dispatch<React.SetStateAction<RuleGrid>>;
     rulesGrids: RuleGrid[];
@@ -11,13 +11,9 @@ type ListeReglesProps = {
     rules: Rule[];
 };
 
-const ListeRegles = ({
-    grid,
-    setGrid,
-    rulesGrids,
-    setRulesGrids,
-    rules,
-}: ListeReglesProps): JSX.Element => {
+export default function RuleGridsList({
+    grid, setGrid, rulesGrids, setRulesGrids, rules,
+}: RuleGridsListProps): JSX.Element {
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
     function handleAddRule() {
@@ -66,14 +62,10 @@ const ListeRegles = ({
                 grid.inputs.length
             );
             for (const literal of regle.condition.getLiterals()) {
-                tabNewRule.inputs[
-                    literal.position + (grid.inputs.length - 1) / 2
-                ].signals.add(literal.signal); // Remplacement de literal.signal par literal.signal.description
+                tabNewRule.inputs[literal.position + (grid.inputs.length - 1) / 2].signals.add(literal.signal); // Remplacement de literal.signal par literal.signal.description
             }
             for (const ruleOut of regle.outputs) {
-                tabNewRule.outputs[ruleOut.futureStep][
-                    ruleOut.neighbor + (grid.inputs.length - 1) / 2
-                ].signals.add(ruleOut.signal); // Remplacement de ruleOut.signal par ruleOut.signal.description
+                tabNewRule.outputs[ruleOut.futureStep][ruleOut.neighbor + (grid.inputs.length - 1) / 2].signals.add(ruleOut.signal); // Remplacement de ruleOut.signal par ruleOut.signal.description
             }
             const newRegles = [...rulesGrids, tabNewRule];
             setRulesGrids(newRegles);
@@ -85,14 +77,13 @@ const ListeRegles = ({
             <h2>Règles enregistrées</h2>
             {rulesGrids.map((rule, index) => (
                 <div key={index} style={{ marginBottom: "10px" }}>
-                    <Regle
+                    <RuleGridComponent
                         grid={rule}
                         onLoadRule={() => onLoadRule(index)}
                         onDeleteRule={() => onDeleteRule(index)}
-                        onUpdateRule={() => onUpdateRule(index)}
-                    />
+                        onUpdateRule={() => onUpdateRule(index)} />
                     {rules[index] !== null &&
-                    rules[index] !== undefined
+                        rules[index] !== undefined
                         ? rules[index].toString()
                         : ""}
                 </div>
@@ -103,11 +94,8 @@ const ListeRegles = ({
                 rows={5}
                 cols={50}
                 ref={textAreaRef}
-                placeholder="Mettez votre règle ici"
-            />
+                placeholder="Mettez votre règle ici" />
             <button onClick={handleAddRule}>Ajouter règle depuis texte</button>
         </div>
     );
-};
-
-export default ListeRegles;
+}

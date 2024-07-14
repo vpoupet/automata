@@ -10,9 +10,9 @@ import {
 import { Configuration } from "./classes/Configuration.ts";
 import RuleGrid from "./classes/RuleGrid.ts";
 import { Diagram } from "./components/Diagram.tsx";
-import GestionSignaux from "./components/GestionSignaux.js";
-import GrilleInteractive from "./components/GrilleInteractive.tsx";
-import ListeRegles from "./components/ListeRegles.js";
+import SignalsList from "./components/SignalsList.tsx";
+import EditGrid from "./components/EditGrid.tsx";
+import RuleGridsList from "./components/ListeRegles.js";
 import { Coordinates, SettingsInterface } from "./types.ts";
 
 export default function App() {
@@ -106,7 +106,7 @@ export default function App() {
         <div className="App">
             <div className="top-section">
                 <div className="grille-interactive">
-                    <GrilleInteractive
+                    <EditGrid
                         grid={grid}
                         setGrid={setGrid}
                         nbFutureSteps={gridNbFutureSteps}
@@ -124,7 +124,7 @@ export default function App() {
                     />
                 </div>
                 <div className="gestion-signaux">
-                    <GestionSignaux
+                    <SignalsList
                         listeSignaux={listeSignaux}
                         setListeSignaux={setListeSignaux}
                         grid={grid}
@@ -136,7 +136,7 @@ export default function App() {
             </div>
             <div className="middle-section">
                 <div className="liste-regles">
-                    <ListeRegles
+                    <RuleGridsList
                         grid={grid}
                         setGrid={setGrid}
                         rulesGrids={rulesGrids}

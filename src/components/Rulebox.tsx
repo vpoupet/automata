@@ -6,6 +6,7 @@ interface RuleboxProps {
     rules: string;
     setAutomaton: (automaton: Automaton) => void;
 }
+
 export function Rulebox({ rules, setAutomaton }: RuleboxProps) {
     const ruleboxRef = useRef<HTMLTextAreaElement>(null);
     function updateRules() {

@@ -10,7 +10,7 @@ type GridOutputsRowProps = {
     setActiveOutputCells: React.Dispatch<React.SetStateAction<Coordinates[]>>;
 };
 
-function GridOutputsRow({
+export default function GridOutputsRow({
     outputs,
     rowIndex,
     activeOutputCells,
@@ -54,5 +54,3 @@ function GridOutputsRow({
         </div>
     );
 }
-
-export default GridOutputsRow;

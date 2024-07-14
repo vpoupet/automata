@@ -1,6 +1,7 @@
 import {
     Clause,
-    Conjunction
+    Conjunction,
+    ConjunctionOfLiterals
 } from "./Clause.ts";
 import { Configuration } from "./Configuration.ts";
 import { Signal } from "../types.ts";
@@ -54,6 +55,8 @@ export class Rule {
             .join(" ")}`;
     }
 }
+
+export type ConjunctionRule = Rule & { condition: ConjunctionOfLiterals };
 
 export class Automaton {
     /**
@@ -187,20 +190,6 @@ export class Automaton {
 
     /**
      * Returns a space-time diagram from a starting configuration
-     *
-     * The input is a list of configurations, because some future configurations might already have signals from previous
-     * steps (when a rule output sends a signal several time steps ahead). If the list has less than (maxFutureSteps + 1)
-     * (corresponding to the current configuration and the `maxFutureSteps` next ones) new empty configurations are added
-     *
-     * @param {[Rule]} rules list of rules to execute
-     * @param {[[Set<int>]]} configs a list of configurations, each configuration being a list of sets of signals (one for
-     * each cell in the configuration). `configs[0]` is the configuration at time t (the one to which the rules are
-     * applied) and the other ones are configurations at subsequent times (t + 1, t + 2, ...) if they already have signals.
-     * New configurations can be added as needed with empty sets for all cells.
-     *
-     * @returns {[[Set<int>]]} the list of configurations after applying the rules. Note that because some rules can affect
-     * the configuration at time t (rules 0/0) the configuration to which the rules were applied might have changed. The
-     * configurations are modified in place (the returned list is not a copy of the input).
      */
     makeDiagram(
         initialConfiguration: Configuration,

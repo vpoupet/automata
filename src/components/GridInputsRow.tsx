@@ -9,7 +9,7 @@ type InputsRowProps = {
     setActiveOutputCells: React.Dispatch<React.SetStateAction<Coordinates[]>>;
 };
 
-function GridInputsRow({
+export default function GridInputsRow({
     inputs,
     activeInputCells,
     setActiveInputCells,
@@ -42,5 +42,3 @@ function GridInputsRow({
         </div>
     );
 }
-
-export default GridInputsRow;

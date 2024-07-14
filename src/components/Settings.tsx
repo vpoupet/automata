@@ -4,6 +4,7 @@ interface SettingsProps {
     settings: SettingsInterface;
     setSettings: (settings: SettingsInterface) => void;
 }
+
 export function Settings({ settings, setSettings }: SettingsProps) {
     function updateSettings() {
         const newSettings = {

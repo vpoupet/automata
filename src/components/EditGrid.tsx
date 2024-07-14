@@ -9,11 +9,11 @@ import {
 import RuleGrid from "../classes/RuleGrid.ts";
 import "../style/Cell.css";
 import { Coordinates, Signal } from "../types.ts";
-import GestionnaireSignauxGrille from "./GestionnaireSignauxGrille.tsx";
+import GridSignalsManager from "./GridSignalsManager.tsx";
 import InputsRow from "./GridInputsRow.tsx";
 import GridOutputsRow from "./GridOutputsRow.tsx";
 
-type GrilleInteractiveProps = {
+type EditGridProps = {
     grid: RuleGrid;
     setGrid: (grid: RuleGrid) => void;
     nbFutureSteps: number;
@@ -30,22 +30,9 @@ type GrilleInteractiveProps = {
     listeSignaux: Signal[];
 };
 
-const GrilleInteractive = ({
-    grid,
-    setGrid,
-    nbCells,
-    nbFutureSteps,
-    activeInputCells,
-    setActiveInputCells,
-    activeOutputCells,
-    setActiveOutputCells,
-    rulesGrid,
-    setrulesGrid,
-    automaton,
-    setAutomaton,
-    rules: reglesbools,
-    listeSignaux,
-}: GrilleInteractiveProps): JSX.Element => {
+export default function EditGrid({
+    grid, setGrid, nbCells, nbFutureSteps, activeInputCells, setActiveInputCells, activeOutputCells, setActiveOutputCells, rulesGrid, setrulesGrid, automaton, setAutomaton, rules: reglesbools, listeSignaux,
+}: EditGridProps): JSX.Element {
     function applyToActiveCells(f: (cell: Cell) => void) {
         const newGrid = grid.clone();
         activeInputCells.forEach((col) => {
@@ -104,7 +91,6 @@ const GrilleInteractive = ({
 
     function creerClause(tab: Cell[]): ConjunctionOfLiterals {
         // TODO: reprendre après signaux négatifs dans Cellule
-
         const literals: Literal[] = [];
         tab.forEach((cellule, cellIndex) => {
             if (cellule.signals.size > 0) {
@@ -223,11 +209,9 @@ const GrilleInteractive = ({
 
         for (let ruleNbr = 0; ruleNbr < rulesGrid.length; ruleNbr++) {
             for (let i = 0; i < grid.inputs.length; i++) {
-                if (
-                    reglesbools[ruleNbr].condition.eval(
-                        config.getNeighborhood(i, -2, 2)
-                    )
-                ) {
+                if (reglesbools[ruleNbr].condition.eval(
+                    config.getNeighborhood(i, -2, 2)
+                )) {
                     rulesToModify.add(ruleNbr);
                 }
             }
@@ -244,7 +228,7 @@ const GrilleInteractive = ({
         }
     }
 
-    function setActiveSignals(): { active: Signal[]; negated: Signal[] } {
+    function setActiveSignals(): { active: Signal[]; negated: Signal[]; } {
         const activeSignals: Set<Signal> = new Set();
         const negatedSignals: Set<Signal> = new Set();
         activeInputCells.forEach((col) => {
@@ -283,8 +267,7 @@ const GrilleInteractive = ({
                         inputs={grid.inputs}
                         activeInputCells={activeInputCells}
                         setActiveInputCells={setActiveInputCells}
-                        setActiveOutputCells={setActiveOutputCells}
-                    />
+                        setActiveOutputCells={setActiveOutputCells} />
                     {grid.outputs.map((row, rowIndex) => (
                         <GridOutputsRow
                             key={rowIndex}
@@ -292,8 +275,7 @@ const GrilleInteractive = ({
                             rowIndex={rowIndex}
                             activeOutputCells={activeOutputCells}
                             setActiveInputCells={setActiveInputCells}
-                            setActiveOutputCells={setActiveOutputCells}
-                        />
+                            setActiveOutputCells={setActiveOutputCells} />
                     ))}
                 </div>
                 <div>
@@ -301,12 +283,11 @@ const GrilleInteractive = ({
                         Supprimer tous les signaux de la grille
                     </button>
                 </div>
-                <GestionnaireSignauxGrille
+                <GridSignalsManager
                     activeSignals={active}
                     allSignals={listeSignaux}
                     negatedSignals={negated} // Passer ceci
-                    applyToActiveCells={applyToActiveCells}
-                />
+                    applyToActiveCells={applyToActiveCells} />
                 <button onClick={handleSaveRule}>Ajouter règle</button>
                 <button onClick={applyRules}>
                     Appliquer règles sur la grille
@@ -315,6 +296,4 @@ const GrilleInteractive = ({
             </div>
         </div>
     );
-};
-
-export default GrilleInteractive;
+}
