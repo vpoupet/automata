@@ -61,7 +61,7 @@ const ListeRegles = ({
         auto.parseRules(input);
         const rules = auto.getRules();
         for (const regle of rules) {
-            const tabNewRule = new RuleGrid(
+            const tabNewRule = RuleGrid.withSize(
                 grid.outputs.length,
                 grid.inputs.length
             );

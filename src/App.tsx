@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import "./App.css";
 import { Automaton, Rule, RuleOutput } from "./classes/Automaton.ts";
-import { Cell, InputCell } from "./classes/Cell.ts";
+import { Cell } from "./classes/Cell.ts";
 import {
     Conjunction,
     ConjunctionOfLiterals,
@@ -15,9 +15,9 @@ import GrilleInteractive from "./components/GrilleInteractive.tsx";
 import ListeRegles from "./components/ListeRegles.js";
 import { Coordinates, SettingsInterface } from "./types.ts";
 
-function App() {
-    const [rows] = useState<number>(2);
-    const [cols] = useState<number>(5);
+export default function App() {
+    const [gridNbFutureSteps] = useState<number>(3);
+    const [gridRadius] = useState<number>(2);
     const [rulesGrids, setRulesGrids] = useState<RuleGrid[]>([]);
     const [rules, setRules] = useState<Rule[]>([]);
 
@@ -28,23 +28,16 @@ function App() {
         timeGoesUp: true,
     });
 
-    const [grid, setGrid] = useState<RuleGrid>(new RuleGrid(rows, cols));
+    const [grid, setGrid] = useState<RuleGrid>(
+        RuleGrid.withSize(2 * gridRadius + 1, gridNbFutureSteps)
+    );
     const [activeCells, setActiveCells] = useState<Coordinates[]>([]);
 
     const [listeSignaux, setListeSignaux] = useState([
         Symbol.for("Init"),
-        Symbol.for("2"),
-        Symbol.for("3"),
+        Symbol.for("s1"),
+        Symbol.for("s2"),
     ]);
-
-    function handleUpdateFromDiagramme(cells: Cell[]) {
-        const newGrid = new RuleGrid(rows, cols);
-        const cells1 = cells.slice(0, cols);
-        for (let i = 0; i < cells1.length; i++) {
-            newGrid.inputs[i] = new InputCell(cells1[i].signals);
-        }
-        setGrid(newGrid);
-    }
 
     function creerOutput(tab: Cell[][]) {
         const outputs: RuleOutput[] = [];
@@ -105,11 +98,7 @@ function App() {
         applyRules();
     }, [rules, applyRules]);
 
-    function handleCellClick(cells: Cell[]) {
-        handleUpdateFromDiagramme(cells);
-    }
-
-    const initialConfiguration = new Configuration(settings.nbCells);
+    const initialConfiguration = Configuration.withSize(settings.nbCells);
     initialConfiguration.cells[0].addSignal(Symbol.for("Init"));
 
     return (
@@ -119,8 +108,8 @@ function App() {
                     <GrilleInteractive
                         grid={grid}
                         setGrid={setGrid}
-                        rows={rows}
-                        cols={cols}
+                        rows={gridNbFutureSteps}
+                        cols={2 * gridRadius + 1}
                         activeCells={activeCells}
                         setActiveCells={setActiveCells}
                         rulesGrid={rulesGrids}
@@ -158,11 +147,11 @@ function App() {
                     automaton={automaton}
                     initialConfiguration={initialConfiguration}
                     nbSteps={settings.nbSteps}
-                    onClickCell={handleCellClick}
+                    gridRadius={gridRadius}
+                    gridNbFutureSteps={gridNbFutureSteps}
+                    setGrid={setGrid}
                 />
             </div>
         </div>
     );
 }
-
-export default App;

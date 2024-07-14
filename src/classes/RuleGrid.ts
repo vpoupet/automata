@@ -5,33 +5,24 @@ class RuleGrid {
     inputs: InputCell[];
     outputs: Cell[][];
 
-    /***
-     *  Génère rows - 1 lignes d'outputs et une ligne d'inputs
-     ***/
-    constructor(rows: number, cols: number) {
-        this.inputs = new Array(cols);
-        this.outputs = new Array(rows - 1);
-        for (let i = 0; i < rows - 1; i++) {
-            this.outputs[i] = new Array(cols);
-            for (let j = 0; j < cols; j++) {
-                this.outputs[i][j] = new Cell();
-                if (i === 0) {
-                    this.inputs[j] = new InputCell();
-                }
-            }
-        }
+    constructor(inputs: InputCell[], outputs: Cell[][]) {
+        this.inputs = inputs;
+        this.outputs = outputs;
+    }
+
+    static withSize(nbCells: number, nbSteps: number): RuleGrid {
+        const inputs = Array.from({ length: nbCells }, () => new InputCell());
+        const outputs = Array.from({ length: nbSteps }, () =>
+            Array.from({ length: nbCells }, () => new Cell())
+        );
+        return new RuleGrid(inputs, outputs);
     }
 
     clone(): RuleGrid {
-        const newGrid = new RuleGrid(
-            this.outputs.length + 1,
-            this.inputs.length
-        ); // Changement ici
-        newGrid.inputs = this.inputs.map((cell) => cell.clone());
-        newGrid.outputs = this.outputs.map((row) =>
-            row.map((cell) => cell.clone())
+        return new RuleGrid(
+            this.inputs.map((cell) => cell.clone()),
+            this.outputs.map((row) => row.map((cell) => cell.clone()))
         );
-        return newGrid;
     }
 
     getCaseInput(col: number): InputCell {
@@ -68,7 +59,7 @@ class RuleGrid {
     }
 
     getConfigurationFromGrid(): Configuration {
-        const conf = new Configuration(this.inputs.length);
+        const conf = Configuration.withSize(this.inputs.length);
         for (let row = 0; row < this.outputs.length + 1; row++) {
             for (let col = 0; col < this.inputs.length; col++) {
                 if (row === 0) {

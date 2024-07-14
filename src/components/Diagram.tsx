@@ -4,51 +4,45 @@ import "../style/Cell.css";
 import styles from "../style/Diagram.module.scss";
 
 import { Cell, InputCell } from "../classes/Cell.ts";
+import RuleGrid from "../classes/RuleGrid.ts";
 
 interface DiagramProps {
     automaton: Automaton;
     initialConfiguration: Configuration;
     nbSteps: number;
-    onClickCell?: (cells: Cell[]) => void;
+    gridRadius: number;
+    gridNbFutureSteps: number;
+    setGrid: React.Dispatch<React.SetStateAction<RuleGrid>>;
 }
 
 export function Diagram({
     automaton,
     initialConfiguration,
     nbSteps,
-    onClickCell,
+    gridRadius,
+    gridNbFutureSteps,
+    setGrid,
 }: DiagramProps) {
     const diagram = automaton.makeDiagram(initialConfiguration, nbSteps);
 
-    const getCenteredCells = (row: number, col: number): Cell[] => {
-        const centeredCells: Cell[] = [];
-        const nbrofCols = diagram[0].cells.length;
-        const cellsoftherow = diagram[row].cells;
-        let col1 = col;
-        if (col1 < 1) {
-            while (col1 < 2) {
-                centeredCells.push(new Cell());
-                col1++;
-            }
-            for (let i = 0; i < 3; i++) {
-                centeredCells.push(cellsoftherow[col + i]);
-            }
-        } else if (col1 > nbrofCols - 2) {
-            for (let i = -2; i < 0; i++) {
-                centeredCells.push(cellsoftherow[col + i]);
-            }
-            while (col1 > nbrofCols - 2) {
-                centeredCells.push(new Cell());
-                col1--;
-            }
-        } else {
-            for (let i = -2; i < 3; i++) {
-                centeredCells.push(cellsoftherow[col + i]);
-            }
+    function onClickCell(row: number, col: number): void {
+        const diagramRow = diagram[row].cells;
+        const inputs = [];
+        for (let i = col - gridRadius; i <= col + gridRadius; i++) {
+            const cell = diagramRow[i];
+            inputs.push(cell ? new InputCell(cell.signals) : new InputCell());
         }
-
-        return centeredCells;
-    };
+        const gridDiagram = automaton.makeDiagram(
+            new Configuration(inputs),
+            gridNbFutureSteps
+        );
+        setGrid(
+            new RuleGrid(
+                inputs,
+                gridDiagram.slice(1).map((c) => c.cells)
+            )
+        );
+    }
 
     return (
         <div className={styles.diagram}>
@@ -57,10 +51,8 @@ export function Diagram({
                     key={row}
                     config={config}
                     onClickCell={
-                        onClickCell &&
                         ((col: number) => {
-                            const centeredCells = getCenteredCells(row, col);
-                            onClickCell(centeredCells);
+                            onClickCell(row, col);
                         })
                     }
                 />

@@ -82,7 +82,7 @@ const GrilleInteractive = ({
     }
 
     function handleRemoveAllSignalsFromGrid() {
-        const newGrid = new RuleGrid(rows, cols);
+        const newGrid = RuleGrid.withSize(cols, rows);
         setGrid(newGrid);
     }
 
@@ -131,7 +131,7 @@ const GrilleInteractive = ({
     }
 
     function applyRules() {
-        const newGrille = new RuleGrid(rows, cols);
+        const newGrille = RuleGrid.withSize(cols, rows);
         const conffromgrid = newGrille.getConfigurationFromGrid();
         automaton.setRules(reglesbools);
         automaton.updateParameters();
@@ -184,9 +184,9 @@ const GrilleInteractive = ({
     }
 
     function getRuleGridFromBool(regleBool: Rule): RuleGrid {
-        const ruleGrid: RuleGrid = new RuleGrid(
+        const ruleGrid: RuleGrid = RuleGrid.withSize(
+            grid.inputs.length,
             grid.outputs.length,
-            grid.inputs.length
         );
         for (const literal of regleBool.condition.getLiterals()) {
             for (let cellidx = 0; cellidx < grid.inputs.length; cellidx++) {

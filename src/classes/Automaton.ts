@@ -209,7 +209,7 @@ export class Automaton {
         const nbCells = initialConfiguration.getSize();
         const diagram = [initialConfiguration];
         for (let i = 0; i < nbSteps; i++) {
-            diagram.push(new Configuration(nbCells));
+            diagram.push(Configuration.withSize(nbCells));
         }
         for (let t = 0; t < nbSteps; t++) {
             const config = diagram[t];

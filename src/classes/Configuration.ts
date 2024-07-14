@@ -5,8 +5,12 @@ import { Neighborhood } from '../types.ts';
 export class Configuration {
     cells: Cell[];
 
-    constructor(nbCells: number) {
-        this.cells = Array(nbCells).fill(0).map(() => new Cell());
+    constructor(cells: Cell[] ) {
+        this.cells = cells;
+    }
+
+    static withSize(nbCells: number): Configuration {
+        return new Configuration(Array(nbCells).fill(0).map(() => new Cell()));
     }
 
     getSize(): number {
