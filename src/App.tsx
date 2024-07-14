@@ -6,7 +6,6 @@ import {
     Conjunction,
     ConjunctionOfLiterals,
     Literal,
-    Negation,
 } from "./classes/Clause.ts";
 import { Configuration } from "./classes/Configuration.ts";
 import RuleGrid from "./classes/RuleGrid.ts";
@@ -19,8 +18,8 @@ import { Coordinates, SettingsInterface, Signal } from "./types.ts";
 function App() {
     const [rows] = useState<number>(2);
     const [cols] = useState<number>(5);
-    const [rulesGrid, setrulesGrid] = useState<RuleGrid[]>([]);
-    const [reglesbools, setReglesbools] = useState<Rule[]>([]);
+    const [rulesGrid, setRulesGrid] = useState<RuleGrid[]>([]);
+    const [rules, setRules] = useState<Rule[]>([]);
 
     const [automaton, setAutomaton] = useState<Automaton>(new Automaton());
     const [settings] = useState<SettingsInterface>({
@@ -39,43 +38,6 @@ function App() {
     ]);
 
     // BEGIN: from ManagerGrilleInteractive
-    function handleCaseClick(
-        rowIndex: number,
-        colIndex: number,
-        isInput: boolean,
-        event: React.MouseEvent
-    ) {
-        if (event.ctrlKey || event.metaKey) {
-            setActiveCells((prev) => {
-                const alreadySelected = prev.some(
-                    (cell) =>
-                        cell.row === rowIndex &&
-                        cell.col === colIndex &&
-                        cell.isInput === isInput
-                );
-                if (alreadySelected) {
-                    return prev.filter(
-                        (cell) =>
-                            !(
-                                cell.row === rowIndex &&
-                                cell.col === colIndex &&
-                                cell.isInput === isInput
-                            )
-                    );
-                } else {
-                    return [
-                        ...prev,
-                        { row: rowIndex, col: colIndex, isInput: isInput },
-                    ];
-                }
-            });
-        } else {
-            setActiveCells([
-                { row: rowIndex, col: colIndex, isInput: isInput },
-            ]);
-        }
-    }
-
     function updateGrilleFromRule(ruleToCopy: RuleGrid) {
         setGrid(ruleToCopy.clone());
     }
@@ -119,16 +81,6 @@ function App() {
             }
         }
         setGrid(newGrid);
-    }
-
-    function applyRulesGrid() {
-        const newGrille = new RuleGrid(rows, cols);
-        const conffromgrid = newGrille.getConfigurationFromGrid();
-        automaton.setRules(reglesbools);
-        automaton.updateParameters();
-        setAutomaton(automaton);
-        const conf = automaton.makeDiagram(conffromgrid, grid.outputs.length);
-        newGrille.setGridFromConfigurations(conf);
     }
 
     function handleUpdateFromDiagramme(cells: Cell[]) {
@@ -178,113 +130,10 @@ function App() {
     // END: from ManagerSignaux
 
     // BEGIN: from ManagerRegles
-    function handleSaveRule() {
-        if (rulesGrid.length === 0) {
-            setrulesGrid([grid.clone()]);
-        }
-        setrulesGrid([...rulesGrid, grid.clone()]);
-    }
-
-    function modifyRule() {
-        const rulesToModify = new Set<number>();
-        const config = grid.getConfigurationFromGrid();
-
-        for (let ruleNbr = 0; ruleNbr < rulesGrid.length; ruleNbr++) {
-            for (let i = 0; i < grid.inputs.length; i++) {
-                if (
-                    reglesbools[ruleNbr].condition.eval(
-                        config.getNeighborhood(i, -2, 2)
-                    )
-                ) {
-                    rulesToModify.add(ruleNbr);
-                }
-            }
-        }
-
-        if (rulesToModify.size === 0) {
-            console.log(
-                "pas de règle à modifier, on ajoute une nouvelle règle"
-            );
-            handleSaveRule();
-        } else {
-            console.log("ajout de règles and stuff", rulesToModify);
-            addAdaptedRules(rulesToModify);
-        }
-    }
-
-    function addAdaptedRules(setListRules: Set<number>) {
-        const activeRulesOnly: Set<Rule> = new Set();
-        for (const rulenbr of setListRules) {
-            activeRulesOnly.add(reglesbools[rulenbr]);
-        }
-
-        // const configOutput = getOutputFromRules(activeRulesOnly);
-        //si l'output généré est le même que celui de la grid, on fait rien on return c'est gg
-        //pour l'instant pas géré
-        // let outputdifferent = false;
-        // if (outputdifferent) {
-        //     console.log("les outputs sont les mêmes, on ne fait rien");
-        //     return;
-        // }
-        // bon la on est au moment critique, faut rajouter une nouvelle règle et
-        // ajouter la négation de l'input de la grid pour chaque règle active (DNF)
-        const newRule = grid.clone();
-
-        //on créé la regle bool de la nouvelle regle
-        const newRuleBool = creerReglebool(grid);
-        //on ajoute la négation de l'input de la nouvelle règle à chaque règle active
-        const rulesModified = modifRulesWithNegation(
-            newRuleBool,
-            activeRulesOnly
-        );
-
-        const rules = [...rulesGrid];
-
-        // WARNING: C'est n'importe quoi à partir de là jusqu'à la fin de la fonction
-        //si le n° d'indice de la règle est dans activeRulesOnly alors on le supprime
-        // rules.filter(rule => !activeRulesOnly.has(rule));
-        // rules.filter((_, i) => !activeRulesOnly.includes(i));
-        // for (const rule of rulesModified) {
-        //     rules.push(rule);   // <- corrigé ici mais pas sûr que ce soit correct
-        // }
-        // //on ajoute la nouvelle règle
-        // rules.push(newRule.grid);
-        // -(
-        //     //PAS BIEN ???
-        //     setrulesGrid(rules)
-        // );
-        // console.log("dans l'idée on a fais les modifs qui faut :", reglesbools);
-    }
-
-    function modifRulesWithNegation(
-        newRuleBool: Rule,
-        activeRulesOnly: Set<Rule>
-    ): RuleGrid[] {
-        const newRulesReadyToUse: RuleGrid[] = [];
-        for (const rule of activeRulesOnly) {
-            const newRule = new Conjunction([
-                rule.condition,
-                new Negation(newRuleBool.condition),
-            ]).toDNF();
-            for (let j = 0; j < newRule.subclauses.length; j++) {
-                newRulesReadyToUse.push(
-                    getRuleGridFromBool(
-                        new Rule(newRule.subclauses[j], newRuleBool.outputs)
-                    )
-                );
-            }
-        }
-        console.log(
-            "la liste des nouvelles règles à rajouter ! : ",
-            newRulesReadyToUse
-        );
-        return newRulesReadyToUse;
-    }
-
     function printReglesConsole() {
         let stringRule = "";
-        for (let i = 0; i < reglesbools.length; i++) {
-            stringRule += reglesbools[i].toString();
+        for (let i = 0; i < rules.length; i++) {
+            stringRule += rules[i].toString();
             stringRule += "\n";
         }
         console.log(stringRule);
@@ -293,7 +142,7 @@ function App() {
     function updateRule(index: number) {
         const newConfigurations = [...rulesGrid];
         newConfigurations[index] = grid.clone();
-        setrulesGrid(newConfigurations);
+        setRulesGrid(newConfigurations);
     }
 
     function updateSignalInRule(oldValue: Signal, newValue: Signal) {
@@ -320,7 +169,7 @@ function App() {
 
     function deleteRule(index: number) {
         const newConfigurations = rulesGrid.filter((_, i) => i !== index);
-        setrulesGrid(newConfigurations);
+        setRulesGrid(newConfigurations);
     }
 
     function deleteSignalInRules(signalValue: Signal) {
@@ -335,7 +184,7 @@ function App() {
                 }
             }
         }
-        setrulesGrid(newRulesGrid);
+        setRulesGrid(newRulesGrid);
     }
 
     function creerOutput(tab: Cell[][]) {
@@ -401,49 +250,25 @@ function App() {
                 ].signals.add(ruleOut.signal); // Remplacement de ruleOut.signal par ruleOut.signal.description
             }
             const newRegles = [...rulesGrid, tabNewRule];
-            setrulesGrid(newRegles);
+            setRulesGrid(newRegles);
         }
-    }
-
-    function getRuleGridFromBool(regleBool: Rule): RuleGrid {
-        const ruleGrid: RuleGrid = new RuleGrid(
-            grid.outputs.length,
-            grid.inputs.length
-        );
-        for (const literal of regleBool.condition.getLiterals()) {
-            for (let cellidx = 0; cellidx < grid.inputs.length; cellidx++) {
-                if (literal.position === cellidx - 2) {
-                    //TODO : la négation !
-                    ruleGrid.inputs[cellidx].signals.add(literal.signal);
-                }
-            }
-        }
-        for (const ruleOut of regleBool.outputs) {
-            for (let cellidx = 0; cellidx < grid.inputs.length; cellidx++) {
-                if (ruleOut.neighbor === cellidx - 2) {
-                    //PAS BIEN : on prend pas en compte si une grid plus grande
-                    ruleGrid.outputs[0][cellidx].signals.add(ruleOut.signal);
-                }
-            }
-        }
-        return ruleGrid;
     }
 
     const applyRules = useCallback(() => {
         const auto = new Automaton();
-        auto.setRules(reglesbools);
+        auto.setRules(rules);
         auto.updateParameters();
         setAutomaton(auto);
-    }, [reglesbools, setAutomaton]);
+    }, [rules, setAutomaton]);
 
     // NOTE: attention aux useEffect
     useEffect(() => {
-        setReglesbools(rulesGrid.map(creerReglebool));
+        setRules(rulesGrid.map(creerReglebool));
     }, [rulesGrid]);
 
     useEffect(() => {
         applyRules();
-    }, [reglesbools, applyRules]);
+    }, [rules, applyRules]);
     // END: from ManagerRegles
 
     const sendLoadRuleToGrid = (index: number) => {
@@ -488,11 +313,13 @@ function App() {
                         rows={rows}
                         cols={cols}
                         activeCells={activeCells}
+                        setActiveCells={setActiveCells}
+                        rulesGrid={rulesGrid}
+                        setrulesGrid={setRulesGrid}
                         listeSignaux={listeSignaux}
-                        handleCaseClick={handleCaseClick}
-                        handleSaveRule={handleSaveRule}
-                        applyRules={applyRulesGrid}
-                        modifyRule={modifyRule}
+                        automaton={automaton}
+                        setAutomaton={setAutomaton}
+                        rules={rules}
                     />
                 </div>
                 <div className="gestion-signaux">
@@ -508,7 +335,7 @@ function App() {
                 <div className="liste-regles">
                     <ListeRegles
                         rulesGrid={rulesGrid}
-                        reglesbools={reglesbools}
+                        reglesbools={rules}
                         onLoadRule={sendLoadRuleToGrid}
                         onUpdateRule={updateRule}
                         onDeleteRule={deleteRule}
