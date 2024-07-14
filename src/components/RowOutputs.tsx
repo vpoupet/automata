@@ -5,7 +5,7 @@ type RowOutputsProps = {
     rowIndex: number;
     colIndex: number;
     grid: RuleGrid;
-    activeCells: { row: number; col: number, isInput: boolean}[];
+    activeCells: { row: number; col: number; isInput: boolean }[];
     handleCaseClick: (
         rowIndex: number,
         colIndex: number,
@@ -15,15 +15,16 @@ type RowOutputsProps = {
 };
 
 const RowOutputs = ({
-                            rowIndex,
-                            colIndex,
-                            grid,
-                            activeCells,
-                            handleCaseClick,
-                        }: RowOutputsProps): JSX.Element => {
+    rowIndex,
+    colIndex,
+    grid,
+    activeCells,
+    handleCaseClick,
+}: RowOutputsProps): JSX.Element => {
     const caseObj = grid.getCaseOutput(rowIndex, colIndex);
     const isActive = activeCells.some(
-        (cell) => cell.row === rowIndex && cell.col === colIndex && !cell.isInput
+        (cell) =>
+            cell.row === rowIndex && cell.col === colIndex && !cell.isInput
     );
 
     return (
@@ -35,19 +36,13 @@ const RowOutputs = ({
                     display: "flex",
                     flexDirection: "column",
                 }}
-            >
-            </div>
+            ></div>
             {caseObj && (
                 <DiagramCell
                     key={rowIndex}
                     cell={caseObj}
                     onClick={(event) =>
-                        handleCaseClick(
-                            rowIndex,
-                            colIndex,
-                            false,
-                            event
-                        )
+                        handleCaseClick(rowIndex, colIndex, false, event)
                     }
                     className={isActive ? "active" : ""}
                 />

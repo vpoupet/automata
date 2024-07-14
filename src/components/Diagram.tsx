@@ -1,9 +1,9 @@
-import {Automaton} from "../classes/Automaton";
-import {Configuration} from "../classes/Configuration";
+import { Automaton } from "../classes/Automaton";
+import { Configuration } from "../classes/Configuration";
 import "../style/Cell.css";
 import styles from "../style/Diagram.module.scss";
 
-import {Cell, InputCell} from "../classes/Cell.ts";
+import { Cell, InputCell } from "../classes/Cell.ts";
 
 interface DiagramProps {
     automaton: Automaton;
@@ -13,11 +13,11 @@ interface DiagramProps {
 }
 
 export function Diagram({
-                            automaton,
-                            initialConfiguration,
-                            nbSteps,
-                            onClickCell,
-                        }: DiagramProps) {
+    automaton,
+    initialConfiguration,
+    nbSteps,
+    onClickCell,
+}: DiagramProps) {
     const diagram = automaton.makeDiagram(initialConfiguration, nbSteps);
 
     const getCenteredCells = (row: number, col: number): Cell[] => {
@@ -25,30 +25,27 @@ export function Diagram({
         const nbrofCols = diagram[0].cells.length;
         const cellsoftherow = diagram[row].cells;
         let col1 = col;
-        if(col1<1){
-            while (col1<2){
+        if (col1 < 1) {
+            while (col1 < 2) {
                 centeredCells.push(new Cell());
                 col1++;
             }
             for (let i = 0; i < 3; i++) {
                 centeredCells.push(cellsoftherow[col + i]);
             }
-        }
-        else if (col1 > nbrofCols-2){
+        } else if (col1 > nbrofCols - 2) {
             for (let i = -2; i < 0; i++) {
                 centeredCells.push(cellsoftherow[col + i]);
             }
-            while (col1>nbrofCols-2){
+            while (col1 > nbrofCols - 2) {
                 centeredCells.push(new Cell());
                 col1--;
             }
-        }
-        else{
+        } else {
             for (let i = -2; i < 3; i++) {
                 centeredCells.push(cellsoftherow[col + i]);
             }
         }
-
 
         return centeredCells;
     };
@@ -60,7 +57,8 @@ export function Diagram({
                     key={row}
                     config={config}
                     onClickCell={
-                        onClickCell && ((col: number) => {
+                        onClickCell &&
+                        ((col: number) => {
                             const centeredCells = getCenteredCells(row, col);
                             onClickCell(centeredCells);
                         })
@@ -76,7 +74,7 @@ interface DiagramRowProps {
     onClickCell?: (col: number) => void;
 }
 
-function DiagramRow({config, onClickCell}: DiagramRowProps) {
+function DiagramRow({ config, onClickCell }: DiagramRowProps) {
     return (
         <div className={styles.row}>
             {config.cells.map((cell, col) => (
@@ -96,12 +94,12 @@ interface CellProps {
     className?: string;
 }
 
-export function DiagramCell({cell, onClick, className}: CellProps) {
+export function DiagramCell({ cell, onClick, className }: CellProps) {
     const signalNames: string[] = [];
     if (cell instanceof InputCell) {
         for (const negsign of cell.negatedSignals) {
             const signalName = "!" + negsign.description;
-            signalNames.push(signalName)
+            signalNames.push(signalName);
         }
     }
     for (const signal of cell.signals) {

@@ -1,5 +1,5 @@
-import {Signal} from "../types";
-import {ChangeEvent} from "react";
+import { Signal } from "../types";
+import { ChangeEvent } from "react";
 
 type GestionnaireSignauxGrilleProps = {
     activeSignals: Signal[];
@@ -14,16 +14,16 @@ type GestionnaireSignauxGrilleProps = {
 };
 
 const GestionnaireSignauxGrille = ({
-                                       activeSignals,
-                                       allSignals,
-                                       negatedSignals,
-                                       onAddSignal,
-                                       onRemoveSignal,
-                                       onAddAllSignals,
-                                       onRemoveAllSignals,
-                                       onAddNegatedSignal,
-                                       onRemoveNegatedSignal
-                                   }: GestionnaireSignauxGrilleProps): JSX.Element => {
+    activeSignals,
+    allSignals,
+    negatedSignals,
+    onAddSignal,
+    onRemoveSignal,
+    onAddAllSignals,
+    onRemoveAllSignals,
+    onAddNegatedSignal,
+    onRemoveNegatedSignal,
+}: GestionnaireSignauxGrilleProps): JSX.Element => {
     const aucunsignal = activeSignals.length === 0;
 
     const handleToggleAllSignals = (e: ChangeEvent<HTMLInputElement>) => {
@@ -75,12 +75,16 @@ const GestionnaireSignauxGrille = ({
                         <input
                             type="checkbox"
                             checked={activeSignals.includes(signal)}
-                            onChange={(e) => handleLeftCheckboxChange(signal, e)}
+                            onChange={(e) =>
+                                handleLeftCheckboxChange(signal, e)
+                            }
                         />
                         <input
                             type="checkbox"
                             checked={negatedSignals.includes(signal)} // Modifier ceci
-                            onChange={(e) => handleRightCheckboxChange(signal, e)}
+                            onChange={(e) =>
+                                handleRightCheckboxChange(signal, e)
+                            }
                         />
                         {Symbol.keyFor(signal)}
                     </label>

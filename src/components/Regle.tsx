@@ -1,7 +1,7 @@
 import { DiagramCell } from "./Diagram.tsx";
 import "../style/Cell.css";
 import RuleGrid from "../classes/RuleGrid.ts";
-import {InputCell} from "../classes/Cell.ts";
+import { InputCell } from "../classes/Cell.ts";
 
 type RegleProps = {
     grid: RuleGrid;
@@ -31,21 +31,29 @@ const Regle = ({
                     .map((row, rowIndex) =>
                         row.map((cell, colIndex) => (
                             <DiagramCell
-                                key={`${rowIndex+1}-${colIndex}`}
+                                key={`${rowIndex + 1}-${colIndex}`}
                                 cell={cell}
                                 className=""
                             />
                         ))
                     )}
-                {grid.inputs.slice().reverse().map((cell : InputCell, colIndex : number) => {
-                    return (
-                        <DiagramCell
-                            key={`0-${colIndex}`}
-                            cell={new InputCell(cell.signals, cell.negatedSignals)}
-                            className=""
-                        />
-                    );
-                })}
+                {grid.inputs
+                    .slice()
+                    .reverse()
+                    .map((cell: InputCell, colIndex: number) => {
+                        return (
+                            <DiagramCell
+                                key={`0-${colIndex}`}
+                                cell={
+                                    new InputCell(
+                                        cell.signals,
+                                        cell.negatedSignals
+                                    )
+                                }
+                                className=""
+                            />
+                        );
+                    })}
             </div>
             <div>
                 <button onClick={onLoadRule}>Mettre dans grille</button>
