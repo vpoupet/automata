@@ -1,10 +1,10 @@
-import { Signal } from "../../../classes/types.ts";
-import "../../../style/Cell.css";
+import { Signal } from "../types.ts";
+import "../style/Cell.css";
 import GestionnaireSignauxGrille from "./GestionnaireSignauxGrille.tsx";
-import RuleGrid from "../../Objets/RuleGrid.ts";
+import RuleGrid from "../classes/RuleGrid.ts";
 import RowOutputs from "./RowOutputs.tsx";
 import RowInputs from "./RowInputs.tsx";
-import {InputCell} from "../../../classes/Cell.ts";
+import {InputCell} from "../classes/Cell.ts";
 
 type GrilleInteractiveProps = {
     grid: RuleGrid;

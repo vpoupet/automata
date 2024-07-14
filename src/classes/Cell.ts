@@ -1,4 +1,4 @@
-import { Signal } from "./types";
+import { Signal } from "../types";
 
 export class Cell {
     signals: Set<Signal>;
@@ -14,7 +14,7 @@ export class Cell {
     clone(): Cell {
         return new Cell(new Set(this.signals));
     }
-    
+
     addSignal(signal: Signal) {
         this.signals.add(signal);
     }
@@ -28,14 +28,14 @@ export class Cell {
     }
 
     equals(cell: Cell): boolean {
-        return(cell.signals===this.signals);
+        return cell.signals === this.signals;
     }
 
     isInput(): boolean {
         return false;
     }
 
-    addNegatedSignal(signal : Signal): void {
+    addNegatedSignal(signal: Signal): void {
         this.signals.delete(signal);
     }
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -48,7 +48,10 @@ export class Cell {
 export class InputCell extends Cell {
     negatedSignals: Set<Signal>;
 
-    constructor(signals: Set<Signal> = new Set(), negatedSignals: Set<Signal> = new Set()) {
+    constructor(
+        signals: Set<Signal> = new Set(),
+        negatedSignals: Set<Signal> = new Set()
+    ) {
         super(signals);
         this.negatedSignals = new Set(negatedSignals);
     }
@@ -72,6 +75,6 @@ export class InputCell extends Cell {
     }
 
     clone(): InputCell {
-        return new InputCell(this.signals, this.negatedSignals)
+        return new InputCell(this.signals, this.negatedSignals);
     }
 }

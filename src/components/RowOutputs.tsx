@@ -1,5 +1,5 @@
-import { DiagramCell } from "../../../components/Diagram.tsx";
-import RuleGrid from "../../Objets/RuleGrid.ts";
+import { DiagramCell } from "./Diagram.tsx";
+import RuleGrid from "../classes/RuleGrid.ts";
 
 type RowOutputsProps = {
     rowIndex: number;

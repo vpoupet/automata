@@ -1,15 +1,15 @@
 import React, {useCallback, useEffect} from "react";
-import {Automaton, Rule, RuleOutput} from "../../../classes/Automaton.ts";
+import {Automaton, Rule, RuleOutput} from "../classes/Automaton.ts";
 import {
     Conjunction,
     ConjunctionOfLiterals, DNFClause,
     Literal,
     Negation
-} from "../../../classes/Clause.ts";
-import {Signal} from "../../../classes/types.ts";
-import {Cell} from "../../../classes/Cell.ts";
-import RuleGrid from "../../Objets/RuleGrid.ts";
-import ruleGrid from "../../Objets/RuleGrid.ts";
+} from "../classes/Clause.ts";
+import {Signal} from "../types.ts";
+import {Cell} from "../classes/Cell.ts";
+import RuleGrid from "../classes/RuleGrid.ts";
+import ruleGrid from "../classes/RuleGrid.ts";
 
 const ManagerRegles = (
     grid: RuleGrid,

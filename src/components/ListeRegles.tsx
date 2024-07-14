@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import Regle from "./Regle.tsx";
-import { Rule } from "../../../classes/Automaton.ts";
-import RuleGrid from "../../Objets/RuleGrid.ts";
+import { Rule } from "../classes/Automaton.ts";
+import RuleGrid from "../classes/RuleGrid.ts";
 
 type ListeReglesProps = {
     rulesGrid: RuleGrid[];

@@ -1,5 +1,5 @@
 import { Cell } from './Cell.ts';
-import { Neighborhood } from './types.ts';
+import { Neighborhood } from '../types.ts';
 
 
 export class Configuration {

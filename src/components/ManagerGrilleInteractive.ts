@@ -1,9 +1,9 @@
 import {useState} from "react";
-import {Automaton, Rule} from "../../../classes/Automaton.ts";
-import {Coordinates, Signal} from "../../../classes/types.ts";
-import {Cell, InputCell} from "../../../classes/Cell.ts";
-import RuleGrid from "../../Objets/RuleGrid.ts";
-import ruleGrid from "../../Objets/RuleGrid.ts";
+import {Automaton, Rule} from "../classes/Automaton.ts";
+import {Coordinates, Signal} from "../types.ts";
+import {Cell, InputCell} from "../classes/Cell.ts";
+import RuleGrid from "../classes/RuleGrid.ts";
+import ruleGrid from "../classes/RuleGrid.ts";
 
 
 const ManagerGrilleInteractive = (

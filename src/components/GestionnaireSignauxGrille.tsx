@@ -1,4 +1,4 @@
-import {Signal} from "../../../classes/types";
+import {Signal} from "../types";
 import {ChangeEvent} from "react";
 
 type GestionnaireSignauxGrilleProps = {

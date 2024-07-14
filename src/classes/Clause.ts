@@ -1,4 +1,4 @@
-import { Signal, Neighborhood } from "./types.ts";
+import { Signal, Neighborhood } from "../types.ts";
 
 export interface ConjunctionOfLiterals extends Conjunction {
     subclauses: Literal[];

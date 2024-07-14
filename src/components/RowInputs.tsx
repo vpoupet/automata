@@ -1,6 +1,6 @@
-import { DiagramCell } from "../../../components/Diagram.tsx";
-import {InputCell} from "../../../classes/Cell.ts";
-import RuleGrid from "../../Objets/RuleGrid.ts";
+import { DiagramCell } from "./Diagram.tsx";
+import {InputCell} from "../classes/Cell.ts";
+import RuleGrid from "../classes/RuleGrid.ts";
 
 type RowInputsProps = {
     colIndex: number;

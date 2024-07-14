@@ -1,65 +1,167 @@
 import { useState } from "react";
 import "./App.css";
-import "./style/style.scss";
-import { Diagram } from "./components/Diagram";
-import { Rulebox } from "./components/Rulebox";
-import { Settings } from "./components/Settings";
-import { Automaton } from "./classes/Automaton";
-import { Configuration } from "./classes/Configuration";
+import { Automaton, Rule } from "./classes/Automaton.ts";
+import { Cell } from "./classes/Cell.ts";
+import { Configuration } from "./classes/Configuration.ts";
+import RuleGrid from "./classes/RuleGrid.ts";
+import { Diagram } from "./components/Diagram.tsx";
+import GestionSignaux from "./components/GestionSignaux.js";
+import GrilleInteractive from "./components/GrilleInteractive.tsx";
+import ListeRegles from "./components/ListeRegles.js";
+import ManagerGrilleInteractive from "./components/ManagerGrilleInteractive.ts";
+import ManagerRegles from "./components/ManagerRegles.ts";
+import ManagerSignaux from "./components/ManagerSignaux.ts";
+import { SettingsInterface, Signal } from "./types.ts";
 
-export default function App() {
-    const initialRules = `\
-# Fischer's prime numbers sieve cellular automaton
+function App() {
+    const [rows] = useState<number>(2);
+    const [cols] = useState<number>(5);
+    const [rulesGrid, setrulesGrid] = useState<RuleGrid[]>([]);
+    const [reglesbools, setReglesbools] = useState<Rule[]>([]);
 
-Init:
-  Rail
-  0/2.Horizontal
-  0/0.HalfSlope
-Rail:
-  Rail
-Horizontal:
-  !HalfSlope: 1.Horizontal
-  HalfSlope: 1.Rail 0/2.Vertical 1.HalfSlope
-HalfSlope:
-  !Horizontal: 1/3.HalfSlope
-Vertical:
-  0/0.Multiple
-  !Rail: -1.Vertical
-  Rail: 1.Horizontal
-Multiple:
-  0/0.Mark
-  !Rail: -1.Multiple
-  Rail: +1.Rebound
-Rebound:
-  !Rail: 1.Rebound
-  Rail: -1.Multiple
-Mark:
-  -1.Mark
-`;
-
-    const [automaton, setAutomaton] = useState<Automaton>(
-        new Automaton().parseRules(initialRules)
-    );
-    const [settings, setSettings] = useState<SettingsInterface>({
+    const [automaton, setAutomaton] = useState<Automaton>(new Automaton());
+    const [settings] = useState<SettingsInterface>({
         nbCells: 40,
         nbSteps: 60,
         timeGoesUp: true,
     });
 
+    const {
+        grid,
+        activeCells,
+        deleteSignalInGrid,
+        updateGrilleFromRule,
+        handleCaseClick,
+        handleAddAllSignals,
+        handleRemoveAllSignals,
+        handleRemoveAllSignalsFromGrid,
+        handleAddSignal,
+        handleRemoveSignal,
+        updateSignalInGrid,
+        handleUpdateFromDiagramme,
+        applyRulesGrid,
+        handleAddNegatedSignal,
+        handleRemoveNegatedSignal,
+    } = ManagerGrilleInteractive(
+        rows,
+        cols,
+        automaton,
+        reglesbools,
+        setAutomaton
+    );
+
+    const { listeSignaux, handleAddNewSignal, deleteSignal, updateSignal } =
+        ManagerSignaux();
+
+    const {
+        deleteSignalInRules,
+        handleSaveRule,
+        updateRule,
+        deleteRule,
+        updateSignalInRule,
+        modifyRule,
+        printReglesConsole,
+        addRuleFromString,
+    } = ManagerRegles(
+        grid,
+        setAutomaton,
+        setReglesbools,
+        reglesbools,
+        rulesGrid,
+        setrulesGrid
+    );
+
+    const sendLoadRuleToGrid = (index: number) => {
+        const configuration = rulesGrid[index];
+        updateGrilleFromRule(configuration);
+    };
+
+    const handleUpdateSignal = (index: number, newValue: Signal) => {
+        const { oldValue, newValue: updatedValue } = updateSignal(
+            index,
+            newValue
+        );
+
+        if (oldValue && updatedValue) {
+            updateSignalInRule(oldValue, updatedValue);
+            updateSignalInGrid(oldValue, updatedValue);
+        }
+    };
+
+    const handleDeleteSignal = (index: number) => {
+        const signal = deleteSignal(index);
+        if (signal) {
+            deleteSignalInRules(signal);
+            deleteSignalInGrid(signal);
+        }
+    };
+
+    const handleAddAllToCell = () => {
+        handleAddAllSignals(listeSignaux);
+    };
+
+    const handleCellClick = (cells: Cell[]) => {
+        handleUpdateFromDiagramme(cells);
+    };
+
     const initialConfiguration = new Configuration(settings.nbCells);
     initialConfiguration.cells[0].addSignal(Symbol.for("Init"));
 
     return (
-        <main>
-            <h1>Signal Automaton</h1>
-            <Settings settings={settings} setSettings={setSettings} />
-            <Rulebox rules={initialRules} setAutomaton={setAutomaton} />
-            <Diagram
-                automaton={automaton}
-                initialConfiguration={initialConfiguration}
-                nbSteps={settings.nbSteps}
-                timeGoesUp={settings.timeGoesUp}
-            />
-        </main>
+        <div className="App">
+            <div className="top-section">
+                <div className="grille-interactive">
+                    <GrilleInteractive
+                        grid={grid}
+                        activeCells={activeCells}
+                        listeSignaux={listeSignaux}
+                        handleAddSignal={handleAddSignal}
+                        handleRemoveSignal={handleRemoveSignal}
+                        handleAddAllSignals={handleAddAllToCell}
+                        handleRemoveAllSignals={handleRemoveAllSignals}
+                        handleRemoveAllSignalsFromGrid={
+                            handleRemoveAllSignalsFromGrid
+                        }
+                        handleCaseClick={handleCaseClick}
+                        handleSaveRule={handleSaveRule}
+                        applyRules={applyRulesGrid}
+                        modifyRule={modifyRule}
+                        handleAddNegatedSignal={handleAddNegatedSignal}
+                        handleRemoveNegatedSignal={handleRemoveNegatedSignal}
+                    />
+                </div>
+                <div className="gestion-signaux">
+                    <GestionSignaux
+                        listeSignaux={listeSignaux}
+                        onAddSignal={handleAddNewSignal}
+                        onUpdateSignal={handleUpdateSignal}
+                        onDeleteSignal={handleDeleteSignal}
+                    />
+                </div>
+            </div>
+            <div className="middle-section">
+                <div className="liste-regles">
+                    <ListeRegles
+                        rulesGrid={rulesGrid}
+                        reglesbools={reglesbools}
+                        onLoadRule={sendLoadRuleToGrid}
+                        onUpdateRule={updateRule}
+                        onDeleteRule={deleteRule}
+                        printReglesConsole={printReglesConsole}
+                        addRuleFromString={addRuleFromString}
+                    />
+                </div>
+            </div>
+            <div className="diagram">
+                <Diagram
+                    automaton={automaton}
+                    initialConfiguration={initialConfiguration}
+                    nbSteps={settings.nbSteps}
+                    onClickCell={handleCellClick}
+                />
+            </div>
+        </div>
     );
 }
+
+export default App;

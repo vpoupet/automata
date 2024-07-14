@@ -3,7 +3,7 @@ import {
     Conjunction
 } from "./Clause.ts";
 import { Configuration } from "./Configuration.ts";
-import { Signal } from "./types.ts";
+import { Signal } from "../types.ts";
 
 export class RuleOutput {
     neighbor: number;

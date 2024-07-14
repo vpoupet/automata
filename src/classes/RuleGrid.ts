@@ -1,5 +1,5 @@
-import { Configuration } from "../../classes/Configuration.ts";
-import {Cell, InputCell} from "../../classes/Cell.ts";
+import { Cell, InputCell } from "./Cell.ts";
+import { Configuration } from "./Configuration.ts";
 
 class RuleGrid {
     inputs: InputCell[];
@@ -23,28 +23,37 @@ class RuleGrid {
     }
 
     clone(): RuleGrid {
-        const newGrid = new RuleGrid(this.outputs.length + 1, this.inputs.length);  // Changement ici
+        const newGrid = new RuleGrid(
+            this.outputs.length + 1,
+            this.inputs.length
+        ); // Changement ici
         newGrid.inputs = this.inputs.map((cell) => cell.clone());
-        newGrid.outputs = this.outputs.map((row) => row.map((cell) => cell.clone()));
+        newGrid.outputs = this.outputs.map((row) =>
+            row.map((cell) => cell.clone())
+        );
         return newGrid;
     }
 
-
-    getCaseInput(col :number): InputCell {
+    getCaseInput(col: number): InputCell {
         return this.inputs[col];
     }
-
 
     getCaseOutput(row: number, col: number): Cell {
         return this.outputs[row][col];
     }
 
     equals(ruleGrid: RuleGrid): boolean {
-        return this.equalsInputs(ruleGrid.inputs) && this.equalsOutputs(ruleGrid.outputs);
+        return (
+            this.equalsInputs(ruleGrid.inputs) &&
+            this.equalsOutputs(ruleGrid.outputs)
+        );
     }
 
     equalsInputs(inputs: InputCell[]): boolean {
-        return this.inputs.length === inputs.length && this.inputs.every((v, i) => v.equals(inputs[i]));
+        return (
+            this.inputs.length === inputs.length &&
+            this.inputs.every((v, i) => v.equals(inputs[i]))
+        );
     }
 
     equalsOutputs(outputs: Cell[][]): boolean {
@@ -67,9 +76,13 @@ class RuleGrid {
                         conf.cells[col].signals.add(signal);
                     });
                 } else {
-                    new Set(this.outputs[row - 1][col].signals).forEach((signal) => {
-                        conf.cells[row * this.inputs.length + col].signals.add(signal);
-                    });
+                    new Set(this.outputs[row - 1][col].signals).forEach(
+                        (signal) => {
+                            conf.cells[
+                                row * this.inputs.length + col
+                            ].signals.add(signal);
+                        }
+                    );
                 }
             }
         }
@@ -81,7 +94,9 @@ class RuleGrid {
             if (i < this.inputs.length) {
                 this.inputs[i].signals = conf.cells[i].signals;
             } else {
-                const row = Math.trunc((i - this.inputs.length) / this.inputs.length);
+                const row = Math.trunc(
+                    (i - this.inputs.length) / this.inputs.length
+                );
                 const col = (i - this.inputs.length) % this.inputs.length;
                 this.outputs[row][col].signals = conf.cells[i].signals;
             }
@@ -97,7 +112,8 @@ class RuleGrid {
             } else {
                 for (let row = 0; row < this.outputs.length; row++) {
                     for (let col = 0; col < this.outputs[row].length; col++) {
-                        this.outputs[row][col].signals = configurations[i].cells[col].signals;
+                        this.outputs[row][col].signals =
+                            configurations[i].cells[col].signals;
                     }
                 }
             }

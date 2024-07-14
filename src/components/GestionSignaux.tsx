@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Signal } from "../../../classes/types";
+import { Signal } from "../types";
 
 type GestionSignauxProps = {
     listeSignaux: Signal[];

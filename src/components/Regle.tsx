@@ -1,7 +1,7 @@
-import { DiagramCell } from "../../../components/Diagram.tsx";
-import "../../../style/Cell.css";
-import RuleGrid from "../../Objets/RuleGrid.ts";
-import {InputCell} from "../../../classes/Cell.ts";
+import { DiagramCell } from "./Diagram.tsx";
+import "../style/Cell.css";
+import RuleGrid from "../classes/RuleGrid.ts";
+import {InputCell} from "../classes/Cell.ts";
 
 type RegleProps = {
     grid: RuleGrid;
