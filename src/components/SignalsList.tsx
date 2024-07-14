@@ -132,8 +132,7 @@ export default function SignalsList({
     }
 
     function deleteSignalInRules(signalValue: Signal) {
-        const newRulesGrid = [];
-        newRulesGrid.push(...rulesGrids);
+        const newRulesGrid = [...rulesGrids];
         // TODO: reprendre la fonction après signaux négatifs dans Cellule
         for (let i = 0; i < rulesGrids.length; i++) {
             for (let j = 0; j < rulesGrids[i].inputs.length; j++) {

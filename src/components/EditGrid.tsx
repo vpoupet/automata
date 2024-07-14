@@ -1,29 +1,24 @@
-import { Automaton, Rule, RuleOutput } from "../classes/Automaton.ts";
+import { Automaton, Rule } from "../classes/Automaton.ts";
 import { Cell } from "../classes/Cell.ts";
-import {
-    Conjunction,
-    ConjunctionOfLiterals,
-    Literal,
-    Negation,
-} from "../classes/Clause.ts";
+import { Conjunction, Negation } from "../classes/Clause.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
 import "../style/Cell.css";
 import { Coordinates, Signal } from "../types.ts";
-import GridSignalsManager from "./GridSignalsManager.tsx";
 import InputsRow from "./GridInputsRow.tsx";
 import GridOutputsRow from "./GridOutputsRow.tsx";
+import GridSignalsManager from "./GridSignalsManager.tsx";
 
 type EditGridProps = {
     grid: RuleGrid;
     setGrid: (grid: RuleGrid) => void;
     nbFutureSteps: number;
-    nbCells: number;
+    radius: number;
     activeInputCells: number[];
     setActiveInputCells: React.Dispatch<React.SetStateAction<number[]>>;
     activeOutputCells: Coordinates[];
     setActiveOutputCells: React.Dispatch<React.SetStateAction<Coordinates[]>>;
     rulesGrid: RuleGrid[];
-    setrulesGrid: React.Dispatch<React.SetStateAction<RuleGrid[]>>;
+    setRulesGrid: React.Dispatch<React.SetStateAction<RuleGrid[]>>;
     automaton: Automaton;
     setAutomaton: React.Dispatch<React.SetStateAction<Automaton>>;
     rules: Rule[];
@@ -31,7 +26,20 @@ type EditGridProps = {
 };
 
 export default function EditGrid({
-    grid, setGrid, nbCells, nbFutureSteps, activeInputCells, setActiveInputCells, activeOutputCells, setActiveOutputCells, rulesGrid, setrulesGrid, automaton, setAutomaton, rules: reglesbools, listeSignaux,
+    grid,
+    setGrid,
+    radius,
+    nbFutureSteps,
+    activeInputCells,
+    setActiveInputCells,
+    activeOutputCells,
+    setActiveOutputCells,
+    rulesGrid,
+    setRulesGrid,
+    automaton,
+    setAutomaton,
+    rules: reglesbools,
+    listeSignaux,
 }: EditGridProps): JSX.Element {
     function applyToActiveCells(f: (cell: Cell) => void) {
         const newGrid = grid.clone();
@@ -46,20 +54,29 @@ export default function EditGrid({
         setGrid(newGrid);
     }
 
-    function handleRemoveAllSignalsFromGrid() {
-        const newGrid = RuleGrid.withSize(nbCells, nbFutureSteps);
+    function removeAllSignals() {
+        const newGrid = RuleGrid.withSize(2 * radius + 1, nbFutureSteps);
         setGrid(newGrid);
     }
 
-    function handleSaveRule() {
-        if (rulesGrid.length === 0) {
-            setrulesGrid([grid.clone()]);
+    function saveRule() {
+        let hasOutputs = false;
+        outer:
+        for (const row of grid.outputs) {
+            for (const cell of row) {
+                if (cell.signals.size > 0) {
+                    hasOutputs = true;
+                    break outer;
+                }
+            }
         }
-        setrulesGrid([...rulesGrid, grid.clone()]);
+        if (hasOutputs) {
+            setRulesGrid([...rulesGrid, grid.clone()]);
+        }
     }
 
     function applyRules() {
-        const newGrille = RuleGrid.withSize(nbCells, nbFutureSteps);
+        const newGrille = RuleGrid.withSize(2 * radius, nbFutureSteps);
         const conffromgrid = newGrille.getConfigurationFromGrid();
         automaton.setRules(reglesbools);
         automaton.updateParameters();
@@ -68,54 +85,12 @@ export default function EditGrid({
         newGrille.setGridFromConfigurations(conf);
     }
 
-    function creerOutput(tab: Cell[][]) {
-        const outputs: RuleOutput[] = [];
-
-        tab.forEach((row, rowIndex) => {
-            row.forEach((cellule, colIndex) => {
-                if (cellule.signals.size > 0) {
-                    cellule.signals.forEach((signal) => {
-                        const ruleOutput = new RuleOutput(
-                            colIndex - Math.floor(tab[0].length / 2),
-                            signal,
-                            rowIndex + 1
-                        );
-                        outputs.push(ruleOutput);
-                    });
-                }
-            });
-        });
-
-        return outputs;
-    }
-
-    function creerClause(tab: Cell[]): ConjunctionOfLiterals {
-        // TODO: reprendre après signaux négatifs dans Cellule
-        const literals: Literal[] = [];
-        tab.forEach((cellule, cellIndex) => {
-            if (cellule.signals.size > 0) {
-                cellule.signals.forEach((signal) => {
-                    const literal = new Literal(signal, cellIndex - 2);
-                    literals.push(literal);
-                });
-            }
-        });
-        return new Conjunction(literals) as ConjunctionOfLiterals;
-    }
-
-    function creerReglebool(rule: RuleGrid): Rule {
-        // TODO: faire la vérification que la règle n'est pas vide ailleurs (avant ou après l'appel à cette fonction)
-        const outputs = creerOutput(rule.outputs);
-        const clause = creerClause(rule.inputs);
-        return new Rule(clause, outputs);
-    }
-
-    function getRuleGridFromBool(regleBool: Rule): RuleGrid {
+    function getRuleGrid(rule: Rule): RuleGrid {
         const ruleGrid: RuleGrid = RuleGrid.withSize(
             grid.inputs.length,
             grid.outputs.length
         );
-        for (const literal of regleBool.condition.getLiterals()) {
+        for (const literal of rule.condition.getLiterals()) {
             for (let cellidx = 0; cellidx < grid.inputs.length; cellidx++) {
                 if (literal.position === cellidx - 2) {
                     //TODO : la négation !
@@ -123,7 +98,7 @@ export default function EditGrid({
                 }
             }
         }
-        for (const ruleOut of regleBool.outputs) {
+        for (const ruleOut of rule.outputs) {
             for (let cellidx = 0; cellidx < grid.inputs.length; cellidx++) {
                 if (ruleOut.neighbor === cellidx - 2) {
                     //PAS BIEN : on prend pas en compte si une grid plus grande
@@ -146,7 +121,7 @@ export default function EditGrid({
             ]).toDNF();
             for (let j = 0; j < newRule.subclauses.length; j++) {
                 newRulesReadyToUse.push(
-                    getRuleGridFromBool(
+                    getRuleGrid(
                         new Rule(newRule.subclauses[j], newRuleBool.outputs)
                     )
                 );
@@ -178,12 +153,8 @@ export default function EditGrid({
         const newRule = grid.clone();
 
         //on créé la regle bool de la nouvelle regle
-        const newRuleBool = creerReglebool(grid);
+
         //on ajoute la négation de l'input de la nouvelle règle à chaque règle active
-        const rulesModified = modifRulesWithNegation(
-            newRuleBool,
-            activeRulesOnly
-        );
 
         const rules = [...rulesGrid];
 
@@ -209,9 +180,12 @@ export default function EditGrid({
 
         for (let ruleNbr = 0; ruleNbr < rulesGrid.length; ruleNbr++) {
             for (let i = 0; i < grid.inputs.length; i++) {
-                if (reglesbools[ruleNbr].condition.eval(
-                    config.getNeighborhood(i, -2, 2)
-                )) {
+                // WARNING: le rayon est fixé à 2!
+                if (
+                    reglesbools[ruleNbr].condition.eval(
+                        config.getNeighborhood(i, -2, 2)
+                    )
+                ) {
                     rulesToModify.add(ruleNbr);
                 }
             }
@@ -221,42 +195,35 @@ export default function EditGrid({
             console.log(
                 "pas de règle à modifier, on ajoute une nouvelle règle"
             );
-            handleSaveRule();
+            saveRule();
         } else {
             console.log("ajout de règles and stuff", rulesToModify);
             addAdaptedRules(rulesToModify);
         }
     }
 
-    function setActiveSignals(): { active: Signal[]; negated: Signal[]; } {
-        const activeSignals: Set<Signal> = new Set();
-        const negatedSignals: Set<Signal> = new Set();
-        activeInputCells.forEach((col) => {
-            const cell = grid.inputs[col];
-            if (cell) {
-                cell.signals.forEach((signal) => {
-                    activeSignals.add(signal);
-                });
-                cell.negatedSignals.forEach((signal) => {
-                    negatedSignals.add(signal);
-                });
-            }
-        });
-        activeOutputCells.forEach((coordinates) => {
-            const cell = grid.outputs[coordinates.row]?.[coordinates.col];
-            if (cell) {
-                cell.signals.forEach((signal) => {
-                    activeSignals.add(signal);
-                });
-            }
-        });
-        return {
-            active: Array.from(activeSignals),
-            negated: Array.from(negatedSignals),
-        };
-    }
-
-    const { active, negated } = setActiveSignals();
+    // Make list of active and negated signals on the active cells
+    const activeSignals: Set<Signal> = new Set();
+    const negatedSignals: Set<Signal> = new Set();
+    activeInputCells.forEach((col) => {
+        const cell = grid.inputs[col];
+        if (cell) {
+            cell.signals.forEach((signal) => {
+                activeSignals.add(signal);
+            });
+            cell.negatedSignals.forEach((signal) => {
+                negatedSignals.add(signal);
+            });
+        }
+    });
+    activeOutputCells.forEach((coordinates) => {
+        const cell = grid.outputs[coordinates.row]?.[coordinates.col];
+        if (cell) {
+            cell.signals.forEach((signal) => {
+                activeSignals.add(signal);
+            });
+        }
+    });
 
     return (
         <div style={{ display: "flex" }}>
@@ -267,7 +234,8 @@ export default function EditGrid({
                         inputs={grid.inputs}
                         activeInputCells={activeInputCells}
                         setActiveInputCells={setActiveInputCells}
-                        setActiveOutputCells={setActiveOutputCells} />
+                        setActiveOutputCells={setActiveOutputCells}
+                    />
                     {grid.outputs.map((row, rowIndex) => (
                         <GridOutputsRow
                             key={rowIndex}
@@ -275,20 +243,22 @@ export default function EditGrid({
                             rowIndex={rowIndex}
                             activeOutputCells={activeOutputCells}
                             setActiveInputCells={setActiveInputCells}
-                            setActiveOutputCells={setActiveOutputCells} />
+                            setActiveOutputCells={setActiveOutputCells}
+                        />
                     ))}
                 </div>
                 <div>
-                    <button onClick={handleRemoveAllSignalsFromGrid}>
+                    <button onClick={removeAllSignals}>
                         Supprimer tous les signaux de la grille
                     </button>
                 </div>
                 <GridSignalsManager
-                    activeSignals={active}
+                    activeSignals={activeSignals}
+                    negatedSignals={negatedSignals}
                     allSignals={listeSignaux}
-                    negatedSignals={negated} // Passer ceci
-                    applyToActiveCells={applyToActiveCells} />
-                <button onClick={handleSaveRule}>Ajouter règle</button>
+                    applyToActiveCells={applyToActiveCells}
+                />
+                <button onClick={saveRule}>Ajouter règle</button>
                 <button onClick={applyRules}>
                     Appliquer règles sur la grille
                 </button>

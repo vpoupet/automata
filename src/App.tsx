@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import "./App.css";
-import { Automaton, Rule, RuleOutput } from "./classes/Automaton.ts";
-import { Cell } from "./classes/Cell.ts";
+import {
+    Automaton,
+    ConjunctionRule,
+    Rule,
+    RuleOutput,
+} from "./classes/Automaton.ts";
+import { Cell, InputCell } from "./classes/Cell.ts";
 import {
     Conjunction,
     ConjunctionOfLiterals,
@@ -16,7 +21,7 @@ import RuleGridsList from "./components/ListeRegles.js";
 import { Coordinates, SettingsInterface } from "./types.ts";
 
 export default function App() {
-    const [gridNbFutureSteps] = useState<number>(3);
+    const [gridNbFutureSteps] = useState<number>(2);
     const [gridRadius] = useState<number>(2);
     const [rulesGrids, setRulesGrids] = useState<RuleGrid[]>([]);
     const [rules, setRules] = useState<Rule[]>([]);
@@ -32,55 +37,54 @@ export default function App() {
         RuleGrid.withSize(2 * gridRadius + 1, gridNbFutureSteps)
     );
     const [activeInputCells, setActiveInputCells] = useState<number[]>([]);
-    const [activeOutputCells, setActiveOutputCells] = useState<Coordinates[]>([]);
+    const [activeOutputCells, setActiveOutputCells] = useState<Coordinates[]>(
+        []
+    );
 
-    const [listeSignaux, setListeSignaux] = useState([
+    const [signalsList, setSignalsList] = useState([
         Symbol.for("Init"),
         Symbol.for("s1"),
         Symbol.for("s2"),
     ]);
 
-    function creerOutput(tab: Cell[][]) {
+    function makeRuleOutputs(gridOutputs: Cell[][]) {
         const outputs: RuleOutput[] = [];
 
-        tab.forEach((row, rowIndex) => {
+        gridOutputs.forEach((row, rowIndex) => {
             row.forEach((cellule, colIndex) => {
-                if (cellule.signals.size > 0) {
-                    cellule.signals.forEach((signal) => {
-                        const ruleOutput = new RuleOutput(
-                            colIndex - Math.floor(tab[0].length / 2),
-                            signal,
-                            rowIndex + 1
-                        );
-                        outputs.push(ruleOutput);
-                    });
-                }
+                cellule.signals.forEach((signal) => {
+                    const ruleOutput = new RuleOutput(
+                        colIndex - gridRadius,
+                        signal,
+                        rowIndex + 1
+                    );
+                    outputs.push(ruleOutput);
+                });
             });
         });
 
         return outputs;
     }
 
-    function creerClause(tab: Cell[]): ConjunctionOfLiterals {
-        // TODO: reprendre après signaux négatifs dans Cellule
-
+    function makeRuleCondition(gridInputs: InputCell[]): ConjunctionOfLiterals {
         const literals: Literal[] = [];
-        tab.forEach((cellule, cellIndex) => {
-            if (cellule.signals.size > 0) {
-                cellule.signals.forEach((signal) => {
-                    const literal = new Literal(signal, cellIndex - 2);
-                    literals.push(literal);
-                });
-            }
+        gridInputs.forEach((cellule, cellIndex) => {
+            cellule.signals.forEach((signal) => {
+                const literal = new Literal(signal, cellIndex - gridRadius, true);
+                literals.push(literal);
+            });
+            cellule.negatedSignals.forEach((signal) => {
+                const literal = new Literal(signal, cellIndex - gridRadius, false);
+                literals.push(literal);
+            });
         });
         return new Conjunction(literals) as ConjunctionOfLiterals;
     }
 
-    function creerReglebool(rule: RuleGrid): Rule {
-        // TODO: faire la vérification que la règle n'est pas vide ailleurs (avant ou après l'appel à cette fonction)
-        const outputs = creerOutput(rule.outputs);
-        const clause = creerClause(rule.inputs);
-        return new Rule(clause, outputs);
+    function makeRule(ruleGrid: RuleGrid): ConjunctionRule {
+        const outputs = makeRuleOutputs(ruleGrid.outputs);
+        const condition = makeRuleCondition(ruleGrid.inputs);
+        return new Rule(condition, outputs) as ConjunctionRule;
     }
 
     const applyRules = useCallback(() => {
@@ -92,7 +96,7 @@ export default function App() {
 
     // NOTE: attention aux useEffect
     useEffect(() => {
-        setRules(rulesGrids.map(creerReglebool));
+        setRules(rulesGrids.map(makeRule));
     }, [rulesGrids]);
 
     useEffect(() => {
@@ -110,14 +114,14 @@ export default function App() {
                         grid={grid}
                         setGrid={setGrid}
                         nbFutureSteps={gridNbFutureSteps}
-                        nbCells={2 * gridRadius + 1}
+                        radius={gridRadius}
                         activeInputCells={activeInputCells}
                         setActiveInputCells={setActiveInputCells}
                         activeOutputCells={activeOutputCells}
                         setActiveOutputCells={setActiveOutputCells}
                         rulesGrid={rulesGrids}
-                        setrulesGrid={setRulesGrids}
-                        listeSignaux={listeSignaux}
+                        setRulesGrid={setRulesGrids}
+                        listeSignaux={signalsList}
                         automaton={automaton}
                         setAutomaton={setAutomaton}
                         rules={rules}
@@ -125,8 +129,8 @@ export default function App() {
                 </div>
                 <div className="gestion-signaux">
                     <SignalsList
-                        listeSignaux={listeSignaux}
-                        setListeSignaux={setListeSignaux}
+                        listeSignaux={signalsList}
+                        setListeSignaux={setSignalsList}
                         grid={grid}
                         setGrid={setGrid}
                         rulesGrids={rulesGrids}

@@ -3,25 +3,26 @@ import { Signal } from "../types";
 import { ChangeEvent } from "react";
 
 type GridSignalsManagerProps = {
-    activeSignals: Signal[];
+    activeSignals: Set<Signal>;
+    negatedSignals: Set<Signal>;
     allSignals: Signal[];
-    negatedSignals: Signal[];
     applyToActiveCells: (f: (cell: Cell) => void) => void;
 };
 
 export default function GridSignalsManager({
-    activeSignals, allSignals, negatedSignals, applyToActiveCells: applyToActiveCells,
+    activeSignals,
+    negatedSignals,
+    allSignals,
+    applyToActiveCells: applyToActiveCells,
 }: GridSignalsManagerProps): JSX.Element {
     function handleLeftCheckboxChange(
         signal: Signal,
         e: ChangeEvent<HTMLInputElement>
     ) {
         if (e.target.checked) {
-            applyToActiveCells((caseObj: Cell) => caseObj.addSignal(signal)
-            );
+            applyToActiveCells((c: Cell) => c.addSignal(signal));
         } else {
-            applyToActiveCells((caseObj: Cell) => caseObj.removeSignal(signal)
-            );
+            applyToActiveCells((c: Cell) => c.removeSignal(signal));
         }
     }
 
@@ -30,10 +31,12 @@ export default function GridSignalsManager({
         e: ChangeEvent<HTMLInputElement>
     ) {
         if (e.target.checked) {
-            applyToActiveCells((caseObj: Cell) => caseObj.addNegatedSignal(signal)
+            applyToActiveCells((c: Cell) =>
+                c.addNegatedSignal(signal)
             );
         } else {
-            applyToActiveCells((caseObj: Cell) => caseObj.removeNegatedSignal(signal)
+            applyToActiveCells((c: Cell) =>
+                c.removeNegatedSignal(signal)
             );
         }
     }
@@ -44,10 +47,14 @@ export default function GridSignalsManager({
             <div>
                 <label>
                     <button
-                        onClick={() => applyToActiveCells((caseObj: Cell) => {
-                            caseObj.removeAllSignals();
-                        })}
-                    >Enlever tous les signaux</button>
+                        onClick={() =>
+                            applyToActiveCells((c: Cell) => {
+                                c.removeAllSignals();
+                            })
+                        }
+                    >
+                        Enlever tous les signaux
+                    </button>
                 </label>
             </div>
             {allSignals.map((signal) => (
@@ -55,12 +62,18 @@ export default function GridSignalsManager({
                     <label>
                         <input
                             type="checkbox"
-                            checked={activeSignals.includes(signal)}
-                            onChange={(e) => handleLeftCheckboxChange(signal, e)} />
+                            checked={activeSignals.has(signal)}
+                            onChange={(e) =>
+                                handleLeftCheckboxChange(signal, e)
+                            }
+                        />
                         <input
                             type="checkbox"
-                            checked={negatedSignals.includes(signal)} // Modifier ceci
-                            onChange={(e) => handleRightCheckboxChange(signal, e)} />
+                            checked={negatedSignals.has(signal)} // Modifier ceci
+                            onChange={(e) =>
+                                handleRightCheckboxChange(signal, e)
+                            }
+                        />
                         {Symbol.keyFor(signal)}
                     </label>
                 </div>

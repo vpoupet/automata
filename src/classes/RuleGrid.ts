@@ -10,9 +10,9 @@ class RuleGrid {
         this.outputs = outputs;
     }
 
-    static withSize(nbCells: number, nbSteps: number): RuleGrid {
+    static withSize(nbCells: number, nbFutureSteps: number): RuleGrid {
         const inputs = Array.from({ length: nbCells }, () => new InputCell());
-        const outputs = Array.from({ length: nbSteps }, () =>
+        const outputs = Array.from({ length: nbFutureSteps }, () =>
             Array.from({ length: nbCells }, () => new Cell())
         );
         return new RuleGrid(inputs, outputs);
