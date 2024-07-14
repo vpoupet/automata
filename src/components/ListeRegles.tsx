@@ -1,40 +1,89 @@
 import { useRef } from "react";
 import Regle from "./Regle.tsx";
-import { Rule } from "../classes/Automaton.ts";
+import { Automaton, Rule } from "../classes/Automaton.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
 
 type ListeReglesProps = {
-    rulesGrid: RuleGrid[];
-    reglesbools: Rule[];
-    onLoadRule: (index: number) => void;
-    onDeleteRule: (index: number) => void;
-    onUpdateRule: (index: number) => void;
-    printReglesConsole: () => void;
-    addRuleFromString: (rule: string) => void;
+    grid: RuleGrid;
+    setGrid: React.Dispatch<React.SetStateAction<RuleGrid>>;
+    rulesGrids: RuleGrid[];
+    setRulesGrids: React.Dispatch<React.SetStateAction<RuleGrid[]>>;
+    rules: Rule[];
 };
 
 const ListeRegles = ({
-    rulesGrid,
-    reglesbools,
-    onLoadRule,
-    onDeleteRule,
-    onUpdateRule,
-    printReglesConsole,
-    addRuleFromString,
+    grid,
+    setGrid,
+    rulesGrids,
+    setRulesGrids,
+    rules,
 }: ListeReglesProps): JSX.Element => {
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-    const handleAddRule = () => {
+    function handleAddRule() {
         if (textAreaRef.current) {
             const ruleText = textAreaRef.current.value;
             addRuleFromString(ruleText);
         }
-    };
+    }
+
+    function updateGrilleFromRule(ruleToCopy: RuleGrid) {
+        setGrid(ruleToCopy.clone());
+    }
+
+    function onLoadRule(index: number) {
+        const configuration = rulesGrids[index];
+        updateGrilleFromRule(configuration);
+    }
+
+    function onDeleteRule(index: number) {
+        const newConfigurations = rulesGrids.filter((_, i) => i !== index);
+        setRulesGrids(newConfigurations);
+    }
+
+    function onUpdateRule(index: number) {
+        const newConfigurations = [...rulesGrids];
+        newConfigurations[index] = grid.clone();
+        setRulesGrids(newConfigurations);
+    }
+
+    function printReglesConsole() {
+        let stringRule = "";
+        for (let i = 0; i < rules.length; i++) {
+            stringRule += rules[i].toString();
+            stringRule += "\n";
+        }
+        console.log(stringRule);
+    }
+
+    function addRuleFromString(input = ""): void {
+        const auto = new Automaton();
+        auto.parseRules(input);
+        const rules = auto.getRules();
+        for (const regle of rules) {
+            const tabNewRule = new RuleGrid(
+                grid.outputs.length,
+                grid.inputs.length
+            );
+            for (const literal of regle.condition.getLiterals()) {
+                tabNewRule.inputs[
+                    literal.position + (grid.inputs.length - 1) / 2
+                ].signals.add(literal.signal); // Remplacement de literal.signal par literal.signal.description
+            }
+            for (const ruleOut of regle.outputs) {
+                tabNewRule.outputs[ruleOut.futureStep][
+                    ruleOut.neighbor + (grid.inputs.length - 1) / 2
+                ].signals.add(ruleOut.signal); // Remplacement de ruleOut.signal par ruleOut.signal.description
+            }
+            const newRegles = [...rulesGrids, tabNewRule];
+            setRulesGrids(newRegles);
+        }
+    }
 
     return (
         <div>
             <h2>Règles enregistrées</h2>
-            {rulesGrid.map((rule, index) => (
+            {rulesGrids.map((rule, index) => (
                 <div key={index} style={{ marginBottom: "10px" }}>
                     <Regle
                         grid={rule}
@@ -42,9 +91,9 @@ const ListeRegles = ({
                         onDeleteRule={() => onDeleteRule(index)}
                         onUpdateRule={() => onUpdateRule(index)}
                     />
-                    {reglesbools[index] !== null &&
-                    reglesbools[index] !== undefined
-                        ? reglesbools[index].toString()
+                    {rules[index] !== null &&
+                    rules[index] !== undefined
+                        ? rules[index].toString()
                         : ""}
                 </div>
             ))}

@@ -37,11 +37,6 @@ function App() {
         Symbol.for("3"),
     ]);
 
-    // BEGIN: from ManagerGrilleInteractive
-    function updateGrilleFromRule(ruleToCopy: RuleGrid) {
-        setGrid(ruleToCopy.clone());
-    }
-
     function handleUpdateFromDiagramme(cells: Cell[]) {
         const newGrid = new RuleGrid(rows, cols);
         const cells1 = cells.slice(0, cols);
@@ -49,28 +44,6 @@ function App() {
             newGrid.inputs[i] = new InputCell(cells1[i].signals);
         }
         setGrid(newGrid);
-    }
-    // END: from ManagerGrilleInteractive
-
-    // BEGIN: from ManagerRegles
-    function printReglesConsole() {
-        let stringRule = "";
-        for (let i = 0; i < rules.length; i++) {
-            stringRule += rules[i].toString();
-            stringRule += "\n";
-        }
-        console.log(stringRule);
-    }
-
-    function updateRule(index: number) {
-        const newConfigurations = [...rulesGrids];
-        newConfigurations[index] = grid.clone();
-        setRulesGrids(newConfigurations);
-    }
-
-    function deleteRule(index: number) {
-        const newConfigurations = rulesGrids.filter((_, i) => i !== index);
-        setRulesGrids(newConfigurations);
     }
 
     function creerOutput(tab: Cell[][]) {
@@ -116,30 +89,6 @@ function App() {
         return new Rule(clause, outputs);
     }
 
-    function addRuleFromString(input = ""): void {
-        const auto = new Automaton();
-        auto.parseRules(input);
-        const rules = auto.getRules();
-        for (const regle of rules) {
-            const tabNewRule = new RuleGrid(
-                grid.outputs.length,
-                grid.inputs.length
-            );
-            for (const literal of regle.condition.getLiterals()) {
-                tabNewRule.inputs[
-                    literal.position + (grid.inputs.length - 1) / 2
-                ].signals.add(literal.signal); // Remplacement de literal.signal par literal.signal.description
-            }
-            for (const ruleOut of regle.outputs) {
-                tabNewRule.outputs[ruleOut.futureStep][
-                    ruleOut.neighbor + (grid.inputs.length - 1) / 2
-                ].signals.add(ruleOut.signal); // Remplacement de ruleOut.signal par ruleOut.signal.description
-            }
-            const newRegles = [...rulesGrids, tabNewRule];
-            setRulesGrids(newRegles);
-        }
-    }
-
     const applyRules = useCallback(() => {
         const auto = new Automaton();
         auto.setRules(rules);
@@ -155,16 +104,10 @@ function App() {
     useEffect(() => {
         applyRules();
     }, [rules, applyRules]);
-    // END: from ManagerRegles
 
-    const sendLoadRuleToGrid = (index: number) => {
-        const configuration = rulesGrids[index];
-        updateGrilleFromRule(configuration);
-    };
-
-    const handleCellClick = (cells: Cell[]) => {
+    function handleCellClick(cells: Cell[]) {
         handleUpdateFromDiagramme(cells);
-    };
+    }
 
     const initialConfiguration = new Configuration(settings.nbCells);
     initialConfiguration.cells[0].addSignal(Symbol.for("Init"));
@@ -202,13 +145,11 @@ function App() {
             <div className="middle-section">
                 <div className="liste-regles">
                     <ListeRegles
-                        rulesGrid={rulesGrids}
-                        reglesbools={rules}
-                        onLoadRule={sendLoadRuleToGrid}
-                        onUpdateRule={updateRule}
-                        onDeleteRule={deleteRule}
-                        printReglesConsole={printReglesConsole}
-                        addRuleFromString={addRuleFromString}
+                        grid={grid}
+                        setGrid={setGrid}
+                        rulesGrids={rulesGrids}
+                        setRulesGrids={setRulesGrids}
+                        rules={rules}
                     />
                 </div>
             </div>
