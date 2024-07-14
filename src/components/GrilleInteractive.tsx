@@ -4,19 +4,15 @@ import GestionnaireSignauxGrille from "./GestionnaireSignauxGrille.tsx";
 import RuleGrid from "../classes/RuleGrid.ts";
 import RowOutputs from "./RowOutputs.tsx";
 import RowInputs from "./RowInputs.tsx";
-import { InputCell } from "../classes/Cell.ts";
+import { Cell, InputCell } from "../classes/Cell.ts";
 
 type GrilleInteractiveProps = {
     grid: RuleGrid;
+    setGrid: (grid: RuleGrid) => void;
+    rows: number;
+    cols: number;
     activeCells: { row: number; col: number; isInput: boolean }[];
     listeSignaux: Signal[];
-    handleAddSignal: (signal: Signal) => void;
-    handleRemoveSignal: (signal: Signal) => void;
-    handleAddNegatedSignal: (signal: Signal) => void;
-    handleRemoveNegatedSignal: (signal: Signal) => void;
-    handleAddAllSignals: () => void;
-    handleRemoveAllSignals: () => void;
-    handleRemoveAllSignalsFromGrid: () => void;
     handleCaseClick: (
         rowIndex: number,
         colIndex: number,
@@ -30,20 +26,65 @@ type GrilleInteractiveProps = {
 
 const GrilleInteractive = ({
     grid,
+    setGrid,
+    rows,
+    cols,
     activeCells,
     listeSignaux,
-    handleAddSignal,
-    handleRemoveSignal,
-    handleAddAllSignals,
-    handleRemoveAllSignals,
-    handleRemoveAllSignalsFromGrid,
     handleCaseClick,
     handleSaveRule,
     applyRules,
     modifyRule,
-    handleAddNegatedSignal,
-    handleRemoveNegatedSignal,
 }: GrilleInteractiveProps): JSX.Element => {
+
+    const updateGrille = (callback: (cellule: Cell) => void) => {
+        const newGrid = grid.clone();
+        activeCells.forEach(({ row, col, isInput }) => {
+            let cell;
+            if (isInput) {
+                cell = newGrid.inputs[col];
+            } else {
+                cell = newGrid.outputs[row][col];
+            }
+            callback(cell);
+        });
+        setGrid(newGrid);
+    };
+    
+    const handleAddSignal = (signal: Signal) => {
+        updateGrille((caseObj: Cell) => caseObj.addSignal(signal));
+    };
+
+    const handleRemoveSignal = (signal: Signal) => {
+        updateGrille((caseObj: Cell) => caseObj.removeSignal(signal));
+    };
+
+    const handleAddNegatedSignal = (signal: Signal) => {
+        updateGrille((caseObj: Cell) => caseObj.addNegatedSignal(signal));
+        console.log("updaaaaaate");
+    };
+
+    const handleRemoveNegatedSignal = (signal: Signal) => {
+        updateGrille((caseObj: Cell) => caseObj.removeNegatedSignal(signal));
+    };
+    
+    const handleAddAllSignals = () => {
+        updateGrille((caseObj: Cell) => {
+            listeSignaux.forEach((signal) => caseObj.addSignal(signal));
+        });
+    };
+
+    const handleRemoveAllSignals = () => {
+        updateGrille((caseObj: Cell) => {
+            caseObj.removeAllSignals();
+        });
+    };
+
+    const handleRemoveAllSignalsFromGrid = () => {
+        const newGrid = new RuleGrid(rows, cols);
+        setGrid(newGrid);
+    };
+
     function setActiveSignals(): { active: Signal[]; negated: Signal[] } {
         if (activeCells.length === 0) {
             return { active: [], negated: [] };
