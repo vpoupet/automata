@@ -12,7 +12,7 @@ export class Cell {
     }
 
     clone(): Cell {
-        return new Cell(new Set(this.signals));
+        return new Cell(this.signals);
     }
 
     addSignal(signal: Signal) {
@@ -38,9 +38,8 @@ export class Cell {
     addNegatedSignal(signal: Signal): void {
         this.signals.delete(signal);
     }
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    removeNegatedSignal(signal: Signal): boolean {
+
+    removeNegatedSignal(_signal: Signal): boolean {
         return false;
     }
 }
