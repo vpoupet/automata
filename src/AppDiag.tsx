@@ -15,20 +15,19 @@ export default function App() {
 Init:
   Rail
   0/2.Horizontal
-  0/0.HalfSlope
+  1/3.HalfSlope
 Rail:
   Rail
 Horizontal:
   !HalfSlope: 1.Horizontal
-  HalfSlope: 1.Rail 0/2.Vertical 1.HalfSlope
+  HalfSlope: 1.Rail 0/2.Vertical 0/2.Multiple 1.HalfSlope
 HalfSlope:
   !Horizontal: 1/3.HalfSlope
 Vertical:
-  0/0.Multiple
   !Rail: -1.Vertical
   Rail: 1.Horizontal
 Multiple:
-  0/0.Mark
+  -1.Mark
   !Rail: -1.Multiple
   Rail: +1.Rebound
 Rebound:

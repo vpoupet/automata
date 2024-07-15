@@ -93,8 +93,13 @@ export default function EditGrid({
         for (const literal of rule.condition.getLiterals()) {
             for (let cellidx = 0; cellidx < grid.inputs.length; cellidx++) {
                 if (literal.position === cellidx - 2) {
-                    //TODO : la négation !
-                    ruleGrid.inputs[cellidx].signals.add(literal.signal);
+                    //PAS BIEN : on prend pas en compte si une grid plus grande
+                    if (literal.sign) {
+                        ruleGrid.inputs[cellidx].signals.add(literal.signal);
+                    }
+                    else {
+                        ruleGrid.inputs[cellidx].negatedSignals.add(literal.signal);
+                    }
                 }
             }
         }
@@ -113,25 +118,26 @@ export default function EditGrid({
         newRuleBool: Rule,
         activeRulesBool: Set<Rule>
     ): RuleGrid[] {
-        const newRulesReadyToUse: RuleGrid[] = [];
+        const newRulesGrid: RuleGrid[] = [];
         for (const rule of activeRulesBool) {
             const newRule = new Conjunction([
                 rule.condition,
                 new Negation(newRuleBool.condition),
             ]).toDNF();
             for (let j = 0; j < newRule.subclauses.length; j++) {
-                newRulesReadyToUse.push(
+                //rajouter ici la partie sort by alphabet
+                newRulesGrid.push(
                     getRuleGrid(
-                        new Rule(newRule.subclauses[j], newRuleBool.outputs)
+                        new Rule(newRule.subclauses[j],rule.outputs)
                     )
                 );
             }
         }
         console.log(
             "la liste des nouvelles règles à rajouter ! : ",
-            newRulesReadyToUse
+            newRulesGrid
         );
-        return newRulesReadyToUse;
+        return newRulesGrid;
     }
 
     function addAdaptedRules(setListRules: Set<number>) {
@@ -139,13 +145,11 @@ export default function EditGrid({
         for (const rulenbr of setListRules) {
             activeRulesBool.add(reglesbools[rulenbr]);
         }
-
         const oldOutput = getOutputFromRules(activeRulesBool);
         if (oldOutput.equalsOutputs(grid.outputs)) {
             console.log("les outputs sont les mêmes, on ne fait rien");
             return;
         }
-
 
 
         const newRuleBool = RuleGrid.makeRule(grid);
