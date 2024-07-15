@@ -21,20 +21,20 @@ import RuleGridsList from "./components/ListeRegles.js";
 import { Coordinates, SettingsInterface } from "./types.ts";
 
 export default function App() {
-    const [gridNbFutureSteps] = useState<number>(2);
-    const [gridRadius] = useState<number>(2);
+    const [automaton, setAutomaton] = useState<Automaton>(new Automaton());
     const [rulesGrids, setRulesGrids] = useState<RuleGrid[]>([]);
     const [rules, setRules] = useState<Rule[]>([]);
 
-    const [automaton, setAutomaton] = useState<Automaton>(new Automaton());
     const [settings] = useState<SettingsInterface>({
+        gridRadius: 2,
+        gridNbFutureSteps: 2,
         nbCells: 40,
         nbSteps: 60,
         timeGoesUp: true,
     });
 
     const [grid, setGrid] = useState<RuleGrid>(
-        RuleGrid.withSize(2 * gridRadius + 1, gridNbFutureSteps)
+        RuleGrid.withSize(2 * settings.gridRadius + 1, settings.gridNbFutureSteps)
     );
     const [activeInputCells, setActiveInputCells] = useState<number[]>([]);
     const [activeOutputCells, setActiveOutputCells] = useState<Coordinates[]>(
@@ -54,7 +54,7 @@ export default function App() {
             row.forEach((cellule, colIndex) => {
                 cellule.signals.forEach((signal) => {
                     const ruleOutput = new RuleOutput(
-                        colIndex - gridRadius,
+                        colIndex - settings.gridRadius,
                         signal,
                         rowIndex + 1
                     );
@@ -70,11 +70,11 @@ export default function App() {
         const literals: Literal[] = [];
         gridInputs.forEach((cellule, cellIndex) => {
             cellule.signals.forEach((signal) => {
-                const literal = new Literal(signal, cellIndex - gridRadius, true);
+                const literal = new Literal(signal, cellIndex - settings.gridRadius, true);
                 literals.push(literal);
             });
             cellule.negatedSignals.forEach((signal) => {
-                const literal = new Literal(signal, cellIndex - gridRadius, false);
+                const literal = new Literal(signal, cellIndex - settings.gridRadius, false);
                 literals.push(literal);
             });
         });
@@ -113,8 +113,8 @@ export default function App() {
                     <EditGrid
                         grid={grid}
                         setGrid={setGrid}
-                        nbFutureSteps={gridNbFutureSteps}
-                        radius={gridRadius}
+                        nbFutureSteps={settings.gridNbFutureSteps}
+                        radius={settings.gridRadius}
                         activeInputCells={activeInputCells}
                         setActiveInputCells={setActiveInputCells}
                         activeOutputCells={activeOutputCells}
@@ -154,8 +154,8 @@ export default function App() {
                     automaton={automaton}
                     initialConfiguration={initialConfiguration}
                     nbSteps={settings.nbSteps}
-                    gridRadius={gridRadius}
-                    gridNbFutureSteps={gridNbFutureSteps}
+                    gridRadius={settings.gridRadius}
+                    gridNbFutureSteps={settings.gridNbFutureSteps}
                     setGrid={setGrid}
                 />
             </div>
