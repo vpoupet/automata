@@ -9,10 +9,11 @@ type RuleGridsListProps = {
     rulesGrids: RuleGrid[];
     setRulesGrids: (rulesGrids: RuleGrid[]) => void;
     rules: Rule[];
+    addRules: (rules: Rule[]) => void;
 };
 
 export default function RuleGridsList({
-    grid, setGrid, rulesGrids, setRulesGrids, rules,
+    grid, setGrid, rulesGrids, setRulesGrids, rules, addRules
 }: RuleGridsListProps): JSX.Element {
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -55,21 +56,7 @@ export default function RuleGridsList({
     function addRuleFromString(input = ""): void {
         const auto = new Automaton();
         auto.parseRules(input);
-        const rules = auto.getRules();
-        for (const regle of rules) {
-            const tabNewRule = RuleGrid.withSize(
-                grid.outputs.length,
-                grid.inputs.length
-            );
-            for (const literal of regle.condition.getLiterals()) {
-                tabNewRule.inputs[literal.position + (grid.inputs.length - 1) / 2].signals.add(literal.signal); // Remplacement de literal.signal par literal.signal.description
-            }
-            for (const ruleOut of regle.outputs) {
-                tabNewRule.outputs[ruleOut.futureStep][ruleOut.neighbor + (grid.inputs.length - 1) / 2].signals.add(ruleOut.signal); // Remplacement de ruleOut.signal par ruleOut.signal.description
-            }
-            const newRegles = [...rulesGrids, tabNewRule];
-            setRulesGrids(newRegles);
-        }
+        addRules(auto.getRules());
     }
 
     return (
@@ -94,7 +81,8 @@ export default function RuleGridsList({
                 rows={5}
                 cols={50}
                 ref={textAreaRef}
-                placeholder="Mettez votre règle ici" />
+                placeholder="Mettez votre règle ici"
+            />
             <button onClick={handleAddRule}>Ajouter règle depuis texte</button>
         </div>
     );
