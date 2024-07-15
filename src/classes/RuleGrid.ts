@@ -160,7 +160,6 @@ class RuleGrid {
         const ruleOutputs = rule.outputs;
         ruleOutputs.forEach((ruleOutput) => {
             const row = ruleOutput.futureStep - 1;
-            console.log('row : ', row);
             const col = ruleOutput.neighbor + radius;
             grid.outputs[row][col].signals.add(ruleOutput.signal);
         });

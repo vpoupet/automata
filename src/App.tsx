@@ -100,6 +100,8 @@ export default function App() {
                         setRulesGrids={setRulesGrids}
                         rules={automaton.getRules()}
                         addRules={addRules}
+                        signalsList={signalsList}
+                        setSignalsList={setSignalsList}
                     />
                 </div>
             </div>

@@ -2,6 +2,7 @@ import { useRef } from "react";
 import RuleGridComponent from "./RuleGridComponent.tsx";
 import { Automaton, Rule } from "../classes/Automaton.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
+import {Signal} from "../types.ts";
 
 type RuleGridsListProps = {
     grid: RuleGrid;
@@ -10,10 +11,12 @@ type RuleGridsListProps = {
     setRulesGrids: (rulesGrids: RuleGrid[]) => void;
     rules: Rule[];
     addRules: (rules: Rule[]) => void;
+    signalsList: Signal[];
+    setSignalsList: (signalsList: Signal[]) => void;
 };
 
 export default function RuleGridsList({
-    grid, setGrid, rulesGrids, setRulesGrids, rules, addRules
+    grid, setGrid, rulesGrids, setRulesGrids, rules, addRules, signalsList, setSignalsList,
 }: RuleGridsListProps): JSX.Element {
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -56,6 +59,18 @@ export default function RuleGridsList({
     function addRuleFromString(input = ""): void {
         const auto = new Automaton();
         auto.parseRules(input);
+        const newSignalsList = [...signalsList];
+        for (const rule of auto.getRules()) {
+            for (const signal of rule.getSignals()){
+                if (!newSignalsList.includes(signal)){
+                    newSignalsList.push(signal);
+                }
+            }
+        }
+        if (newSignalsList.length > signalsList.length) {
+            setSignalsList(newSignalsList);
+        }
+
         addRules(auto.getRules());
     }
 

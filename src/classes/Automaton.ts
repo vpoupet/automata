@@ -54,6 +54,17 @@ export class Rule {
             .map((output) => output.toString())
             .join(" ")}`;
     }
+
+    getSignals() : Set<Signal> {
+        const signals = new Set<Signal>();
+        for (const literal of this.condition.getLiterals()) {
+            signals.add(literal.signal);
+        }
+        for (const output of this.outputs) {
+            signals.add(output.signal);
+        }
+        return signals;
+    }
 }
 
 export type ConjunctionRule = Rule & { condition: ConjunctionOfLiterals };
