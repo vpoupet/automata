@@ -7,7 +7,6 @@ import {Coordinates, Signal} from "../types.ts";
 import InputsRow from "./GridInputsRow.tsx";
 import GridOutputsRow from "./GridOutputsRow.tsx";
 import GridSignalsManager from "./GridSignalsManager.tsx";
-import ruleGrid from "../classes/RuleGrid.ts";
 
 type EditGridProps = {
     grid: RuleGrid;
@@ -19,12 +18,11 @@ type EditGridProps = {
     activeOutputCells: Coordinates[];
     setActiveOutputCells: React.Dispatch<React.SetStateAction<Coordinates[]>>;
     rulesGrid: RuleGrid[];
-    setRulesGrid: React.Dispatch<React.SetStateAction<RuleGrid[]>>;
+    setRulesGrid: (rulesGrid: RuleGrid[]) => void;
     automaton: Automaton;
     setAutomaton: React.Dispatch<React.SetStateAction<Automaton>>;
     rules: Rule[];
     listeSignaux: Signal[];
-    makeRule: (ruleGrid: RuleGrid) => Rule;
 };
 
 export default function EditGrid({
@@ -42,7 +40,6 @@ export default function EditGrid({
                                      setAutomaton,
                                      rules: reglesbools,
                                      listeSignaux,
-                                     makeRule,
                                  }: EditGridProps): JSX.Element {
     function applyToActiveCells(f: (cell: Cell) => void) {
         const newGrid = grid.clone();
@@ -151,7 +148,7 @@ export default function EditGrid({
 
 
 
-        const newRuleBool = makeRule(grid.clone());
+        const newRuleBool = RuleGrid.makeRule(grid);
 
         //on ajoute la négation de l'input de la nouvelle règle à chaque règle active
 

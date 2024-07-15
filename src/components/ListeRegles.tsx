@@ -7,7 +7,7 @@ type RuleGridsListProps = {
     grid: RuleGrid;
     setGrid: React.Dispatch<React.SetStateAction<RuleGrid>>;
     rulesGrids: RuleGrid[];
-    setRulesGrids: React.Dispatch<React.SetStateAction<RuleGrid[]>>;
+    setRulesGrids: (rulesGrids: RuleGrid[]) => void;
     rules: Rule[];
 };
 

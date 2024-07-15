@@ -2,16 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import "./App.css";
 import {
     Automaton,
-    ConjunctionRule,
     Rule,
-    RuleOutput,
 } from "./classes/Automaton.ts";
-import { Cell, InputCell } from "./classes/Cell.ts";
-import {
-    Conjunction,
-    ConjunctionOfLiterals,
-    Literal,
-} from "./classes/Clause.ts";
 import { Configuration } from "./classes/Configuration.ts";
 import RuleGrid from "./classes/RuleGrid.ts";
 import { Diagram } from "./components/Diagram.tsx";
@@ -23,8 +15,9 @@ import { Coordinates, SettingsInterface } from "./types.ts";
 export default function App() {
     const [gridNbFutureSteps] = useState<number>(2);
     const [gridRadius] = useState<number>(2);
-    const [rulesGrids, setRulesGrids] = useState<RuleGrid[]>([]);
-    const [rules, setRules] = useState<Rule[]>([]);
+    // const [rulesGrids, setRulesGrids] = useState<RuleGrid[]>([]);
+
+    // const [rules, setRules] = useState<Rule[]>([]);
 
     const [automaton, setAutomaton] = useState<Automaton>(new Automaton());
     const [settings] = useState<SettingsInterface>({
@@ -47,64 +40,18 @@ export default function App() {
         Symbol.for("s2"),
     ]);
 
-    function makeRuleOutputs(gridOutputs: Cell[][]) {
-        const outputs: RuleOutput[] = [];
-
-        gridOutputs.forEach((row, rowIndex) => {
-            row.forEach((cellule, colIndex) => {
-                cellule.signals.forEach((signal) => {
-                    const ruleOutput = new RuleOutput(
-                        colIndex - gridRadius,
-                        signal,
-                        rowIndex + 1
-                    );
-                    outputs.push(ruleOutput);
-                });
-            });
-        });
-
-        return outputs;
-    }
-
-    function makeRuleCondition(gridInputs: InputCell[]): ConjunctionOfLiterals {
-        const literals: Literal[] = [];
-        gridInputs.forEach((cellule, cellIndex) => {
-            cellule.signals.forEach((signal) => {
-                const literal = new Literal(signal, cellIndex - gridRadius, true);
-                literals.push(literal);
-            });
-            cellule.negatedSignals.forEach((signal) => {
-                const literal = new Literal(signal, cellIndex - gridRadius, false);
-                literals.push(literal);
-            });
-        });
-        return new Conjunction(literals) as ConjunctionOfLiterals;
-    }
-
-    function makeRule(ruleGrid: RuleGrid): ConjunctionRule {
-        const outputs = makeRuleOutputs(ruleGrid.outputs);
-        const condition = makeRuleCondition(ruleGrid.inputs);
-        return new Rule(condition, outputs) as ConjunctionRule;
-    }
-
-    const applyRules = useCallback(() => {
+    const setRulesGrids = (rulesGrids: RuleGrid[]) => {
+        const rules = rulesGrids.map((ruleGrid) => RuleGrid.makeRule(ruleGrid));
         const auto = new Automaton();
         auto.setRules(rules);
         auto.updateParameters();
         setAutomaton(auto);
-    }, [rules, setAutomaton]);
-
-    // NOTE: attention aux useEffect
-    useEffect(() => {
-        setRules(rulesGrids.map(makeRule));
-    }, [rulesGrids]);
-
-    useEffect(() => {
-        applyRules();
-    }, [rules, applyRules]);
+    }
 
     const initialConfiguration = Configuration.withSize(settings.nbCells);
     initialConfiguration.cells[0].addSignal(Symbol.for("Init"));
+
+    const rulesGrid = RuleGrid.makeGridsFromTabRules(automaton.getRules(), gridRadius, gridNbFutureSteps);
 
     return (
         <div className="App">
@@ -119,13 +66,12 @@ export default function App() {
                         setActiveInputCells={setActiveInputCells}
                         activeOutputCells={activeOutputCells}
                         setActiveOutputCells={setActiveOutputCells}
-                        rulesGrid={rulesGrids}
+                        rulesGrid={rulesGrid}
                         setRulesGrid={setRulesGrids}
                         listeSignaux={signalsList}
                         automaton={automaton}
                         setAutomaton={setAutomaton}
-                        rules={rules}
-                        makeRule={makeRule}
+                        rules={automaton.getRules()}
                     />
                 </div>
                 <div className="gestion-signaux">
@@ -134,7 +80,7 @@ export default function App() {
                         setListeSignaux={setSignalsList}
                         grid={grid}
                         setGrid={setGrid}
-                        rulesGrids={rulesGrids}
+                        rulesGrids={rulesGrid}
                         setRulesGrids={setRulesGrids}
                     />
                 </div>
@@ -144,9 +90,9 @@ export default function App() {
                     <RuleGridsList
                         grid={grid}
                         setGrid={setGrid}
-                        rulesGrids={rulesGrids}
+                        rulesGrids={rulesGrid}
                         setRulesGrids={setRulesGrids}
-                        rules={rules}
+                        rules={automaton.getRules()}
                     />
                 </div>
             </div>
