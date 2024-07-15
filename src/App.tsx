@@ -125,6 +125,7 @@ export default function App() {
                         automaton={automaton}
                         setAutomaton={setAutomaton}
                         rules={rules}
+                        makeRule={makeRule}
                     />
                 </div>
                 <div className="gestion-signaux">

@@ -70,7 +70,7 @@ class RuleGrid {
                     new Set(this.outputs[row - 1][col].signals).forEach(
                         (signal) => {
                             conf.cells[
-                                row * this.inputs.length + col
+                            (row-1) * this.inputs.length + col
                             ].signals.add(signal);
                         }
                     );
