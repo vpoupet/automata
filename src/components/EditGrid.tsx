@@ -1,6 +1,6 @@
 import { Automaton } from "../classes/Automaton.ts";
 import { Cell } from "../classes/Cell.ts";
-import { Conjunction, Negation } from "../classes/Clause.ts";
+import {Conjunction, Negation, simplifyDNF} from "../classes/Clause.ts";
 import { Rule } from "../classes/Rule.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
 import "../style/Cell.css";
@@ -123,10 +123,11 @@ export default function EditGrid({
     ): RuleGrid[] {
         const newRulesGrid: RuleGrid[] = [];
         for (const rule of activeRulesBool) {
-            const newClause = new Conjunction([
+            let newClause = new Conjunction([
                 rule.condition,
                 new Negation(newRuleBool.condition),
             ]).toDNF();
+            newClause = simplifyDNF(newClause)
             for (let j = 0; j < newClause.subclauses.length; j++) {
                 newRulesGrid.push(
                     getRuleGrid(
