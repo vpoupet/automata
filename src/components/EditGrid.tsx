@@ -119,7 +119,7 @@ export default function EditGrid({
     function modifyRule() {
         const ruleFromGrid =RuleGrid.makeRule(grid.clone()) ;
         const newRules : Rule[] = [];
-        let setOutput: Set<RuleOutput>;
+        let setOutput: Set<RuleOutput> = new Set();
         for (const regle of reglesbools){
             const ruleAndOutput = adaptRule(regle as ConjunctionRule , ruleFromGrid);
             setOutput = new Set([...setOutput, ...ruleAndOutput.outputs]);
