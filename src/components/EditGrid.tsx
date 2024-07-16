@@ -59,7 +59,7 @@ export default function EditGrid({
         setGrid(newGrid);
     }
 
-    function saveRule() {
+    function saveGridAsRule() {
         let hasOutputs = false;
         outer:
             for (const row of grid.outputs) {
@@ -76,13 +76,15 @@ export default function EditGrid({
     }
 
     function applyRules() {
-        const newGrille = RuleGrid.withSize(2 * radius, nbFutureSteps);
+        //todo : ajouter 1 seul "output" par règle ?
+        const newGrille = grid.clone()
         const conffromgrid = newGrille.getConfigurationFromGrid();
         automaton.setRules(reglesbools);
         automaton.updateParameters();
         setAutomaton(automaton);
         const conf = automaton.makeDiagram(conffromgrid, grid.outputs.length);
         newGrille.setGridFromConfigurations(conf);
+        setGrid(newGrille);
     }
 
     function getRuleGrid(rule: Rule): RuleGrid {
@@ -188,15 +190,16 @@ export default function EditGrid({
         const rulesToModify = new Set<number>();
         const config = grid.getConfigurationFromGrid();
 
-        for (let ruleNbr = 0; ruleNbr < rulesGrid.length; ruleNbr++) {
+        for (let ruleNbr = 0; ruleNbr < reglesbools.length; ruleNbr++) {
             for (let i = 0; i < grid.inputs.length; i++) {
-                // WARNING: le rayon est fixé à 2!
                 if (
                     reglesbools[ruleNbr].condition.eval(
+                        //PAS BIEN : on prend pas en compte si une grid plus grande
                         config.getNeighborhood(i, -2, 2)
                     )
                 ) {
                     rulesToModify.add(ruleNbr);
+                    console.log('on ajoute la règle num : ', ruleNbr, "de valeur : ", reglesbools[ruleNbr]);
                 }
             }
         }
@@ -205,9 +208,12 @@ export default function EditGrid({
             console.log(
                 "pas de règle à modifier, on ajoute une nouvelle règle"
             );
-            saveRule();
+            saveGridAsRule();
         } else {
             console.log("ajout de règles and stuff", rulesToModify);
+            for (const rule of rulesToModify) {
+                console.log("les règles à modifier : ", reglesbools[rule]);
+            }
             addAdaptedRules(rulesToModify);
         }
     }
@@ -268,7 +274,7 @@ export default function EditGrid({
                     allSignals={listeSignaux}
                     applyToActiveCells={applyToActiveCells}
                 />
-                <button onClick={saveRule}>Ajouter règle</button>
+                <button onClick={saveGridAsRule}>Ajouter règle</button>
                 <button onClick={applyRules}>
                     Appliquer règles sur la grille
                 </button>
