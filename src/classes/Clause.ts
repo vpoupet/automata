@@ -335,3 +335,31 @@ export class Disjunction extends Clause {
         }, new Conjunction([new Disjunction([])]) as CNFClause);
     }
 }
+
+export function simplifyConjunctionOfLiterals(
+    c: ConjunctionOfLiterals
+): ConjunctionOfLiterals | null {
+    const literals: Literal[] = [];
+    for (const literal of c.subclauses) {
+        if (literals.some((l) => l.equals(literal))) {
+            continue;
+        }
+        if (literals.some((l) => l.equals(literal.negate()))) {
+            return null;
+        }
+        literals.push(literal);
+    }
+    literals.sort((l1, l2) => l1.compareTo(l2));
+    return new Conjunction(literals) as ConjunctionOfLiterals;
+}
+
+export function simplifyDNF(clause: DNFClause): DNFClause {
+    const subclauses: ConjunctionOfLiterals[] = [];
+    for (const subclause of clause.subclauses) {
+        const simplified = simplifyConjunctionOfLiterals(subclause);
+        if (simplified !== null) {
+            subclauses.push(simplified);
+        }
+    }
+    return new Disjunction(subclauses) as DNFClause;
+}
