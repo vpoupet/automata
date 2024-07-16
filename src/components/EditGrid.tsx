@@ -139,14 +139,12 @@ export default function EditGrid({
             "la liste des nouvelles règles à rajouter ! : ",
             newRulesGrid
         );
+        newRulesGrid.push(getRuleGrid(newRuleBool));
         return newRulesGrid;
     }
 
-    function addAdaptedRules(setListRules: Set<number>) {
-        const activeRulesBool: Set<Rule> = new Set();
-        for (const rulenbr of setListRules) {
-            activeRulesBool.add(reglesbools[rulenbr]);
-        }
+    function addAdaptedRules(activeRulesBool: Set<Rule>) {
+
         const oldOutput = getOutputFromRules(activeRulesBool);
         if (oldOutput.equalsOutputs(grid.outputs)) {
             console.log("les outputs sont les mêmes, on ne fait rien");
@@ -163,10 +161,11 @@ export default function EditGrid({
 
         //On enlève du tableau de règles celles qui doivent changer
         const rules = [...rulesGrid];
-
-        const sortedIndex = Array.from(setListRules).sort((a, b) => b - a);
-        for (const index of sortedIndex) {
-            rules.splice(index, 1);
+        for (const rule of activeRulesBool) {
+            const idx = reglesbools.indexOf(rule);
+            if (idx !== -1) {
+                rules.splice(idx, 1);
+            }
         }
         rules.push(...rulesModified);
         setRulesGrid(rules);
@@ -187,7 +186,7 @@ export default function EditGrid({
     }
 
     function modifyRule() {
-        const rulesToModify = new Set<number>();
+        const rulesToModify = new Set<Rule>();
         const config = grid.getConfigurationFromGrid();
 
         for (let ruleNbr = 0; ruleNbr < reglesbools.length; ruleNbr++) {
@@ -198,7 +197,7 @@ export default function EditGrid({
                         config.getNeighborhood(i, -2, 2)
                     )
                 ) {
-                    rulesToModify.add(ruleNbr);
+                    rulesToModify.add(reglesbools[ruleNbr]);
                     console.log('on ajoute la règle num : ', ruleNbr, "de valeur : ", reglesbools[ruleNbr]);
                 }
             }
@@ -211,9 +210,6 @@ export default function EditGrid({
             saveGridAsRule();
         } else {
             console.log("ajout de règles and stuff", rulesToModify);
-            for (const rule of rulesToModify) {
-                console.log("les règles à modifier : ", reglesbools[rule]);
-            }
             addAdaptedRules(rulesToModify);
         }
     }
