@@ -145,6 +145,29 @@ export class Literal extends Clause {
         return new Literal(this.signal, this.position, !this.sign);
     }
 
+    equals(other: Literal): boolean {
+        return (
+            this.signal === other.signal &&
+            this.position === other.position &&
+            this.sign === other.sign
+        );
+    }
+
+    compareTo(other: Literal): number {
+        if (this.position !== other.position) {
+            return this.position - other.position;
+        }
+        if (this.sign !== other.sign) {
+            return this.sign ? 1 : -1;
+        }
+        const keyThis = Symbol.keyFor(this.signal);
+        const keyOther = Symbol.keyFor(other.signal);
+        if (keyThis === undefined || keyOther === undefined) {
+            throw new Error("Invalid signal");
+        }
+        return keyThis.localeCompare(keyOther);
+    }
+
     toCNF(): CNFClause {
         return new Conjunction([new Disjunction([this.copy()])]) as CNFClause;
     }
@@ -334,4 +357,32 @@ export class Disjunction extends Clause {
             return new Conjunction(clauses) as CNFClause;
         }, new Conjunction([new Disjunction([])]) as CNFClause);
     }
+}
+
+export function simplifyConjunctionOfLiterals(
+    c: ConjunctionOfLiterals
+): ConjunctionOfLiterals | null {
+    const literals: Literal[] = [];
+    for (const literal of c.subclauses) {
+        if (literals.some((l) => l.equals(literal))) {
+            continue;
+        }
+        if (literals.some((l) => l.equals(literal.negate()))) {
+            return null;
+        }
+        literals.push(literal);
+    }
+    literals.sort((l1, l2) => l1.compareTo(l2));
+    return new Conjunction(literals) as ConjunctionOfLiterals;
+}
+
+export function simplifyDNF(clause: DNFClause): DNFClause {
+    const subclauses: ConjunctionOfLiterals[] = [];
+    for (const subclause of clause.subclauses) {
+        const simplified = simplifyConjunctionOfLiterals(subclause);
+        if (simplified !== null) {
+            subclauses.push(simplified);
+        }
+    }
+    return new Disjunction(subclauses) as DNFClause;
 }
