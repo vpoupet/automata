@@ -1,7 +1,7 @@
 import { Cell, InputCell } from "./Cell.ts";
+import { Conjunction, ConjunctionOfLiterals, Literal } from "./Clause.ts";
 import { Configuration } from "./Configuration.ts";
-import {ConjunctionRule, Rule, RuleOutput} from "./Automaton.ts";
-import {Conjunction, ConjunctionOfLiterals, Literal} from "./Clause.ts";
+import { ConjunctionRule, Rule, RuleOutput } from "./Rule.ts";
 
 class RuleGrid {
     inputs: InputCell[];
@@ -72,7 +72,7 @@ class RuleGrid {
                     new Set(this.outputs[row - 1][col].signals).forEach(
                         (signal) => {
                             conf.cells[
-                            (row-1) * this.inputs.length + col
+                                (row - 1) * this.inputs.length + col
                             ].signals.add(signal);
                         }
                     );
@@ -113,15 +113,14 @@ class RuleGrid {
         }
     }
 
-
-    static makeRule(grid : RuleGrid): ConjunctionRule {
-        const gridRadius = (grid.outputs[0].length -1)/2
+    static makeRule(grid: RuleGrid): ConjunctionRule {
+        const gridRadius = (grid.outputs[0].length - 1) / 2;
         const outputs = RuleGrid.makeRuleOutputs(grid.outputs, gridRadius);
         const condition = RuleGrid.makeRuleCondition(grid.inputs, gridRadius);
         return new Rule(condition, outputs) as ConjunctionRule;
     }
 
-    static makeRuleOutputs(gridOutputs: Cell[][], gridRadius : number) {
+    static makeRuleOutputs(gridOutputs: Cell[][], gridRadius: number) {
         const outputs: RuleOutput[] = [];
 
         gridOutputs.forEach((row, rowIndex) => {
@@ -140,23 +139,34 @@ class RuleGrid {
         return outputs;
     }
 
-    static makeRuleCondition(gridInputs: InputCell[], gridRadius: number): ConjunctionOfLiterals {
+    static makeRuleCondition(
+        gridInputs: InputCell[],
+        gridRadius: number
+    ): ConjunctionOfLiterals {
         const literals: Literal[] = [];
         gridInputs.forEach((cellule, cellIndex) => {
             cellule.signals.forEach((signal) => {
-                const literal = new Literal(signal, cellIndex - gridRadius, true);
+                const literal = new Literal(
+                    signal,
+                    cellIndex - gridRadius,
+                    true
+                );
                 literals.push(literal);
             });
             cellule.negatedSignals.forEach((signal) => {
-                const literal = new Literal(signal, cellIndex - gridRadius, false);
+                const literal = new Literal(
+                    signal,
+                    cellIndex - gridRadius,
+                    false
+                );
                 literals.push(literal);
             });
         });
         return new Conjunction(literals) as ConjunctionOfLiterals;
     }
 
-    static makeGridFromRule(rule: Rule, radius : number, futureStep : number) {
-        const grid = RuleGrid.withSize(2*radius+1, futureStep);
+    static makeGridFromRule(rule: Rule, radius: number, futureStep: number) {
+        const grid = RuleGrid.withSize(2 * radius + 1, futureStep);
         const ruleOutputs = rule.outputs;
         ruleOutputs.forEach((ruleOutput) => {
             const row = ruleOutput.futureStep - 1;
@@ -175,8 +185,12 @@ class RuleGrid {
         return grid;
     }
 
-    static makeGridsFromTabRules(rules: Rule[], radius : number, futureStep : number) {
-        const tabRuleGrid : RuleGrid[] = [];
+    static makeGridsFromTabRules(
+        rules: Rule[],
+        radius: number,
+        futureStep: number
+    ) {
+        const tabRuleGrid: RuleGrid[] = [];
         for (const rule of rules) {
             const grid = RuleGrid.makeGridFromRule(rule, radius, futureStep);
             tabRuleGrid.push(grid);

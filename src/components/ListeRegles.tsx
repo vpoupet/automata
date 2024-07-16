@@ -1,8 +1,9 @@
 import { useRef } from "react";
-import RuleGridComponent from "./RuleGridComponent.tsx";
-import { Automaton, Rule } from "../classes/Automaton.ts";
+import { Automaton } from "../classes/Automaton.ts";
+import { Rule } from "../classes/Rule.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
-import {Signal} from "../types.ts";
+import { Signal } from "../types.ts";
+import RuleGridComponent from "./RuleGridComponent.tsx";
 
 type RuleGridsListProps = {
     grid: RuleGrid;
@@ -16,7 +17,14 @@ type RuleGridsListProps = {
 };
 
 export default function RuleGridsList({
-    grid, setGrid, rulesGrids, setRulesGrids, rules, addRules, signalsList, setSignalsList,
+    grid,
+    setGrid,
+    rulesGrids,
+    setRulesGrids,
+    rules,
+    addRules,
+    signalsList,
+    setSignalsList,
 }: RuleGridsListProps): JSX.Element {
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -61,8 +69,8 @@ export default function RuleGridsList({
         auto.parseRules(input);
         const newSignalsList = [...signalsList];
         for (const rule of auto.getRules()) {
-            for (const signal of rule.getSignals()){
-                if (!newSignalsList.includes(signal)){
+            for (const signal of rule.getSignals()) {
+                if (!newSignalsList.includes(signal)) {
                     newSignalsList.push(signal);
                 }
             }
@@ -83,9 +91,9 @@ export default function RuleGridsList({
                         grid={rule}
                         onLoadRule={() => onLoadRule(index)}
                         onDeleteRule={() => onDeleteRule(index)}
-                        onUpdateRule={() => onUpdateRule(index)} />
-                    {rules[index] !== null &&
-                        rules[index] !== undefined
+                        onUpdateRule={() => onUpdateRule(index)}
+                    />
+                    {rules[index] !== null && rules[index] !== undefined
                         ? rules[index].toString()
                         : ""}
                 </div>

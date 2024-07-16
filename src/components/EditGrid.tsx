@@ -1,6 +1,7 @@
-import {Automaton, Rule} from "../classes/Automaton.ts";
-import {Cell} from "../classes/Cell.ts";
-import {Conjunction, Negation} from "../classes/Clause.ts";
+import { Automaton } from "../classes/Automaton.ts";
+import { Cell } from "../classes/Cell.ts";
+import { Conjunction, Negation } from "../classes/Clause.ts";
+import { Rule } from "../classes/Rule.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
 import "../style/Cell.css";
 import {Coordinates, Signal} from "../types.ts";
@@ -77,7 +78,7 @@ export default function EditGrid({
 
     function applyRules() {
         //todo : ajouter 1 seul "output" par règle ?
-        const newGrille = grid.clone()
+        const newGrille = grid.clone();
         const conffromgrid = newGrille.getConfigurationFromGrid();
         automaton.setRules(reglesbools);
         automaton.updateParameters();
@@ -151,7 +152,6 @@ export default function EditGrid({
             return;
         }
 
-
         const newRuleBool = RuleGrid.makeRule(grid);
 
         //on ajoute la négation de l'input de la nouvelle règle à chaque règle active
@@ -181,7 +181,6 @@ export default function EditGrid({
             const conf = automaton.makeDiagram(conffromgrid, grid.outputs.length);
             newGrille.setGridFromConfigurations(conf);
         }
-        console.log("l'output généré par les règles actives")
         return newGrille;
     }
 
