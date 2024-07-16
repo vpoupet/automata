@@ -145,6 +145,29 @@ export class Literal extends Clause {
         return new Literal(this.signal, this.position, !this.sign);
     }
 
+    equals(other: Literal): boolean {
+        return (
+            this.signal === other.signal &&
+            this.position === other.position &&
+            this.sign === other.sign
+        );
+    }
+
+    compareTo(other: Literal): number {
+        if (this.position !== other.position) {
+            return this.position - other.position;
+        }
+        if (this.sign !== other.sign) {
+            return this.sign ? 1 : -1;
+        }
+        const keyThis = Symbol.keyFor(this.signal);
+        const keyOther = Symbol.keyFor(other.signal);
+        if (keyThis === undefined || keyOther === undefined) {
+            throw new Error("Invalid signal");
+        }
+        return keyThis.localeCompare(keyOther);
+    }
+
     toCNF(): CNFClause {
         return new Conjunction([new Disjunction([this.copy()])]) as CNFClause;
     }
