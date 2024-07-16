@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { Automaton } from "../classes/Automaton.ts";
-import { Rule } from "../classes/Rule.ts";
+import { ConjunctionRule, Rule } from "../classes/Rule.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
 import { Signal } from "../types.ts";
 import RuleGridComponent from "./RuleGridComponent.tsx";
@@ -79,7 +79,15 @@ export default function RuleGridsList({
             setSignalsList(newSignalsList);
         }
 
-        addRules(auto.getRules());
+        // Transform all rules to have ConjunctionOfLiterals conditions
+        const newRules: ConjunctionRule[] = [];
+        for (const rule of auto.getRules()) {
+            const newCondition = rule.condition.toDNF();
+            for (const conjunction of newCondition.subclauses) {
+                newRules.push(new Rule(conjunction, rule.outputs) as ConjunctionRule);
+            }
+        }
+        addRules(newRules);
     }
 
     return (

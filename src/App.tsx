@@ -1,8 +1,7 @@
-import {useState } from "react";
+import { useState } from "react";
 import "./App.css";
-import {
-    Automaton, Rule
-} from "./classes/Automaton.ts";
+import "./style/style.scss";
+import { Automaton } from "./classes/Automaton.ts";
 import { Configuration } from "./classes/Configuration.ts";
 import RuleGrid from "./classes/RuleGrid.ts";
 import { Diagram } from "./components/Diagram.tsx";
@@ -10,12 +9,8 @@ import SignalsList from "./components/SignalsList.tsx";
 import EditGrid from "./components/EditGrid.tsx";
 import RuleGridsList from "./components/ListeRegles.js";
 import { Coordinates, SettingsInterface } from "./types.ts";
+import { Rule } from "./classes/Rule.ts";
 export default function App() {
-
-    // const [rulesGrids, setRulesGrids] = useState<RuleGrid[]>([]);
-
-    // const [rules, setRules] = useState<Rule[]>([]);
-
     const [automaton, setAutomaton] = useState<Automaton>(new Automaton());
     const [settings] = useState<SettingsInterface>({
         gridRadius: 2,
@@ -26,7 +21,10 @@ export default function App() {
     });
 
     const [grid, setGrid] = useState<RuleGrid>(
-        RuleGrid.withSize(2 * settings.gridRadius + 1, settings.gridNbFutureSteps)
+        RuleGrid.withSize(
+            2 * settings.gridRadius + 1,
+            settings.gridNbFutureSteps
+        )
     );
     const [activeInputCells, setActiveInputCells] = useState<number[]>([]);
     const [activeOutputCells, setActiveOutputCells] = useState<Coordinates[]>(
@@ -45,19 +43,23 @@ export default function App() {
         auto.setRules(rules);
         auto.updateParameters();
         setAutomaton(auto);
-    }
+    };
 
-    const addRules =( rules: Rule[]) => {
+    const addRules = (rules: Rule[]) => {
         const auto = new Automaton();
         auto.setRules(automaton.getRules().concat(rules));
         auto.updateParameters();
         setAutomaton(auto);
-    }
+    };
 
     const initialConfiguration = Configuration.withSize(settings.nbCells);
     initialConfiguration.cells[0].addSignal(Symbol.for("Init"));
 
-    const rulesGrid = RuleGrid.makeGridsFromTabRules(automaton.getRules(), settings.gridRadius, settings.gridNbFutureSteps);
+    const rulesGrid = RuleGrid.makeGridsFromTabRules(
+        automaton.getRules(),
+        settings.gridRadius,
+        settings.gridNbFutureSteps
+    );
 
     return (
         <div className="App">
