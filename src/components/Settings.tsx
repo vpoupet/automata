@@ -8,6 +8,8 @@ interface SettingsProps {
 export function Settings({ settings, setSettings }: SettingsProps) {
     function updateSettings() {
         const newSettings = {
+            gridRadius: 2,
+            gridNbFutureSteps: 2,
             nbCells: parseInt(
                 (document.getElementById("nbCells") as HTMLInputElement).value
             ),

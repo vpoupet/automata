@@ -27,28 +27,28 @@ type EditGridProps = {
 };
 
 export default function EditGrid({
-                                     grid,
-                                     setGrid,
-                                     radius,
-                                     nbFutureSteps,
-                                     activeInputCells,
-                                     setActiveInputCells,
-                                     activeOutputCells,
-                                     setActiveOutputCells,
-                                     rulesGrid,
-                                     setRulesGrid,
-                                     automaton,
-                                     setAutomaton,
-                                     rules: reglesbools,
-                                     listeSignaux,
-                                 }: EditGridProps): JSX.Element {
+    grid,
+    setGrid,
+    radius,
+    nbFutureSteps,
+    activeInputCells,
+    setActiveInputCells,
+    activeOutputCells,
+    setActiveOutputCells,
+    rulesGrid,
+    setRulesGrid,
+    automaton,
+    setAutomaton,
+    rules: reglesbools,
+    listeSignaux,
+}: EditGridProps): JSX.Element {
     function applyToActiveCells(f: (cell: Cell) => void) {
         const newGrid = grid.clone();
         activeInputCells.forEach((col) => {
             const cell = newGrid.inputs[col];
             f(cell);
         });
-        activeOutputCells.forEach(({row, col}) => {
+        activeOutputCells.forEach(({ row, col }) => {
             const cell = newGrid.outputs[row][col];
             f(cell);
         });
@@ -62,15 +62,14 @@ export default function EditGrid({
 
     function saveGridAsRule() {
         let hasOutputs = false;
-        outer:
-            for (const row of grid.outputs) {
-                for (const cell of row) {
-                    if (cell.signals.size > 0) {
-                        hasOutputs = true;
-                        break outer;
-                    }
+        outer: for (const row of grid.outputs) {
+            for (const cell of row) {
+                if (cell.signals.size > 0) {
+                    hasOutputs = true;
+                    break outer;
                 }
             }
+        }
         if (hasOutputs) {
             setRulesGrid([...rulesGrid, grid.clone()]);
         }
@@ -78,7 +77,7 @@ export default function EditGrid({
 
     function applyRules() {
         //todo : ajouter 1 seul "output" par règle ?
-        const newGrille = grid.clone()
+        const newGrille = grid.clone();
         const conffromgrid = newGrille.getConfigurationFromGrid();
         automaton.setRules(reglesbools);
         automaton.updateParameters();
@@ -99,9 +98,10 @@ export default function EditGrid({
                     //PAS BIEN : on prend pas en compte si une grid plus grande
                     if (literal.sign) {
                         ruleGrid.inputs[cellidx].signals.add(literal.signal);
-                    }
-                    else {
-                        ruleGrid.inputs[cellidx].negatedSignals.add(literal.signal);
+                    } else {
+                        ruleGrid.inputs[cellidx].negatedSignals.add(
+                            literal.signal
+                        );
                     }
                 }
             }
@@ -130,9 +130,7 @@ export default function EditGrid({
             for (let j = 0; j < newRule.subclauses.length; j++) {
                 //rajouter ici la partie sort by alphabet
                 newRulesGrid.push(
-                    getRuleGrid(
-                        new Rule(newRule.subclauses[j],rule.outputs)
-                    )
+                    getRuleGrid(new Rule(newRule.subclauses[j], rule.outputs))
                 );
             }
         }
@@ -154,13 +152,14 @@ export default function EditGrid({
             return;
         }
 
-
         const newRuleBool = RuleGrid.makeRule(grid);
 
         //on ajoute la négation de l'input de la nouvelle règle à chaque règle active
 
-        const rulesModified = addNegationToActiveRules(newRuleBool, activeRulesBool);
-
+        const rulesModified = addNegationToActiveRules(
+            newRuleBool,
+            activeRulesBool
+        );
 
         //On enlève du tableau de règles celles qui doivent changer
         const rules = [...rulesGrid];
@@ -180,10 +179,13 @@ export default function EditGrid({
             automaton.setRules([rule]);
             automaton.updateParameters();
             setAutomaton(automaton);
-            const conf = automaton.makeDiagram(conffromgrid, grid.outputs.length);
+            const conf = automaton.makeDiagram(
+                conffromgrid,
+                grid.outputs.length
+            );
             newGrille.setGridFromConfigurations(conf);
         }
-        console.log("l'output généré par les règles actives")
+        console.log("l'output généré par les règles actives");
         return newGrille;
     }
 
@@ -200,7 +202,12 @@ export default function EditGrid({
                     )
                 ) {
                     rulesToModify.add(ruleNbr);
-                    console.log('on ajoute la règle num : ', ruleNbr, "de valeur : ", reglesbools[ruleNbr]);
+                    console.log(
+                        "on ajoute la règle num : ",
+                        ruleNbr,
+                        "de valeur : ",
+                        reglesbools[ruleNbr]
+                    );
                 }
             }
         }
@@ -243,7 +250,7 @@ export default function EditGrid({
     });
 
     return (
-        <div style={{display: "flex"}}>
+        <div style={{ display: "flex" }}>
             <div>
                 <h1>Grille Interactive</h1>
                 <div className="grid-container">
