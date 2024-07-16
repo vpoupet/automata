@@ -110,7 +110,7 @@ export default function EditGrid({
             for (let cellidx = 0; cellidx < grid.inputs.length; cellidx++) {
                 if (ruleOut.neighbor === cellidx - 2) {
                     //PAS BIEN : on prend pas en compte si une grid plus grande
-                    ruleGrid.outputs[0][cellidx].signals.add(ruleOut.signal);
+                    ruleGrid.outputs[ruleOut.futureStep-1][cellidx].signals.add(ruleOut.signal);
                 }
             }
         }
@@ -123,15 +123,14 @@ export default function EditGrid({
     ): RuleGrid[] {
         const newRulesGrid: RuleGrid[] = [];
         for (const rule of activeRulesBool) {
-            const newRule = new Conjunction([
+            const newClause = new Conjunction([
                 rule.condition,
                 new Negation(newRuleBool.condition),
             ]).toDNF();
-            for (let j = 0; j < newRule.subclauses.length; j++) {
-                //rajouter ici la partie sort by alphabet
+            for (let j = 0; j < newClause.subclauses.length; j++) {
                 newRulesGrid.push(
                     getRuleGrid(
-                        new Rule(newRule.subclauses[j],rule.outputs)
+                        new Rule(newClause.subclauses[j],rule.outputs)
                     )
                 );
             }
@@ -160,13 +159,14 @@ export default function EditGrid({
 
 
         //On enlève du tableau de règles celles qui doivent changer
-        const rules = [...rulesGrid];
+        //on enlève dans reglesbools les règles contenus dans le tableau activeRulesBool
         for (const rule of activeRulesBool) {
-            const idx = reglesbools.indexOf(rule);
-            if (idx !== -1) {
-                rules.splice(idx, 1);
+            const index = reglesbools.indexOf(rule);
+            if (index !== -1) {
+                reglesbools.splice(index, 1);
             }
         }
+        const rules = [...reglesbools.map((rule) => getRuleGrid(rule))];
         rules.push(...rulesModified);
         setRulesGrid(rules);
     }
