@@ -1,7 +1,7 @@
 import { Cell, InputCell } from "./Cell.ts";
+import { Conjunction, ConjunctionOfLiterals, Literal } from "./Clause.ts";
 import { Configuration } from "./Configuration.ts";
-import {ConjunctionRule, Rule, RuleOutput} from "./Automaton.ts";
-import {Conjunction, ConjunctionOfLiterals, Literal} from "./Clause.ts";
+import { ConjunctionRule, Rule, RuleOutput } from "./Rule.ts";
 
 class RuleGrid {
     inputs: InputCell[];

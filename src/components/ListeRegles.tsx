@@ -1,8 +1,9 @@
 import { useRef } from "react";
-import RuleGridComponent from "./RuleGridComponent.tsx";
-import { Automaton, Rule } from "../classes/Automaton.ts";
+import { Automaton } from "../classes/Automaton.ts";
+import { Rule } from "../classes/Rule.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
-import {Signal} from "../types.ts";
+import { Signal } from "../types.ts";
+import RuleGridComponent from "./RuleGridComponent.tsx";
 
 type RuleGridsListProps = {
     grid: RuleGrid;

@@ -1,9 +1,10 @@
-import {Automaton, Rule} from "../classes/Automaton.ts";
-import {Cell} from "../classes/Cell.ts";
-import {Conjunction, Negation} from "../classes/Clause.ts";
+import { Automaton } from "../classes/Automaton.ts";
+import { Cell } from "../classes/Cell.ts";
+import { Conjunction, Negation } from "../classes/Clause.ts";
+import { Rule } from "../classes/Rule.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
 import "../style/Cell.css";
-import {Coordinates, Signal} from "../types.ts";
+import { Coordinates, Signal } from "../types.ts";
 import InputsRow from "./GridInputsRow.tsx";
 import GridOutputsRow from "./GridOutputsRow.tsx";
 import GridSignalsManager from "./GridSignalsManager.tsx";
