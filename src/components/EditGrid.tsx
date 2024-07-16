@@ -145,7 +145,7 @@ export default function EditGrid({
     }
 
     function addAdaptedRules(activeRulesBool: Set<Rule>) {
-
+        console.log('alèdes')
         const oldOutput = getOutputFromRules(activeRulesBool);
         if (oldOutput.equalsOutputs(grid.outputs)) {
             console.log("les outputs sont les mêmes, on ne fait rien");
@@ -154,10 +154,44 @@ export default function EditGrid({
 
         const newRuleBool = RuleGrid.makeRule(grid);
 
+        //pour chaque règle active, on vérifie les outputs
+        for (const rule of activeRulesBool) {
+            for (let i=0; i<rule.outputs.length;i++) {
+                const tabIndex : number[]=[];
+                newRuleBool.outputs.some((output, index) => {
+                    //si au moins 1 output est contenu dans la règle active, on le supprime de la nouvelle règle !
+                  if (output.signal===rule.outputs[i].signal && output.neighbor===rule.outputs[i].neighbor && output.futureStep===rule.outputs[i].futureStep){
+                      tabIndex.push(index);
+                      return true;
+                  }
+                    return false;
+                })
+                //si le nombre d'output à supprimer est égal au nombre d'output de la règle
+                //on la tej des règles actives en plus
+                for (const index of tabIndex) {
+                    newRuleBool.outputs.splice(index, 1);
+                    console.log("on supprime l'output : ", rule.outputs[i]);
+                }
+                if (rule.outputs.length === tabIndex.length) {
+                    console.log("on supprime la règle : ", rule);
+                    activeRulesBool.delete(rule);
+                }
+            }
+        }
+
         //on ajoute la négation de l'input de la nouvelle règle à chaque règle active
 
         const rulesModified = addNegationToActiveRules(newRuleBool, activeRulesBool);
 
+        for (const rule of rulesModified) {
+            //si la grille des outputs est vide on l'enlève
+            if (rule.outputs.every((row) => row.every((cell) => cell.signals.size === 0))) {
+                const index = rulesModified.indexOf(rule);
+                if (index !== -1) {
+                    rulesModified.splice(index, 1);
+                }
+            }
+        }
 
         //On enlève du tableau de règles celles qui doivent changer
         //on enlève dans reglesbools les règles contenus dans le tableau activeRulesBool
