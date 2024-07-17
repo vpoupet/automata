@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useState} from "react";
 import "./App.css";
 import "./style/style.scss";
 import { Automaton } from "./classes/Automaton.ts";
@@ -39,8 +39,6 @@ export default function App() {
     const [historyAutomaton, setHistoryAutomaton] = useState<Automaton[]>([new Automaton()]);
     const [indexAutomaton, setIndexAutomaton] = useState(0);
 
-    const automaton = historyAutomaton[indexAutomaton];
-
     const changeIndexAutomaton = (index: number) => {
         setIndexAutomaton(indexAutomaton + index);
         setAutomaton(historyAutomaton[index]);
@@ -64,7 +62,7 @@ export default function App() {
 
     const addRules = (rules: Rule[]) => {
         const auto = new Automaton();
-        auto.setRules(automaton.getRules().concat(rules));
+        auto.setRules(historyAutomaton[indexAutomaton].getRules().concat(rules));
         auto.updateParameters();
         setAutomaton(auto);
     };
@@ -73,7 +71,7 @@ export default function App() {
     initialConfiguration.cells[0].addSignal(Symbol.for("Init"));
 
     const rulesGrid = RuleGrid.makeGridsFromTabRules(
-        automaton.getRules(),
+        historyAutomaton[indexAutomaton].getRules(),
         settings.gridRadius,
         settings.gridNbFutureSteps
     );
@@ -100,9 +98,9 @@ export default function App() {
                         rulesGrid={rulesGrid}
                         setRulesGrid={setRulesGrids}
                         listeSignaux={signalsList}
-                        automaton={automaton}
+                        automaton={historyAutomaton[indexAutomaton]}
                         setAutomaton={setAutomaton}
-                        rules={automaton.getRules()}
+                        rules={historyAutomaton[indexAutomaton].getRules()}
                     />
                 </div>
                 <div className="gestion-signaux">
@@ -123,7 +121,7 @@ export default function App() {
                         setGrid={setGrid}
                         rulesGrids={rulesGrid}
                         setRulesGrids={setRulesGrids}
-                        rules={automaton.getRules()}
+                        rules={historyAutomaton[indexAutomaton].getRules()}
                         addRules={addRules}
                         signalsList={signalsList}
                         setSignalsList={setSignalsList}
@@ -132,7 +130,7 @@ export default function App() {
             </div>
             <div className="diagram">
                 <Diagram
-                    automaton={automaton}
+                    automaton={historyAutomaton[indexAutomaton]}
                     initialConfiguration={initialConfiguration}
                     nbSteps={settings.nbSteps}
                     gridRadius={settings.gridRadius}

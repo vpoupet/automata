@@ -73,6 +73,7 @@ export default function EditGrid({
         if (hasOutputs) {
             setRulesGrid([...rulesGrid, grid.clone()]);
         }
+        removeAllSignals();
     }
 
     function applyRules() {

@@ -7,14 +7,15 @@ type RuleGridComponentProps = {
     grid: RuleGrid;
     onDeleteRule: () => void;
     onUpdateRule: () => void;
+    onLoadRule: () => void;
 };
 
 export default function RuleGridComponent({
-    grid, onDeleteRule, onUpdateRule,
+    grid, onDeleteRule, onUpdateRule, onLoadRule
 }: RuleGridComponentProps): JSX.Element {
     return (
         <div style={{ display: "inline-block" }}>
-            <div
+            <div  onClick={() =>onLoadRule()}
                 style={{
                     display: "grid",
                     gridTemplateColumns: `repeat(${grid.inputs.length}, 1fr)`,

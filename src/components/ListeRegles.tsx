@@ -52,6 +52,7 @@ export default function RuleGridsList({
     function onUpdateRule(index: number) {
         const newConfigurations = [...rulesGrids];
         newConfigurations[index] = grid.clone();
+        setGrid(RuleGrid.withSize(grid.inputs.length, grid.outputs.length));
         setRulesGrids(newConfigurations);
     }
 
@@ -94,7 +95,7 @@ export default function RuleGridsList({
         <div>
             <h2>Règles enregistrées</h2>
             {rulesGrids.map((rule, index) => (
-                <div key={index} style={{ marginBottom: "10px" }} onClick={() =>onLoadRule(index)}>
+                <div key={index} style={{ marginBottom: "10px" }}>
                     <RuleGridComponent
                         grid={rule}
                         onLoadRule={() => onLoadRule(index)}
