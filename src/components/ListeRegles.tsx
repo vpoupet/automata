@@ -94,7 +94,7 @@ export default function RuleGridsList({
         <div>
             <h2>Règles enregistrées</h2>
             {rulesGrids.map((rule, index) => (
-                <div key={index} style={{ marginBottom: "10px" }}>
+                <div key={index} style={{ marginBottom: "10px" }} onClick={() =>onLoadRule(index)}>
                     <RuleGridComponent
                         grid={rule}
                         onLoadRule={() => onLoadRule(index)}

@@ -5,13 +5,12 @@ import { InputCell } from "../classes/Cell.ts";
 
 type RuleGridComponentProps = {
     grid: RuleGrid;
-    onLoadRule: () => void;
     onDeleteRule: () => void;
     onUpdateRule: () => void;
 };
 
 export default function RuleGridComponent({
-    grid, onLoadRule, onDeleteRule, onUpdateRule,
+    grid, onDeleteRule, onUpdateRule,
 }: RuleGridComponentProps): JSX.Element {
     return (
         <div style={{ display: "inline-block" }}>
@@ -48,7 +47,6 @@ export default function RuleGridComponent({
                     })}
             </div>
             <div>
-                <button onClick={onLoadRule}>Mettre dans grille</button>
                 <button onClick={onDeleteRule}>Supprimer</button>
                 <button onClick={onUpdateRule}>Mettre à jour</button>
             </div>
