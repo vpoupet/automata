@@ -11,7 +11,6 @@ import RuleGridsList from "./components/ListeRegles.js";
 import { Coordinates, SettingsInterface } from "./types.ts";
 import { Rule } from "./classes/Rule.ts";
 export default function App() {
-    const [automaton, setAutomaton] = useState<Automaton>(new Automaton());
     const [settings] = useState<SettingsInterface>({
         gridRadius: 2,
         gridNbFutureSteps: 3,
@@ -37,29 +36,22 @@ export default function App() {
         Symbol.for("s2"),
     ]);
 
-    const [historyAutomaton, setHistoryAutomaton] = useState<Automaton[]>([]);
+    const [historyAutomaton, setHistoryAutomaton] = useState<Automaton[]>([new Automaton()]);
     const [indexAutomaton, setIndexAutomaton] = useState(0);
 
-    const usePreviousAutomaton = () => {
-        changeIndexAutomaton(indexAutomaton - 1);
-    };
-
-    const useNextAutomaton = () => {
-        changeIndexAutomaton(indexAutomaton + 1);
-    };
+    const automaton = historyAutomaton[indexAutomaton];
 
     const changeIndexAutomaton = (index: number) => {
-        setIndexAutomaton(index);
+        setIndexAutomaton(indexAutomaton + index);
         setAutomaton(historyAutomaton[index]);
     }
 
-    const setTheAutomaton = (auto: Automaton) => {
+    const setAutomaton = (auto: Automaton) => {
         if (indexAutomaton < historyAutomaton.length - 1) {
-            historyAutomaton.splice(indexAutomaton + 1);
+            historyAutomaton.splice(indexAutomaton+1);
         }
         setIndexAutomaton(indexAutomaton + 1);
         setHistoryAutomaton([...historyAutomaton, auto]);
-        setAutomaton(auto);
     }
 
     const setRulesGrids = (rulesGrids: RuleGrid[]) => {
@@ -67,14 +59,14 @@ export default function App() {
         const auto = new Automaton();
         auto.setRules(rules);
         auto.updateParameters();
-        setTheAutomaton(auto);
+        setAutomaton(auto);
     };
 
     const addRules = (rules: Rule[]) => {
         const auto = new Automaton();
         auto.setRules(automaton.getRules().concat(rules));
         auto.updateParameters();
-        setTheAutomaton(auto);
+        setAutomaton(auto);
     };
 
     const initialConfiguration = Configuration.withSize(settings.nbCells);
@@ -89,10 +81,10 @@ export default function App() {
     return (
         <div className="App">
             <div className="top-section">
-                <button onClick={usePreviousAutomaton}  disabled={indexAutomaton === 0} >
+                <button onClick={() => changeIndexAutomaton(-1)}  disabled={indexAutomaton === 0} >
                     <span>Previous rules</span>
                 </button>
-                <button onClick={useNextAutomaton} disabled={indexAutomaton >= historyAutomaton.length-1}>
+                <button onClick={() => changeIndexAutomaton(1)} disabled={indexAutomaton >= historyAutomaton.length-1}>
                     <span>Next rules</span>
                 </button>
                 <div className="grille-interactive">
@@ -109,7 +101,7 @@ export default function App() {
                         setRulesGrid={setRulesGrids}
                         listeSignaux={signalsList}
                         automaton={automaton}
-                        setAutomaton={setTheAutomaton}
+                        setAutomaton={setAutomaton}
                         rules={automaton.getRules()}
                     />
                 </div>
