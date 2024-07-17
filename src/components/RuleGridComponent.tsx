@@ -34,7 +34,6 @@ export default function RuleGridComponent({
                     )}
                 {grid.inputs
                     .slice()
-                    .reverse()
                     .map((cell: InputCell, colIndex: number) => {
                         return (
                             <DiagramCell
