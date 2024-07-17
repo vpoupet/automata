@@ -37,19 +37,44 @@ export default function App() {
         Symbol.for("s2"),
     ]);
 
+    const [historyAutomaton, setHistoryAutomaton] = useState<Automaton[]>([]);
+    const [indexAutomaton, setIndexAutomaton] = useState(0);
+
+    const usePreviousAutomaton = () => {
+        changeIndexAutomaton(indexAutomaton - 1);
+    };
+
+    const useNextAutomaton = () => {
+        changeIndexAutomaton(indexAutomaton + 1);
+    };
+
+    const changeIndexAutomaton = (index: number) => {
+        setIndexAutomaton(index);
+        setAutomaton(historyAutomaton[index]);
+    }
+
+    const setTheAutomaton = (auto: Automaton) => {
+        if (indexAutomaton < historyAutomaton.length - 1) {
+            historyAutomaton.splice(indexAutomaton + 1);
+        }
+        setIndexAutomaton(indexAutomaton + 1);
+        setHistoryAutomaton([...historyAutomaton, auto]);
+        setAutomaton(auto);
+    }
+
     const setRulesGrids = (rulesGrids: RuleGrid[]) => {
         const rules = rulesGrids.map((ruleGrid) => RuleGrid.makeRule(ruleGrid));
         const auto = new Automaton();
         auto.setRules(rules);
         auto.updateParameters();
-        setAutomaton(auto);
+        setTheAutomaton(auto);
     };
 
     const addRules = (rules: Rule[]) => {
         const auto = new Automaton();
         auto.setRules(automaton.getRules().concat(rules));
         auto.updateParameters();
-        setAutomaton(auto);
+        setTheAutomaton(auto);
     };
 
     const initialConfiguration = Configuration.withSize(settings.nbCells);
@@ -64,6 +89,12 @@ export default function App() {
     return (
         <div className="App">
             <div className="top-section">
+                <button onClick={usePreviousAutomaton}  disabled={indexAutomaton === 0} >
+                    <span>Previous rules</span>
+                </button>
+                <button onClick={useNextAutomaton} disabled={indexAutomaton >= historyAutomaton.length-1}>
+                    <span>Next rules</span>
+                </button>
                 <div className="grille-interactive">
                     <EditGrid
                         grid={grid}
@@ -78,7 +109,7 @@ export default function App() {
                         setRulesGrid={setRulesGrids}
                         listeSignaux={signalsList}
                         automaton={automaton}
-                        setAutomaton={setAutomaton}
+                        setAutomaton={setTheAutomaton}
                         rules={automaton.getRules()}
                     />
                 </div>
