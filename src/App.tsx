@@ -47,8 +47,13 @@ export default function App() {
     }
 
     const setNewAutomaton = (auto: Automaton) => {
-        setHistoryAutomaton([...historyAutomaton, auto]);
-        setIndexAutomaton(historyAutomaton.length);
+        if (indexAutomaton < historyAutomaton.length-1) {
+            setHistoryAutomaton([...historyAutomaton.slice(0,indexAutomaton+1), auto]);
+        }
+        else {
+            setHistoryAutomaton([...historyAutomaton, auto]);
+        }
+        setIndexAutomaton(indexAutomaton+1);
     }
 
     const setRulesGrids = (rulesGrids: RuleGrid[]) => {
