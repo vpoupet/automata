@@ -126,7 +126,6 @@ export default function EditGrid({
             setOutput = new Set([...setOutput, ...ruleAndOutput.outputs]);
             newRules.push(...ruleAndOutput.rules);
         }
-        console.log('les nouvelles règles : ', newRules);
         for (let i = 0; i < ruleFromGrid.outputs.length; i++) {
             if (setOutput.has(ruleFromGrid.outputs[i])) {
                 ruleFromGrid.outputs.splice(i, 1);
@@ -199,7 +198,10 @@ export default function EditGrid({
                 <button onClick={applyRules}>
                     Appliquer règles sur la grille
                 </button>
-                <button onClick={modifyRule}>Adapter règles</button>
+                <button onClick={() => {
+                    modifyRule();
+                    removeAllSignals()
+                }}>Adapter règles</button>
             </div>
         </div>
     );

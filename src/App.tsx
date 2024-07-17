@@ -39,17 +39,16 @@ export default function App() {
     const [historyAutomaton, setHistoryAutomaton] = useState<Automaton[]>([new Automaton()]);
     const [indexAutomaton, setIndexAutomaton] = useState(0);
 
-    const changeIndexAutomaton = (index: number) => {
-        setIndexAutomaton(indexAutomaton + index);
-        setAutomaton(historyAutomaton[index]);
+    const changeIndexAutomaton = (addToindex: number) => {
+        if(indexAutomaton + addToindex < 0 || indexAutomaton + addToindex >= historyAutomaton.length) {
+            return;
+        }
+        setIndexAutomaton(indexAutomaton + addToindex);
     }
 
-    const setAutomaton = (auto: Automaton) => {
-        if (indexAutomaton < historyAutomaton.length - 1) {
-            historyAutomaton.splice(indexAutomaton+1);
-        }
-        setIndexAutomaton(indexAutomaton + 1);
+    const setNewAutomaton = (auto: Automaton) => {
         setHistoryAutomaton([...historyAutomaton, auto]);
+        setIndexAutomaton(historyAutomaton.length);
     }
 
     const setRulesGrids = (rulesGrids: RuleGrid[]) => {
@@ -57,14 +56,14 @@ export default function App() {
         const auto = new Automaton();
         auto.setRules(rules);
         auto.updateParameters();
-        setAutomaton(auto);
+        setNewAutomaton(auto);
     };
 
     const addRules = (rules: Rule[]) => {
         const auto = new Automaton();
         auto.setRules(historyAutomaton[indexAutomaton].getRules().concat(rules));
         auto.updateParameters();
-        setAutomaton(auto);
+        setNewAutomaton(auto);
     };
 
     const initialConfiguration = Configuration.withSize(settings.nbCells);
@@ -99,7 +98,7 @@ export default function App() {
                         setRulesGrid={setRulesGrids}
                         listeSignaux={signalsList}
                         automaton={historyAutomaton[indexAutomaton]}
-                        setAutomaton={setAutomaton}
+                        setAutomaton={setNewAutomaton}
                         rules={historyAutomaton[indexAutomaton].getRules()}
                     />
                 </div>
