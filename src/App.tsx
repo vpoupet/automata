@@ -82,13 +82,8 @@ export default function App() {
 
     return (
         <div className="App">
+            <h1> Outil de création d'automates cellulaires</h1>
             <div className="top-section">
-                <button onClick={() => changeIndexAutomaton(-1)}  disabled={indexAutomaton === 0} >
-                    <span>Previous rules</span>
-                </button>
-                <button onClick={() => changeIndexAutomaton(1)} disabled={indexAutomaton >= historyAutomaton.length-1}>
-                    <span>Next rules</span>
-                </button>
                 <div className="grille-interactive">
                     <EditGrid
                         grid={grid}
@@ -107,6 +102,13 @@ export default function App() {
                         rules={historyAutomaton[indexAutomaton].getRules()}
                     />
                 </div>
+                <button onClick={() => changeIndexAutomaton(-1)} disabled={indexAutomaton === 0}>
+                    <span>Previous rules</span>
+                </button>
+                <button onClick={() => changeIndexAutomaton(1)}
+                        disabled={indexAutomaton >= historyAutomaton.length - 1}>
+                    <span>Next rules</span>
+                </button>
                 <div className="gestion-signaux">
                     <SignalsList
                         listeSignaux={signalsList}

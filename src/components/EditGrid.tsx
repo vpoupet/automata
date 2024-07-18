@@ -164,7 +164,6 @@ export default function EditGrid({
     return (
         <div style={{display: "flex"}}>
             <div>
-                <h1>Grille Interactive</h1>
                 <div className="grid-container">
                     <InputsRow
                         inputs={grid.inputs}
