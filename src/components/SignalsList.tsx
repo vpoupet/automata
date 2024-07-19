@@ -168,7 +168,7 @@ export default function SignalsList({
         }
         setGrid(newGrid);
     }
-    
+
     function onDeleteSignal(index: number) {
         const signal = deleteSignal(index);
         if (signal) {
@@ -190,29 +190,39 @@ export default function SignalsList({
                                 onChange={(e) =>
                                     setEditSignalValue(e.target.value)
                                 }
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        handleUpdateSignal();
+                                    }
+                                }}
                             />
                         ) : (
                             Symbol.keyFor(signal)
                         )}
-                        <button onClick={() => handleEditSignal(idx, signal)}>
-                            Modifier
-                        </button>
+                        {editIndex !== idx && (
+                            <button
+                                onClick={() => handleEditSignal(idx, signal)}
+                            >
+                                Modifier
+                            </button>
+                        )}
                         <button onClick={() => onDeleteSignal(idx)}>
                             Supprimer
                         </button>
                     </li>
                 ))}
             </ul>
-            {editIndex !== null && (
-                <button onClick={handleUpdateSignal}>Sauvegarder</button>
-            )}
             <input
                 type="text"
                 value={newSignalValue}
                 onChange={(e) => setNewSignalValue(e.target.value)}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                        handleAddSignal();
+                    }
+                }}
                 placeholder="Ajouter un nouveau signal"
             />
-            <button onClick={handleAddSignal}>Ajouter</button>
         </div>
     );
 }
