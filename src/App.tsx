@@ -7,7 +7,7 @@ import RuleGrid from "./classes/RuleGrid.ts";
 import { Diagram } from "./components/Diagram.tsx";
 import SignalsList from "./components/SignalsList.tsx";
 import EditGrid from "./components/EditGrid.tsx";
-import RuleGridsList from "./components/ListeRegles.js";
+import RuleGridsList from "./components/RuleGridsList.js";
 import { Coordinates, SettingsInterface } from "./types.ts";
 import { Rule } from "./classes/Rule.ts";
 export default function App() {
