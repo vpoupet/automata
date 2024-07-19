@@ -20,7 +20,7 @@ type EditGridProps = {
     rulesGrid: RuleGrid[];
     setRulesGrid: (rulesGrid: RuleGrid[]) => void;
     automaton: Automaton;
-    setAutomaton: React.Dispatch<React.SetStateAction<Automaton>>;
+    setAutomaton: (automaton: Automaton) => void;
     rules: Rule[];
     listeSignaux: Signal[];
 };
@@ -81,7 +81,6 @@ export default function EditGrid({
         const newGrille = grid.clone();
         const conffromgrid = newGrille.getConfigurationFromGrid();
         automaton.setRules(reglesbools);
-        automaton.updateParameters();
         setAutomaton(automaton);
         const conf = automaton.makeDiagram(conffromgrid, grid.outputs.length);
         newGrille.setGridFromConfigurations(conf);

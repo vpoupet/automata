@@ -1,3 +1,4 @@
+import { Signal } from "../types.ts";
 import { Clause, Conjunction } from "./Clause.ts";
 import { Configuration } from "./Configuration.ts";
 import { Rule, RuleOutput } from "./Rule.ts";
@@ -17,14 +18,15 @@ export class Automaton {
      */
     maxFutureDepth: number;
 
-    constructor() {
-        this.rules = [];
+    constructor(rules: Rule[] = []) {
         this.minNeighbor = 0;
         this.maxNeighbor = 0;
         this.maxFutureDepth = 1;
+        this.rules = rules;
+        this.updateParameters();
     }
 
-    updateParameters() {
+    private updateParameters() {
         this.minNeighbor = Infinity;
         this.maxNeighbor = -Infinity;
         this.maxFutureDepth = 1;
@@ -42,7 +44,6 @@ export class Automaton {
         }
         if (this.minNeighbor === Infinity) this.minNeighbor = 0;
         if (this.maxNeighbor === -Infinity) this.maxNeighbor = 0;
-        return this;
     }
 
     setRules(rules: Rule[]): Automaton {
@@ -176,6 +177,13 @@ export class Automaton {
     getRules(): Rule[] {
         return this.rules;
     }
+
+    renameSignal(oldSignal: Signal, newSignal: Signal): Automaton {
+        return new Automaton(
+            this.rules.map((rule) => rule.renameSignal(oldSignal, newSignal))
+        );
+    }
+
     toString(): string {
         return this.rules.map((rule) => rule.toString()).join("\n");
     }

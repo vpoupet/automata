@@ -41,12 +41,14 @@ Mark:
         new Automaton().parseRules(initialRules)
     );
     const [settings, setSettings] = useState<SettingsInterface>({
+        gridRadius: 2,
+        gridNbFutureSteps: 3,
         nbCells: 40,
         nbSteps: 60,
         timeGoesUp: true,
     });
 
-    const initialConfiguration = new Configuration(settings.nbCells);
+    const initialConfiguration = Configuration.withSize(settings.nbCells);
     initialConfiguration.cells[0].addSignal(Symbol.for("Init"));
 
     return (

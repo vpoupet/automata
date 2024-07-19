@@ -10,9 +10,9 @@ interface DiagramProps {
     automaton: Automaton;
     initialConfiguration: Configuration;
     nbSteps: number;
-    gridRadius: number;
-    gridNbFutureSteps: number;
-    setGrid: React.Dispatch<React.SetStateAction<RuleGrid>>;
+    gridRadius?: number;
+    gridNbFutureSteps?: number;
+    setGrid?: React.Dispatch<React.SetStateAction<RuleGrid>>;
 }
 
 export function Diagram({
@@ -26,6 +26,10 @@ export function Diagram({
     const diagram = automaton.makeDiagram(initialConfiguration, nbSteps);
 
     function onClickCell(row: number, col: number): void {
+        if (!setGrid || !gridRadius || !gridNbFutureSteps) {
+            return;
+        }
+        
         const diagramRow = diagram[row].cells;
         const inputs = [];
         for (let i = col - gridRadius; i <= col + gridRadius; i++) {

@@ -46,29 +46,25 @@ export default function App() {
         setIndexAutomaton(indexAutomaton + addToindex);
     }
 
-    const setNewAutomaton = (auto: Automaton) => {
-        if (indexAutomaton < historyAutomaton.length-1) {
-            setHistoryAutomaton([...historyAutomaton.slice(0,indexAutomaton+1), auto]);
+    function setAutomaton(auto: Automaton) {
+        if (indexAutomaton < historyAutomaton.length - 1) {
+            setHistoryAutomaton([...historyAutomaton.slice(0, indexAutomaton + 1), auto]);
         }
         else {
             setHistoryAutomaton([...historyAutomaton, auto]);
         }
-        setIndexAutomaton(indexAutomaton+1);
+        setIndexAutomaton(indexAutomaton + 1);
     }
 
     const setRulesGrids = (rulesGrids: RuleGrid[]) => {
         const rules = rulesGrids.map((ruleGrid) => RuleGrid.makeRule(ruleGrid));
-        const auto = new Automaton();
-        auto.setRules(rules);
-        auto.updateParameters();
-        setNewAutomaton(auto);
+        const auto = new Automaton(rules);
+        setAutomaton(auto);
     };
 
     const addRules = (rules: Rule[]) => {
-        const auto = new Automaton();
-        auto.setRules(historyAutomaton[indexAutomaton].getRules().concat(rules));
-        auto.updateParameters();
-        setNewAutomaton(auto);
+        const auto = new Automaton(historyAutomaton[indexAutomaton].getRules().concat(rules));
+        setAutomaton(auto);
     };
 
     const initialConfiguration = Configuration.withSize(settings.nbCells);
@@ -98,7 +94,7 @@ export default function App() {
                         setRulesGrid={setRulesGrids}
                         listeSignaux={signalsList}
                         automaton={historyAutomaton[indexAutomaton]}
-                        setAutomaton={setNewAutomaton}
+                        setAutomaton={setAutomaton}
                         rules={historyAutomaton[indexAutomaton].getRules()}
                     />
                 </div>

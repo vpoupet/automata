@@ -66,8 +66,7 @@ export default function RuleGridsList({
     }
 
     function addRuleFromString(input = ""): void {
-        const auto = new Automaton();
-        auto.parseRules(input);
+        const auto = new Automaton().parseRules(input);
         const newSignalsList = [...signalsList];
         for (const rule of auto.getRules()) {
             for (const signal of rule.getSignals()) {
