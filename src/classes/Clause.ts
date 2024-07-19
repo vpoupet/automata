@@ -31,6 +31,8 @@ export abstract class Clause {
 
     abstract toDNF(): DNFClause;
 
+    abstract renameSignal(oldSignal: Signal, newSignal: Signal): Clause;
+
     private static readTokens(conditionTokens: string[]): Clause {
         const token = conditionTokens.shift();
         if (token === undefined) {
@@ -175,6 +177,14 @@ export class Literal extends Clause {
     toDNF(): DNFClause {
         return new Disjunction([new Conjunction([this.copy()])]) as DNFClause;
     }
+
+    renameSignal(oldSignal: Signal, newSignal: Signal): Clause {
+        if (this.signal === oldSignal) {
+            return new Literal(newSignal, this.position, this.sign);
+        } else {
+            return new Literal(this.signal, this.position, this.sign);
+        }
+    }
 }
 
 export class Negation extends Clause {
@@ -230,6 +240,10 @@ export class Negation extends Clause {
 
     toDNF(): DNFClause {
         return this.reduce().toDNF();
+    }
+
+    renameSignal(oldSignal: Signal, newSignal: Signal): Clause {
+        return new Negation(this.subclause.renameSignal(oldSignal, newSignal));
     }
 }
 
@@ -294,6 +308,14 @@ export class Conjunction extends Clause {
             return new Disjunction(clauses) as DNFClause;
         }, new Disjunction([new Conjunction([])]) as DNFClause);
     }
+
+    renameSignal(oldSignal: Signal, newSignal: Signal): Clause {
+        return new Conjunction(
+            this.subclauses.map((subclause) =>
+                subclause.renameSignal(oldSignal, newSignal)
+            )
+        );
+    }
 }
 
 /**
@@ -356,6 +378,14 @@ export class Disjunction extends Clause {
             }
             return new Conjunction(clauses) as CNFClause;
         }, new Conjunction([new Disjunction([])]) as CNFClause);
+    }
+
+    renameSignal(oldSignal: Signal, newSignal: Signal): Clause {
+        return new Disjunction(
+            this.subclauses.map((subclause) =>
+                subclause.renameSignal(oldSignal, newSignal)
+            )
+        );
     }
 }
 

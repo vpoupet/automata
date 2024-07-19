@@ -36,6 +36,14 @@ export class RuleOutput {
             this.futureStep === other.futureStep
         );
     }
+
+    renameSignal(oldSymbol: Signal, newSymbol: Signal): RuleOutput {
+        return new RuleOutput(
+            this.neighbor,
+            this.signal === oldSymbol ? newSymbol : this.signal,
+            this.futureStep
+        );
+    }
 }
 
 /**
@@ -74,6 +82,13 @@ export class Rule {
             signals.add(output.signal);
         }
         return signals;
+    }
+
+    renameSignal(oldSignal: Signal, newSignal: Signal): Rule {
+        return new Rule(
+            this.condition.renameSignal(oldSignal, newSignal),
+            this.outputs.map((output) => output.renameSignal(oldSignal, newSignal))
+        );
     }
 }
 
