@@ -7,16 +7,13 @@ import {Coordinates, Signal} from "../types.ts";
 import InputsRow from "./GridInputsRow.tsx";
 import GridOutputsRow from "./GridOutputsRow.tsx";
 import GridSignalsManager from "./GridSignalsManager.tsx";
+import {useState} from "react";
 
 type EditGridProps = {
     grid: RuleGrid;
     setGrid: (grid: RuleGrid) => void;
     nbFutureSteps: number;
     radius: number;
-    activeInputCells: number[];
-    setActiveInputCells: React.Dispatch<React.SetStateAction<number[]>>;
-    activeOutputCells: Coordinates[];
-    setActiveOutputCells: React.Dispatch<React.SetStateAction<Coordinates[]>>;
     rulesGrid: RuleGrid[];
     setRulesGrid: (rulesGrid: RuleGrid[]) => void;
     automaton: Automaton;
@@ -30,10 +27,6 @@ export default function EditGrid({
                                      setGrid,
                                      radius,
                                      nbFutureSteps,
-                                     activeInputCells,
-                                     setActiveInputCells,
-                                     activeOutputCells,
-                                     setActiveOutputCells,
                                      rulesGrid,
                                      setRulesGrid,
                                      automaton,
@@ -58,7 +51,10 @@ export default function EditGrid({
         const newGrid = RuleGrid.withSize(2 * radius + 1, nbFutureSteps);
         setGrid(newGrid);
     }
-
+    const [activeInputCells, setActiveInputCells] = useState<number[]>([]);
+    const [activeOutputCells, setActiveOutputCells] = useState<Coordinates[]>(
+        []
+    );
     function saveGridAsRule() {
         let hasOutputs = false;
         outer:

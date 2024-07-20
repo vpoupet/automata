@@ -25,10 +25,7 @@ export default function App() {
             settings.gridNbFutureSteps
         )
     );
-    const [activeInputCells, setActiveInputCells] = useState<number[]>([]);
-    const [activeOutputCells, setActiveOutputCells] = useState<Coordinates[]>(
-        []
-    );
+
 
     const [signalsList, setSignalsList] = useState([
         Symbol.for("Init"),
@@ -86,10 +83,6 @@ export default function App() {
                         setGrid={setGrid}
                         nbFutureSteps={settings.gridNbFutureSteps}
                         radius={settings.gridRadius}
-                        activeInputCells={activeInputCells}
-                        setActiveInputCells={setActiveInputCells}
-                        activeOutputCells={activeOutputCells}
-                        setActiveOutputCells={setActiveOutputCells}
                         rulesGrid={rulesGrid}
                         setRulesGrid={setRulesGrids}
                         listeSignaux={signalsList}
