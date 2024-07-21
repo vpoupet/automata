@@ -88,16 +88,8 @@ export default function App() {
                         listeSignaux={signalsList}
                         automaton={historyAutomaton[indexAutomaton]}
                         setAutomaton={setAutomaton}
-                        rules={historyAutomaton[indexAutomaton].getRules()}
                     />
                 </div>
-                <button onClick={() => changeIndexAutomaton(-1)} disabled={indexAutomaton === 0}>
-                    <span>Previous rules</span>
-                </button>
-                <button onClick={() => changeIndexAutomaton(1)}
-                        disabled={indexAutomaton >= historyAutomaton.length - 1}>
-                    <span>Next rules</span>
-                </button>
                 <div className="gestion-signaux">
                     <SignalsList
                         listeSignaux={signalsList}
@@ -108,6 +100,13 @@ export default function App() {
                         setRulesGrids={setRulesGrids}
                     />
                 </div>
+                <button onClick={() => changeIndexAutomaton(-1)} disabled={indexAutomaton === 0}>
+                    <span>Previous rules</span>
+                </button>
+                <button onClick={() => changeIndexAutomaton(1)}
+                        disabled={indexAutomaton >= historyAutomaton.length - 1}>
+                    <span>Next rules</span>
+                </button>
             </div>
             <div className="middle-section">
                 <div className="liste-regles">
