@@ -105,7 +105,6 @@ export default function App() {
                         setRulesGrid={setRulesGrids}
                         signalsList={signalsList}
                         automaton={historyAutomaton[indexAutomaton]}
-                        setAutomaton={setAutomaton}
                         rules={historyAutomaton[indexAutomaton].getRules()}
                         signalIndex={signalIndex}
                     />

@@ -22,7 +22,6 @@ type EditGridProps = {
     rulesGrid: RuleGrid[];
     setRulesGrid: (rulesGrid: RuleGrid[]) => void;
     automaton: Automaton;
-    setAutomaton: (automaton: Automaton) => void;
     rules: Rule[];
     signalsList: Signal[];
     signalIndex: { [key: string]: number };
@@ -36,7 +35,6 @@ export default function EditGrid({
     rulesGrid,
     setRulesGrid,
     automaton,
-    setAutomaton,
     rules: reglesbools,
     signalsList: listeSignaux,
     signalIndex,
@@ -82,8 +80,6 @@ export default function EditGrid({
         //todo : ajouter 1 seul "output" par règle ?
         const newGrille = grid.clone();
         const conffromgrid = newGrille.getConfigurationFromGrid();
-        automaton.setRules(reglesbools);
-        setAutomaton(automaton);
         const conf = automaton.makeDiagram(conffromgrid, grid.outputs.length);
         newGrille.setGridFromConfigurations(conf);
         setGrid(newGrille);
