@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import "./App.css";
 import { Automaton } from "./classes/Automaton.ts";
 import { Configuration } from "./classes/Configuration.ts";
@@ -36,16 +36,6 @@ export default function App() {
         new Automaton(),
     ]);
     const [indexAutomaton, setIndexAutomaton] = useState(0);
-    const signalIndex: { [key: string]: number } = useMemo(() => {
-        const res: { [key: string]: number } = {};
-        signalsList.forEach((signal, index) => {
-            const key = Symbol.keyFor(signal);
-            if (key !== undefined) {
-                res[key] = index;
-            }
-        });
-        return res;
-    }, [signalsList]);
 
     const changeIndexAutomaton = (addToindex: number) => {
         if (
@@ -107,7 +97,6 @@ export default function App() {
                         automaton={historyAutomaton[indexAutomaton]}
                         setAutomaton={setAutomaton}
                         rules={historyAutomaton[indexAutomaton].getRules()}
-                        signalIndex={signalIndex}
                     />
                 </div>
                 <button
@@ -144,7 +133,6 @@ export default function App() {
                         addRules={addRules}
                         signalsList={signalsList}
                         setSignalsList={setSignalsList}
-                        signalIndex={signalIndex}
                     />
                 </div>
             </div>
@@ -156,7 +144,7 @@ export default function App() {
                     gridRadius={settings.gridRadius}
                     gridNbFutureSteps={settings.gridNbFutureSteps}
                     setGrid={setGrid}
-                    signalIndex={signalIndex}
+                    signalsList={signalsList}
                 />
             </div>
         </div>

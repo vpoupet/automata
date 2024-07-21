@@ -14,7 +14,6 @@ type RuleGridsListProps = {
     addRules: (rules: Rule[]) => void;
     signalsList: Signal[];
     setSignalsList: (signalsList: Signal[]) => void;
-    signalIndex: { [key: string]: number };
 };
 
 export default function RuleGridsList({
@@ -26,7 +25,6 @@ export default function RuleGridsList({
     addRules,
     signalsList,
     setSignalsList,
-    signalIndex,
 }: RuleGridsListProps): JSX.Element {
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -104,7 +102,7 @@ export default function RuleGridsList({
                         onLoadRule={() => onLoadRule(index)}
                         onDeleteRule={() => onDeleteRule(index)}
                         onUpdateRule={() => onUpdateRule(index)}
-                        signalIndex={signalIndex}
+                        signalsList={signalsList}
                     />
                     {rules[index] !== null && rules[index] !== undefined
                         ? rules[index].toString()

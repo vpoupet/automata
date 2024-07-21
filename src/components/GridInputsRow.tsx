@@ -1,5 +1,5 @@
 import { InputCell } from "../classes/Cell.ts";
-import { Coordinates } from "../types.ts";
+import { Coordinates, Signal } from "../types.ts";
 import { DiagramCell } from "./Diagram.tsx";
 
 type InputsRowProps = {
@@ -7,7 +7,7 @@ type InputsRowProps = {
     activeInputCells: number[];
     setActiveInputCells: React.Dispatch<React.SetStateAction<number[]>>;
     setActiveOutputCells: React.Dispatch<React.SetStateAction<Coordinates[]>>;
-    signalIndex: { [key: string]: number };
+    signalsList: Signal[];
 };
 
 export default function GridInputsRow({
@@ -15,7 +15,7 @@ export default function GridInputsRow({
     activeInputCells,
     setActiveInputCells,
     setActiveOutputCells,
-    signalIndex,
+    signalsList,
 }: InputsRowProps): JSX.Element {
     function onClickCell(cellIndex: number, event: React.MouseEvent) {
         if (event.ctrlKey || event.metaKey) {
@@ -40,7 +40,7 @@ export default function GridInputsRow({
                     cell={cell}
                     onClick={(event) => onClickCell(index, event)}
                     className={activeInputCells.includes(index) ? "active" : ""}
-                    signalIndex={signalIndex}
+                    signalsList={signalsList}
                 />
             ))}
         </div>

@@ -25,7 +25,6 @@ type EditGridProps = {
     setAutomaton: (automaton: Automaton) => void;
     rules: Rule[];
     signalsList: Signal[];
-    signalIndex: { [key: string]: number };
 };
 
 export default function EditGrid({
@@ -37,9 +36,8 @@ export default function EditGrid({
     setRulesGrid,
     automaton,
     setAutomaton,
-    rules: reglesbools,
-    signalsList: listeSignaux,
-    signalIndex,
+    rules,
+    signalsList,
 }: EditGridProps): JSX.Element {
     function applyToActiveCells(f: (cell: Cell) => void) {
         const newGrid = grid.clone();
@@ -82,7 +80,7 @@ export default function EditGrid({
         //todo : ajouter 1 seul "output" par règle ?
         const newGrille = grid.clone();
         const conffromgrid = newGrille.getConfigurationFromGrid();
-        automaton.setRules(reglesbools);
+        automaton.setRules(rules);
         setAutomaton(automaton);
         const conf = automaton.makeDiagram(conffromgrid, grid.outputs.length);
         newGrille.setGridFromConfigurations(conf);
@@ -125,9 +123,9 @@ export default function EditGrid({
         const ruleFromGrid = RuleGrid.makeRule(grid.clone());
         const newRules: Rule[] = [];
         let setOutput: Set<RuleOutput> = new Set();
-        for (const regle of reglesbools) {
+        for (const rule of rules) {
             const ruleAndOutput = adaptRule(
-                regle as ConjunctionRule,
+                rule as ConjunctionRule,
                 ruleFromGrid
             );
             setOutput = new Set([...setOutput, ...ruleAndOutput.outputs]);
@@ -177,7 +175,7 @@ export default function EditGrid({
                         activeInputCells={activeInputCells}
                         setActiveInputCells={setActiveInputCells}
                         setActiveOutputCells={setActiveOutputCells}
-                        signalIndex={signalIndex}
+                        signalsList={signalsList}
                     />
                     {grid.outputs.map((row, rowIndex) => (
                         <GridOutputsRow
@@ -187,7 +185,7 @@ export default function EditGrid({
                             activeOutputCells={activeOutputCells}
                             setActiveInputCells={setActiveInputCells}
                             setActiveOutputCells={setActiveOutputCells}
-                            signalIndex={signalIndex}
+                            signalsList={signalsList}
                         />
                     ))}
                 </div>
@@ -199,7 +197,7 @@ export default function EditGrid({
                 <GridSignalsManager
                     activeSignals={activeSignals}
                     negatedSignals={negatedSignals}
-                    allSignals={listeSignaux}
+                    allSignals={signalsList}
                     applyToActiveCells={applyToActiveCells}
                 />
                 <button onClick={saveGridAsRule}>Ajouter règle</button>

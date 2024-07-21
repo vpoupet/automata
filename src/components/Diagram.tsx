@@ -5,6 +5,7 @@ import styles from "../style/Diagram.module.scss";
 
 import { Cell, InputCell } from "../classes/Cell.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
+import { Signal } from "../types.ts";
 
 interface DiagramProps {
     automaton: Automaton;
@@ -13,7 +14,7 @@ interface DiagramProps {
     gridRadius?: number;
     gridNbFutureSteps?: number;
     setGrid?: React.Dispatch<React.SetStateAction<RuleGrid>>;
-    signalIndex: { [key: string]: number };
+    signalsList: Signal[];
 }
 
 export function Diagram({
@@ -23,7 +24,7 @@ export function Diagram({
     gridRadius,
     gridNbFutureSteps,
     setGrid,
-    signalIndex,
+    signalsList,
 }: DiagramProps) {
     const diagram = automaton.makeDiagram(initialConfiguration, nbSteps);
 
@@ -59,7 +60,7 @@ export function Diagram({
                     onClickCell={(col: number) => {
                         onClickCell(row, col);
                     }}
-                    signalIndex={signalIndex}
+                    signalsList={signalsList}
                 />
             ))}
         </div>
@@ -69,13 +70,13 @@ export function Diagram({
 interface DiagramRowProps {
     config: Configuration;
     onClickCell?: (col: number) => void;
-    signalIndex: { [key: string]: number };
+    signalsList: Signal[];
 }
 
 export function DiagramRow({
     config,
     onClickCell,
-    signalIndex,
+    signalsList,
 }: DiagramRowProps) {
     return (
         <div className={styles.row}>
@@ -84,7 +85,7 @@ export function DiagramRow({
                     key={col}
                     cell={cell}
                     onClick={onClickCell && (() => onClickCell(col))}
-                    signalIndex={signalIndex}
+                    signalsList={signalsList}
                 />
             ))}
         </div>
@@ -95,14 +96,14 @@ interface DiagramCellProps {
     cell: Cell;
     onClick?: (event: React.MouseEvent) => void;
     className?: string;
-    signalIndex: { [key: string]: number };
+    signalsList: Signal[];
 }
 
 export function DiagramCell({
     cell,
     onClick,
     className,
-    signalIndex,
+    signalsList,
 }: DiagramCellProps) {
     const signalNames: string[] = [];
     if (cell instanceof InputCell) {
@@ -127,10 +128,12 @@ export function DiagramCell({
             onClick={onClick}
         >
             {[...cell.signals].map((signal) => {
-                const key = Symbol.keyFor(signal);
-                if (key !== undefined) {
-                    return <div key={key} className={`s${signalIndex[key]}`} />;
-                }
+                return (
+                    <div
+                        key={Symbol.keyFor(signal)}
+                        className={`s${signalsList.indexOf(signal)}`}
+                    />
+                );
             })}
         </div>
     );

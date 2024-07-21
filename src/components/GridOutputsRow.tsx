@@ -1,5 +1,5 @@
 import { Cell } from "../classes/Cell.ts";
-import { Coordinates } from "../types.ts";
+import { Coordinates, Signal } from "../types.ts";
 import { DiagramCell } from "./Diagram.tsx";
 
 type GridOutputsRowProps = {
@@ -8,7 +8,7 @@ type GridOutputsRowProps = {
     activeOutputCells: Coordinates[];
     setActiveInputCells: React.Dispatch<React.SetStateAction<number[]>>;
     setActiveOutputCells: React.Dispatch<React.SetStateAction<Coordinates[]>>;
-    signalIndex: { [key: string]: number };
+    signalsList: Signal[];
 };
 
 export default function GridOutputsRow({
@@ -17,7 +17,7 @@ export default function GridOutputsRow({
     activeOutputCells,
     setActiveInputCells,
     setActiveOutputCells,
-    signalIndex,
+    signalsList,
 }: GridOutputsRowProps): JSX.Element {
     function onClickCell(cellIndex: number, event: React.MouseEvent) {
         if (event.ctrlKey || event.metaKey) {
@@ -60,7 +60,7 @@ export default function GridOutputsRow({
                             ? "active"
                             : ""
                     }
-                    signalIndex={signalIndex}
+                    signalsList={signalsList}
                 />
             ))}
         </div>

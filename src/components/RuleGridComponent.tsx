@@ -1,6 +1,7 @@
 import { InputCell } from "../classes/Cell.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
 import "../style/Cell.scss";
+import { Signal } from "../types.ts";
 import { DiagramCell } from "./Diagram.tsx";
 
 type RuleGridComponentProps = {
@@ -8,7 +9,7 @@ type RuleGridComponentProps = {
     onDeleteRule: () => void;
     onUpdateRule: () => void;
     onLoadRule: () => void;
-    signalIndex: { [key: string]: number };
+    signalsList: Signal[];
 };
 
 export default function RuleGridComponent({
@@ -16,7 +17,7 @@ export default function RuleGridComponent({
     onDeleteRule,
     onUpdateRule,
     onLoadRule,
-    signalIndex,
+    signalsList,
 }: RuleGridComponentProps): JSX.Element {
     return (
         <div style={{ display: "inline-block" }}>
@@ -42,7 +43,7 @@ export default function RuleGridComponent({
                                     key={`${rowIndex + 1}-${colIndex}`}
                                     cell={cell}
                                     className=""
-                                    signalIndex={signalIndex}
+                                    signalsList={signalsList}
                                 />
                             ))}
                         </div>
@@ -66,7 +67,7 @@ export default function RuleGridComponent({
                                         )
                                     }
                                     className=""
-                                    signalIndex={signalIndex}
+                                    signalsList={signalsList}
                                 />
                             );
                         })}
