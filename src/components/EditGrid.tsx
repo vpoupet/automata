@@ -1,13 +1,18 @@
+import { useState } from "react";
 import { Automaton } from "../classes/Automaton.ts";
 import { Cell } from "../classes/Cell.ts";
-import {adaptRule, ConjunctionRule, Rule, RuleOutput} from "../classes/Rule.ts";
+import {
+    adaptRule,
+    ConjunctionRule,
+    Rule,
+    RuleOutput,
+} from "../classes/Rule.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
-import "../style/Cell.css";
-import {Coordinates, Signal} from "../types.ts";
+import "../style/Cell.scss";
+import { Coordinates, Signal } from "../types.ts";
 import InputsRow from "./GridInputsRow.tsx";
 import GridOutputsRow from "./GridOutputsRow.tsx";
 import GridSignalsManager from "./GridSignalsManager.tsx";
-import {useState} from "react";
 
 type EditGridProps = {
     grid: RuleGrid;
@@ -17,26 +22,32 @@ type EditGridProps = {
     rulesGrid: RuleGrid[];
     setRulesGrid: (rulesGrid: RuleGrid[]) => void;
     automaton: Automaton;
-    listeSignaux: Signal[];
+    setAutomaton: (automaton: Automaton) => void;
+    rules: Rule[];
+    signalsList: Signal[];
+    signalIndex: { [key: string]: number };
 };
 
 export default function EditGrid({
-                                     grid,
-                                     setGrid,
-                                     radius,
-                                     nbFutureSteps,
-                                     rulesGrid,
-                                     setRulesGrid,
-                                     automaton,
-                                     listeSignaux,
-                                 }: EditGridProps): JSX.Element {
+    grid,
+    setGrid,
+    radius,
+    nbFutureSteps,
+    rulesGrid,
+    setRulesGrid,
+    automaton,
+    setAutomaton,
+    rules: reglesbools,
+    signalsList: listeSignaux,
+    signalIndex,
+}: EditGridProps): JSX.Element {
     function applyToActiveCells(f: (cell: Cell) => void) {
         const newGrid = grid.clone();
         activeInputCells.forEach((col) => {
             const cell = newGrid.inputs[col];
             f(cell);
         });
-        activeOutputCells.forEach(({row, col}) => {
+        activeOutputCells.forEach(({ row, col }) => {
             const cell = newGrid.outputs[row][col];
             f(cell);
         });
@@ -53,15 +64,14 @@ export default function EditGrid({
     );
     function saveGridAsRule() {
         let hasOutputs = false;
-        outer:
-            for (const row of grid.outputs) {
-                for (const cell of row) {
-                    if (cell.signals.size > 0) {
-                        hasOutputs = true;
-                        break outer;
-                    }
+        outer: for (const row of grid.outputs) {
+            for (const cell of row) {
+                if (cell.signals.size > 0) {
+                    hasOutputs = true;
+                    break outer;
                 }
             }
+        }
         if (hasOutputs) {
             setRulesGrid([...rulesGrid, grid.clone()]);
         }
@@ -72,6 +82,8 @@ export default function EditGrid({
         //todo : ajouter 1 seul "output" par règle ?
         const newGrille = grid.clone();
         const conffromgrid = newGrille.getConfigurationFromGrid();
+        automaton.setRules(reglesbools);
+        setAutomaton(automaton);
         const conf = automaton.makeDiagram(conffromgrid, grid.outputs.length);
         newGrille.setGridFromConfigurations(conf);
         setGrid(newGrille);
@@ -88,9 +100,10 @@ export default function EditGrid({
                     //PAS BIEN : on prend pas en compte si une grid plus grande
                     if (literal.sign) {
                         ruleGrid.inputs[cellidx].signals.add(literal.signal);
-                    }
-                    else {
-                        ruleGrid.inputs[cellidx].negatedSignals.add(literal.signal);
+                    } else {
+                        ruleGrid.inputs[cellidx].negatedSignals.add(
+                            literal.signal
+                        );
                     }
                 }
             }
@@ -99,7 +112,9 @@ export default function EditGrid({
             for (let cellidx = 0; cellidx < grid.inputs.length; cellidx++) {
                 if (ruleOut.neighbor === cellidx - 2) {
                     //PAS BIEN : on prend pas en compte si une grid plus grande
-                    ruleGrid.outputs[ruleOut.futureStep-1][cellidx].signals.add(ruleOut.signal);
+                    ruleGrid.outputs[ruleOut.futureStep - 1][
+                        cellidx
+                    ].signals.add(ruleOut.signal);
                 }
             }
         }
@@ -107,11 +122,14 @@ export default function EditGrid({
     }
 
     function modifyRule() {
-        const ruleFromGrid =RuleGrid.makeRule(grid.clone()) ;
-        const newRules : Rule[] = [];
+        const ruleFromGrid = RuleGrid.makeRule(grid.clone());
+        const newRules: Rule[] = [];
         let setOutput: Set<RuleOutput> = new Set();
-        for (const regle of automaton.getRules()){
-            const ruleAndOutput = adaptRule(regle as ConjunctionRule , ruleFromGrid);
+        for (const regle of reglesbools) {
+            const ruleAndOutput = adaptRule(
+                regle as ConjunctionRule,
+                ruleFromGrid
+            );
             setOutput = new Set([...setOutput, ...ruleAndOutput.outputs]);
             newRules.push(...ruleAndOutput.rules);
         }
@@ -151,7 +169,7 @@ export default function EditGrid({
     });
 
     return (
-        <div style={{display: "flex"}}>
+        <div style={{ display: "flex" }}>
             <div>
                 <div className="grid-container">
                     <InputsRow
@@ -159,14 +177,17 @@ export default function EditGrid({
                         activeInputCells={activeInputCells}
                         setActiveInputCells={setActiveInputCells}
                         setActiveOutputCells={setActiveOutputCells}
+                        signalIndex={signalIndex}
                     />
                     {grid.outputs.map((row, rowIndex) => (
                         <GridOutputsRow
+                            key={rowIndex}
                             outputs={row}
                             rowIndex={rowIndex}
                             activeOutputCells={activeOutputCells}
                             setActiveInputCells={setActiveInputCells}
                             setActiveOutputCells={setActiveOutputCells}
+                            signalIndex={signalIndex}
                         />
                     ))}
                 </div>
@@ -185,10 +206,14 @@ export default function EditGrid({
                 <button onClick={applyRules}>
                     Appliquer règles sur la grille
                 </button>
-                <button onClick={() => {
-                    modifyRule();
-                    removeAllSignals()
-                }}>Adapter règles</button>
+                <button
+                    onClick={() => {
+                        modifyRule();
+                        removeAllSignals();
+                    }}
+                >
+                    Adapter règles
+                </button>
             </div>
         </div>
     );

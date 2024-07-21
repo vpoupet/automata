@@ -1,15 +1,15 @@
-import {useState} from "react";
+import { useMemo, useState } from "react";
 import "./App.css";
-import "./style/style.scss";
 import { Automaton } from "./classes/Automaton.ts";
 import { Configuration } from "./classes/Configuration.ts";
+import { Rule } from "./classes/Rule.ts";
 import RuleGrid from "./classes/RuleGrid.ts";
 import { Diagram } from "./components/Diagram.tsx";
-import SignalsList from "./components/SignalsList.tsx";
 import EditGrid from "./components/EditGrid.tsx";
 import RuleGridsList from "./components/RuleGridsList.js";
-import { Coordinates, SettingsInterface } from "./types.ts";
-import { Rule } from "./classes/Rule.ts";
+import SignalsList from "./components/SignalsList.tsx";
+import "./style/style.scss";
+import { SettingsInterface } from "./types.ts";
 export default function App() {
     const [settings] = useState<SettingsInterface>({
         gridRadius: 2,
@@ -26,28 +26,44 @@ export default function App() {
         )
     );
 
-
     const [signalsList, setSignalsList] = useState([
         Symbol.for("Init"),
         Symbol.for("s1"),
         Symbol.for("s2"),
     ]);
 
-    const [historyAutomaton, setHistoryAutomaton] = useState<Automaton[]>([new Automaton()]);
+    const [historyAutomaton, setHistoryAutomaton] = useState<Automaton[]>([
+        new Automaton(),
+    ]);
     const [indexAutomaton, setIndexAutomaton] = useState(0);
+    const signalIndex: { [key: string]: number } = useMemo(() => {
+        const res: { [key: string]: number } = {};
+        signalsList.forEach((signal, index) => {
+            const key = Symbol.keyFor(signal);
+            if (key !== undefined) {
+                res[key] = index;
+            }
+        });
+        return res;
+    }, [signalsList]);
 
     const changeIndexAutomaton = (addToindex: number) => {
-        if(indexAutomaton + addToindex < 0 || indexAutomaton + addToindex >= historyAutomaton.length) {
+        if (
+            indexAutomaton + addToindex < 0 ||
+            indexAutomaton + addToindex >= historyAutomaton.length
+        ) {
             return;
         }
         setIndexAutomaton(indexAutomaton + addToindex);
-    }
+    };
 
     function setAutomaton(auto: Automaton) {
         if (indexAutomaton < historyAutomaton.length - 1) {
-            setHistoryAutomaton([...historyAutomaton.slice(0, indexAutomaton + 1), auto]);
-        }
-        else {
+            setHistoryAutomaton([
+                ...historyAutomaton.slice(0, indexAutomaton + 1),
+                auto,
+            ]);
+        } else {
             setHistoryAutomaton([...historyAutomaton, auto]);
         }
         setIndexAutomaton(indexAutomaton + 1);
@@ -60,7 +76,9 @@ export default function App() {
     };
 
     const addRules = (rules: Rule[]) => {
-        const auto = new Automaton(historyAutomaton[indexAutomaton].getRules().concat(rules));
+        const auto = new Automaton(
+            historyAutomaton[indexAutomaton].getRules().concat(rules)
+        );
         setAutomaton(auto);
     };
 
@@ -85,11 +103,25 @@ export default function App() {
                         radius={settings.gridRadius}
                         rulesGrid={rulesGrid}
                         setRulesGrid={setRulesGrids}
-                        listeSignaux={signalsList}
+                        signalsList={signalsList}
                         automaton={historyAutomaton[indexAutomaton]}
                         setAutomaton={setAutomaton}
+                        rules={historyAutomaton[indexAutomaton].getRules()}
+                        signalIndex={signalIndex}
                     />
                 </div>
+                <button
+                    onClick={() => changeIndexAutomaton(-1)}
+                    disabled={indexAutomaton === 0}
+                >
+                    <span>Previous rules</span>
+                </button>
+                <button
+                    onClick={() => changeIndexAutomaton(1)}
+                    disabled={indexAutomaton >= historyAutomaton.length - 1}
+                >
+                    <span>Next rules</span>
+                </button>
                 <div className="gestion-signaux">
                     <SignalsList
                         listeSignaux={signalsList}
@@ -100,13 +132,6 @@ export default function App() {
                         setRulesGrids={setRulesGrids}
                     />
                 </div>
-                <button onClick={() => changeIndexAutomaton(-1)} disabled={indexAutomaton === 0}>
-                    <span>Previous rules</span>
-                </button>
-                <button onClick={() => changeIndexAutomaton(1)}
-                        disabled={indexAutomaton >= historyAutomaton.length - 1}>
-                    <span>Next rules</span>
-                </button>
             </div>
             <div className="middle-section">
                 <div className="liste-regles">
@@ -119,6 +144,7 @@ export default function App() {
                         addRules={addRules}
                         signalsList={signalsList}
                         setSignalsList={setSignalsList}
+                        signalIndex={signalIndex}
                     />
                 </div>
             </div>
@@ -130,6 +156,7 @@ export default function App() {
                     gridRadius={settings.gridRadius}
                     gridNbFutureSteps={settings.gridNbFutureSteps}
                     setGrid={setGrid}
+                    signalIndex={signalIndex}
                 />
             </div>
         </div>
