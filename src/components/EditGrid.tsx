@@ -22,7 +22,6 @@ type EditGridProps = {
     rulesGrid: RuleGrid[];
     setRulesGrid: (rulesGrid: RuleGrid[]) => void;
     automaton: Automaton;
-    setAutomaton: (automaton: Automaton) => void;
     rules: Rule[];
     signalsList: Signal[];
 };
