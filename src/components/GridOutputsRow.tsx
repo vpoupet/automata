@@ -8,6 +8,7 @@ type GridOutputsRowProps = {
     activeOutputCells: Coordinates[];
     setActiveInputCells: React.Dispatch<React.SetStateAction<number[]>>;
     setActiveOutputCells: React.Dispatch<React.SetStateAction<Coordinates[]>>;
+    signalIndex: { [key: string]: number };
 };
 
 export default function GridOutputsRow({
@@ -16,12 +17,21 @@ export default function GridOutputsRow({
     activeOutputCells,
     setActiveInputCells,
     setActiveOutputCells,
+    signalIndex,
 }: GridOutputsRowProps): JSX.Element {
     function onClickCell(cellIndex: number, event: React.MouseEvent) {
         if (event.ctrlKey || event.metaKey) {
-            if (activeOutputCells.some((coords) => coords.row === rowIndex && coords.col === cellIndex)) {
+            if (
+                activeOutputCells.some(
+                    (coords) =>
+                        coords.row === rowIndex && coords.col === cellIndex
+                )
+            ) {
                 setActiveOutputCells(
-                    activeOutputCells.filter((coords) => coords.row !== rowIndex || coords.col !== cellIndex)
+                    activeOutputCells.filter(
+                        (coords) =>
+                            coords.row !== rowIndex || coords.col !== cellIndex
+                    )
                 );
             } else {
                 setActiveOutputCells([
@@ -44,11 +54,13 @@ export default function GridOutputsRow({
                     onClick={(event) => onClickCell(index, event)}
                     className={
                         activeOutputCells.some(
-                            (cell) => cell.row === rowIndex && cell.col === index
+                            (cell) =>
+                                cell.row === rowIndex && cell.col === index
                         )
                             ? "active"
                             : ""
                     }
+                    signalIndex={signalIndex}
                 />
             ))}
         </div>

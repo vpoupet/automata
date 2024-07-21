@@ -7,6 +7,7 @@ type InputsRowProps = {
     activeInputCells: number[];
     setActiveInputCells: React.Dispatch<React.SetStateAction<number[]>>;
     setActiveOutputCells: React.Dispatch<React.SetStateAction<Coordinates[]>>;
+    signalIndex: { [key: string]: number };
 };
 
 export default function GridInputsRow({
@@ -14,12 +15,14 @@ export default function GridInputsRow({
     activeInputCells,
     setActiveInputCells,
     setActiveOutputCells,
+    signalIndex,
 }: InputsRowProps): JSX.Element {
-
     function onClickCell(cellIndex: number, event: React.MouseEvent) {
         if (event.ctrlKey || event.metaKey) {
             if (activeInputCells.includes(cellIndex)) {
-                setActiveInputCells(activeInputCells.filter((i) => i !== cellIndex));
+                setActiveInputCells(
+                    activeInputCells.filter((i) => i !== cellIndex)
+                );
             } else {
                 setActiveInputCells([...activeInputCells, cellIndex]);
             }
@@ -33,11 +36,12 @@ export default function GridInputsRow({
         <div className="grid-row">
             {inputs.map((cell, index) => (
                 <DiagramCell
-                key={index}
-                cell={cell}
-                onClick={(event) => onClickCell(index, event)}
-                className={activeInputCells.includes(index) ? "active" : ""}
-            />
+                    key={index}
+                    cell={cell}
+                    onClick={(event) => onClickCell(index, event)}
+                    className={activeInputCells.includes(index) ? "active" : ""}
+                    signalIndex={signalIndex}
+                />
             ))}
         </div>
     );
