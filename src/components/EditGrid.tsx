@@ -22,7 +22,6 @@ type EditGridProps = {
     rulesGrid: RuleGrid[];
     setRulesGrid: (rulesGrid: RuleGrid[]) => void;
     automaton: Automaton;
-    rules: Rule[];
     signalsList: Signal[];
 };
 
@@ -34,8 +33,6 @@ export default function EditGrid({
     rulesGrid,
     setRulesGrid,
     automaton,
-    setAutomaton,
-    rules,
     signalsList,
 }: EditGridProps): JSX.Element {
     function applyToActiveCells(f: (cell: Cell) => void) {
@@ -79,8 +76,6 @@ export default function EditGrid({
         //todo : ajouter 1 seul "output" par règle ?
         const newGrille = grid.clone();
         const conffromgrid = newGrille.getConfigurationFromGrid();
-        automaton.setRules(rules);
-        setAutomaton(automaton);
         const conf = automaton.makeDiagram(conffromgrid, grid.outputs.length);
         newGrille.setGridFromConfigurations(conf);
         setGrid(newGrille);
@@ -122,7 +117,7 @@ export default function EditGrid({
         const ruleFromGrid = RuleGrid.makeRule(grid.clone());
         const newRules: Rule[] = [];
         let setOutput: Set<RuleOutput> = new Set();
-        for (const rule of rules) {
+        for (const rule of automaton.getRules()) {
             const ruleAndOutput = adaptRule(
                 rule as ConjunctionRule,
                 ruleFromGrid
