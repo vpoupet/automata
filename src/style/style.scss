@@ -1,31 +1,8 @@
-.Init {
-    background-image: url(../assets/images/states/state1.svg);
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
-
-.s1 {
-    background-image: url(../assets/images/states/state2.svg);
-}
-
-.s2 {
-    background-image: url(../assets/images/states/state3.svg);
-}
-
-.Rebound {
-    background-image: url(../assets/images/states/state4.svg);
-}
-
-.HalfSlope {
-    background-image: url(../assets/images/states/state5.svg);
-}
-
-.Vertical {
-    background-image: url(../assets/images/states/state6.svg);
-}
-
-.Horizontal {
-    background-image: url(../assets/images/states/state7.svg);
-}
-
 
 /* Tooltip container */
 [data-tooltip] {

@@ -107,8 +107,8 @@ export function DiagramCell({
 }: DiagramCellProps) {
     const signalNames: string[] = [];
     if (cell instanceof InputCell) {
-        for (const negsign of cell.negatedSignals) {
-            const signalName = "!" + negsign.description;
+        for (const signal of cell.negatedSignals) {
+            const signalName = "!" + signal.description;
             signalNames.push(signalName);
         }
     }
@@ -127,6 +127,15 @@ export function DiagramCell({
             }
             onClick={onClick}
         >
+            {cell instanceof InputCell &&
+                [...cell.negatedSignals].map((signal) => {
+                    return (
+                        <div
+                            key={"!" + Symbol.keyFor(signal)}
+                            className={`s${signalsList.indexOf(signal)} neg`}
+                        />
+                    );
+                })}
             {[...cell.signals].map((signal) => {
                 return (
                     <div
