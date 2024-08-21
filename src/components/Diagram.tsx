@@ -1,7 +1,6 @@
 import { Automaton } from "../classes/Automaton";
 import { Configuration } from "../classes/Configuration";
 import "../style/Cell.scss";
-import styles from "../style/Diagram.module.scss";
 
 import { Cell, InputCell } from "../classes/Cell.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
@@ -15,6 +14,7 @@ interface DiagramProps {
     gridNbFutureSteps?: number;
     setGrid?: React.Dispatch<React.SetStateAction<RuleGrid>>;
     signalsList: Signal[];
+    hiddenSignalsSet?: Set<Signal>;
 }
 
 export function Diagram({
@@ -25,6 +25,7 @@ export function Diagram({
     gridNbFutureSteps,
     setGrid,
     signalsList,
+    hiddenSignalsSet,
 }: DiagramProps) {
     const diagram = automaton.makeDiagram(initialConfiguration, nbSteps);
 
@@ -52,7 +53,7 @@ export function Diagram({
     }
 
     return (
-        <div className={styles.diagram}>
+        <div className="w-full flex flex-col justify-center align-middle">
             {diagram.reverse().map((config, row) => (
                 <DiagramRow
                     key={row}
@@ -61,6 +62,7 @@ export function Diagram({
                         onClickCell(row, col);
                     }}
                     signalsList={signalsList}
+                    hiddenSignalsSet={hiddenSignalsSet}
                 />
             ))}
         </div>
@@ -71,21 +73,24 @@ interface DiagramRowProps {
     config: Configuration;
     onClickCell?: (col: number) => void;
     signalsList: Signal[];
+    hiddenSignalsSet?: Set<Signal>;
 }
 
 export function DiagramRow({
     config,
     onClickCell,
     signalsList,
+    hiddenSignalsSet,
 }: DiagramRowProps) {
     return (
-        <div className={styles.row}>
+        <div className="w-full flex flex-row">
             {config.cells.map((cell, col) => (
                 <DiagramCell
                     key={col}
                     cell={cell}
                     onClick={onClickCell && (() => onClickCell(col))}
                     signalsList={signalsList}
+                    hiddenSignalsSet={hiddenSignalsSet}
                 />
             ))}
         </div>
@@ -95,15 +100,17 @@ export function DiagramRow({
 interface DiagramCellProps {
     cell: Cell;
     onClick?: (event: React.MouseEvent) => void;
-    className?: string;
+    isActive?: boolean;
     signalsList: Signal[];
+    hiddenSignalsSet?: Set<Signal>;
 }
 
 export function DiagramCell({
     cell,
     onClick,
-    className,
+    isActive = false,
     signalsList,
+    hiddenSignalsSet = new Set(),
 }: DiagramCellProps) {
     const signalNames: string[] = [];
     if (cell instanceof InputCell) {
@@ -121,29 +128,35 @@ export function DiagramCell({
 
     return (
         <div
-            className={`cell ${className}`}
+            className={`cell h-8 w-8 border border-gray-400 relative ${isActive ? "bg-gray-300" : "bg-white"}`}
             data-tooltip={
                 signalNames.length > 0 ? signalNames.join(" ") : undefined
             }
             onClick={onClick}
         >
             {cell instanceof InputCell &&
-                [...cell.negatedSignals].map((signal) => {
+                [...cell.negatedSignals]
+                    .filter((s) => !hiddenSignalsSet.has(s))
+                    .map((signal) => {
+                        return (
+                            <div
+                                key={"!" + Symbol.keyFor(signal)}
+                                className={`s${signalsList.indexOf(
+                                    signal
+                                )} neg`}
+                            />
+                        );
+                    })}
+            {[...cell.signals]
+                .filter((s) => !hiddenSignalsSet.has(s))
+                .map((signal) => {
                     return (
                         <div
-                            key={"!" + Symbol.keyFor(signal)}
-                            className={`s${signalsList.indexOf(signal)} neg`}
+                            key={Symbol.keyFor(signal)}
+                            className={`s${signalsList.indexOf(signal)}`}
                         />
                     );
                 })}
-            {[...cell.signals].map((signal) => {
-                return (
-                    <div
-                        key={Symbol.keyFor(signal)}
-                        className={`s${signalsList.indexOf(signal)}`}
-                    />
-                );
-            })}
         </div>
     );
 }

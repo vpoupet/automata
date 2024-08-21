@@ -13,6 +13,7 @@ import { Coordinates, Signal } from "../types.ts";
 import InputsRow from "./GridInputsRow.tsx";
 import GridOutputsRow from "./GridOutputsRow.tsx";
 import GridSignalsManager from "./GridSignalsManager.tsx";
+import { Button } from "./Button.tsx";
 
 type EditGridProps = {
     grid: RuleGrid;
@@ -72,46 +73,14 @@ export default function EditGrid({
         removeAllSignals();
     }
 
-    function applyRules() {
-        //todo : ajouter 1 seul "output" par règle ?
-        const newGrille = grid.clone();
-        const conffromgrid = newGrille.getConfigurationFromGrid();
-        const conf = automaton.makeDiagram(conffromgrid, grid.outputs.length);
-        newGrille.setGridFromConfigurations(conf);
-        setGrid(newGrille);
-    }
-
-    function getRuleGrid(rule: Rule): RuleGrid {
-        const ruleGrid: RuleGrid = RuleGrid.withSize(
-            grid.inputs.length,
-            grid.outputs.length
-        );
-        for (const literal of rule.condition.getLiterals()) {
-            for (let cellidx = 0; cellidx < grid.inputs.length; cellidx++) {
-                if (literal.position === cellidx - 2) {
-                    //PAS BIEN : on prend pas en compte si une grid plus grande
-                    if (literal.sign) {
-                        ruleGrid.inputs[cellidx].signals.add(literal.signal);
-                    } else {
-                        ruleGrid.inputs[cellidx].negatedSignals.add(
-                            literal.signal
-                        );
-                    }
-                }
-            }
-        }
-        for (const ruleOut of rule.outputs) {
-            for (let cellidx = 0; cellidx < grid.inputs.length; cellidx++) {
-                if (ruleOut.neighbor === cellidx - 2) {
-                    //PAS BIEN : on prend pas en compte si une grid plus grande
-                    ruleGrid.outputs[ruleOut.futureStep - 1][
-                        cellidx
-                    ].signals.add(ruleOut.signal);
-                }
-            }
-        }
-        return ruleGrid;
-    }
+    // function applyRules() {
+    //     //todo : ajouter 1 seul "output" par règle ?
+    //     const newGrille = grid.clone();
+    //     const conffromgrid = newGrille.getConfigurationFromGrid();
+    //     const conf = automaton.makeDiagram(conffromgrid, grid.outputs.length);
+    //     newGrille.setGridFromConfigurations(conf);
+    //     setGrid(newGrille);
+    // }
 
     function modifyRule() {
         const ruleFromGrid = RuleGrid.makeRule(grid.clone());
@@ -134,7 +103,12 @@ export default function EditGrid({
         if (ruleFromGrid.outputs.length > 0) {
             newRules.push(ruleFromGrid);
         }
-        setRulesGrid(newRules.map(getRuleGrid));
+        // setRulesGrid(newRules.map(getRuleGrid));
+        setRulesGrid(
+            newRules.map((rule) =>
+                RuleGrid.makeGridFromRule(rule, radius, nbFutureSteps)
+            )
+        );
     }
 
     // Make list of active and negated signals on the active cells
@@ -161,52 +135,50 @@ export default function EditGrid({
     });
 
     return (
-        <div style={{ display: "flex" }}>
-            <div>
-                <div className="grid-container">
-                    <InputsRow
-                        inputs={grid.inputs}
-                        activeInputCells={activeInputCells}
+        <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col-reverse w-fit">
+                <InputsRow
+                    inputs={grid.inputs}
+                    activeInputCells={activeInputCells}
+                    setActiveInputCells={setActiveInputCells}
+                    setActiveOutputCells={setActiveOutputCells}
+                    signalsList={signalsList}
+                />
+                {grid.outputs.map((row, rowIndex) => (
+                    <GridOutputsRow
+                        key={rowIndex}
+                        outputs={row}
+                        rowIndex={rowIndex}
+                        activeOutputCells={activeOutputCells}
                         setActiveInputCells={setActiveInputCells}
                         setActiveOutputCells={setActiveOutputCells}
                         signalsList={signalsList}
                     />
-                    {grid.outputs.map((row, rowIndex) => (
-                        <GridOutputsRow
-                            key={rowIndex}
-                            outputs={row}
-                            rowIndex={rowIndex}
-                            activeOutputCells={activeOutputCells}
-                            setActiveInputCells={setActiveInputCells}
-                            setActiveOutputCells={setActiveOutputCells}
-                            signalsList={signalsList}
-                        />
-                    ))}
-                </div>
-                <div>
-                    <button onClick={removeAllSignals}>
-                        Supprimer tous les signaux de la grille
-                    </button>
-                </div>
-                <GridSignalsManager
-                    activeSignals={activeSignals}
-                    negatedSignals={negatedSignals}
-                    allSignals={signalsList}
-                    applyToActiveCells={applyToActiveCells}
-                />
-                <button onClick={saveGridAsRule}>Ajouter règle</button>
-                <button onClick={applyRules}>
+                ))}
+            </div>
+            <div className="flex gap-2">
+                <Button variant="secondary" onClick={removeAllSignals}>
+                    Effacer
+                </Button>
+                <Button onClick={saveGridAsRule}>Ajouter règle</Button>
+                {/* <Button onClick={applyRules}>
                     Appliquer règles sur la grille
-                </button>
-                <button
+                </Button> */}
+                <Button
                     onClick={() => {
                         modifyRule();
                         removeAllSignals();
                     }}
                 >
                     Adapter règles
-                </button>
+                </Button>
             </div>
+            <GridSignalsManager
+                activeSignals={activeSignals}
+                negatedSignals={negatedSignals}
+                allSignals={signalsList}
+                applyToActiveCells={applyToActiveCells}
+            />
         </div>
     );
 }

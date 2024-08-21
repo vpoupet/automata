@@ -1,6 +1,9 @@
 import { Cell } from "../classes/Cell";
 import { Signal } from "../types";
 import { ChangeEvent } from "react";
+import { Button } from "./Button";
+import { MdBackspace } from "react-icons/md";
+import { Heading } from "./Heading";
 
 type GridSignalsManagerProps = {
     activeSignals: Set<Signal>;
@@ -43,18 +46,19 @@ export default function GridSignalsManager({
 
     return (
         <div>
-            <h2>Gérer les signaux</h2>
+            <Heading level={2}>Gérer les signaux</Heading>
             <div>
                 <label>
-                    <button
+                    <Button
+                        variant="secondary"
                         onClick={() =>
                             applyToActiveCells((c: Cell) => {
                                 c.removeAllSignals();
                             })
                         }
                     >
-                        Enlever tous les signaux
-                    </button>
+                        <MdBackspace />
+                    </Button>
                 </label>
             </div>
             {allSignals.map((signal) => (

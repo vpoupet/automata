@@ -39,7 +39,7 @@ export default function GridInputsRow({
                     key={index}
                     cell={cell}
                     onClick={(event) => onClickCell(index, event)}
-                    className={activeInputCells.includes(index) ? "active" : ""}
+                    isActive={activeInputCells.includes(index)}
                     signalsList={signalsList}
                 />
             ))}

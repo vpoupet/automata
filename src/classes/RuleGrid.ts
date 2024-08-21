@@ -170,6 +170,11 @@ class RuleGrid {
         const ruleOutputs = rule.outputs;
         ruleOutputs.forEach((ruleOutput) => {
             const row = ruleOutput.futureStep - 1;
+            if (row < 0 || row >= futureStep) {
+                // ignore outputs out of the grid (not optimal)
+                // TODO: find better solution?
+                return;
+            }
             const col = ruleOutput.neighbor + radius;
             grid.outputs[row][col].signals.add(ruleOutput.signal);
         });

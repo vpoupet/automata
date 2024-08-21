@@ -1,10 +1,15 @@
 import React, { useState } from "react";
 import { Signal } from "../types";
 import RuleGrid from "../classes/RuleGrid";
+import { Button } from "./Button";
+import { MdDelete, MdEdit } from "react-icons/md";
+import { Heading } from "./Heading";
 
 type SignalsListProps = {
-    listeSignaux: Signal[];
-    setListeSignaux: React.Dispatch<React.SetStateAction<Signal[]>>;
+    signalsList: Signal[];
+    setSignalsList: React.Dispatch<React.SetStateAction<Signal[]>>;
+    hiddenSignalsSet: Set<Signal>;
+    setHiddenSignalsSet: React.Dispatch<React.SetStateAction<Set<Signal>>>;
     grid: RuleGrid;
     setGrid: React.Dispatch<React.SetStateAction<RuleGrid>>;
     rulesGrids: RuleGrid[];
@@ -12,8 +17,10 @@ type SignalsListProps = {
 };
 
 export default function SignalsList({
-    listeSignaux,
-    setListeSignaux,
+    signalsList,
+    setSignalsList,
+    hiddenSignalsSet,
+    setHiddenSignalsSet,
     grid,
     setGrid,
     rulesGrids,
@@ -47,27 +54,27 @@ export default function SignalsList({
     };
 
     function onAddSignal(signalValue: Signal) {
-        if (listeSignaux.includes(signalValue)) {
+        if (signalsList.includes(signalValue)) {
             alert(`Le signal ${signalValue.description} existe déjà.`);
             return;
         }
-        setListeSignaux((prev) => [...prev, signalValue]);
+        setSignalsList((prev) => [...prev, signalValue]);
     }
 
     function updateSignal(
         index: number,
         newValue: Signal
     ): { oldValue: Signal | null; newValue: Signal | null } {
-        const oldValue = listeSignaux[index];
+        const oldValue = signalsList[index];
 
         if (
-            listeSignaux.some((signal, i) => signal === newValue && i !== index)
+            signalsList.some((signal, i) => signal === newValue && i !== index)
         ) {
             alert(`Le signal ${newValue.description} existe déjà.`);
             return { oldValue: null, newValue: null };
         }
 
-        setListeSignaux((prev) =>
+        setSignalsList((prev) =>
             prev.map((signal, i) => (i === index ? newValue : signal))
         );
 
@@ -126,8 +133,8 @@ export default function SignalsList({
     }
 
     function deleteSignal(index: number): Signal | undefined {
-        const signal = listeSignaux[index];
-        setListeSignaux((prev) => prev.filter((_, i) => i !== index));
+        const signal = signalsList[index];
+        setSignalsList((prev) => prev.filter((_, i) => i !== index));
         return signal;
     }
 
@@ -177,52 +184,95 @@ export default function SignalsList({
         }
     }
 
+    function setSignalVisible(signal: Signal, isVisible: boolean) {
+        const newHiddenSignalsSet = new Set(hiddenSignalsSet);
+        if (isVisible) {
+            newHiddenSignalsSet.delete(signal);
+        } else {
+            newHiddenSignalsSet.add(signal);
+        }
+        setHiddenSignalsSet(newHiddenSignalsSet);
+    }
+
+    function toggleAllSignals() {
+        if (hiddenSignalsSet.size === 0) {
+            setHiddenSignalsSet(new Set(signalsList));
+        } else {
+            setHiddenSignalsSet(new Set());
+        }
+    }
+
     return (
         <div>
-            <h2>Liste des signaux</h2>
-            <ul>
-                {listeSignaux.map((signal, idx) => (
-                    <li key={idx}>
-                        {editIndex === idx ? (
+            <Heading level={2}>Liste des signaux</Heading>
+            <div className="flex flex-col gap-1">
+                <Button onClick={toggleAllSignals} variant="secondary">Toggle</Button>
+                {signalsList.map((signal, idx) => (
+                    <div key={idx} className="flex justify-between">
+                        <span className="flex gap-2">
                             <input
-                                type="text"
-                                value={editSignalValue}
-                                onChange={(e) =>
-                                    setEditSignalValue(e.target.value)
+                                type="checkbox"
+                                onChange={(event) =>
+                                    setSignalVisible(
+                                        signal,
+                                        event.target.checked
+                                    )
                                 }
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                        handleUpdateSignal();
-                                    }
-                                }}
+                                checked={!hiddenSignalsSet.has(signal)}
                             />
-                        ) : (
-                            Symbol.keyFor(signal)
-                        )}
-                        {editIndex !== idx && (
-                            <button
-                                onClick={() => handleEditSignal(idx, signal)}
+                            <span className="cell">
+                                <span className={`s${idx}`}></span>
+                            </span>
+                            {editIndex === idx ? (
+                                <input
+                                    type="text"
+                                    value={editSignalValue}
+                                    onChange={(e) =>
+                                        setEditSignalValue(e.target.value)
+                                    }
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            handleUpdateSignal();
+                                        }
+                                    }}
+                                />
+                            ) : (
+                                Symbol.keyFor(signal)
+                            )}
+                        </span>
+                        <span className="flex gap-2">
+                            {editIndex !== idx && (
+                                <Button
+                                    variant="secondary"
+                                    onClick={() =>
+                                        handleEditSignal(idx, signal)
+                                    }
+                                >
+                                    <MdEdit />
+                                </Button>
+                            )}
+                            <Button
+                                variant="secondary"
+                                onClick={() => onDeleteSignal(idx)}
                             >
-                                Modifier
-                            </button>
-                        )}
-                        <button onClick={() => onDeleteSignal(idx)}>
-                            Supprimer
-                        </button>
-                    </li>
+                                <MdDelete />
+                            </Button>
+                        </span>
+                    </div>
                 ))}
-            </ul>
-            <input
-                type="text"
-                value={newSignalValue}
-                onChange={(e) => setNewSignalValue(e.target.value)}
-                onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                        handleAddSignal();
-                    }
-                }}
-                placeholder="Ajouter un nouveau signal"
-            />
+                <input
+                    type="text"
+                    className="w-full border border-gray-400 p-2"
+                    value={newSignalValue}
+                    onChange={(e) => setNewSignalValue(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                            handleAddSignal();
+                        }
+                    }}
+                    placeholder="Ajouter un nouveau signal"
+                />
+            </div>
         </div>
     );
 }

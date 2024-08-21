@@ -52,14 +52,10 @@ export default function GridOutputsRow({
                     key={index}
                     cell={cell}
                     onClick={(event) => onClickCell(index, event)}
-                    className={
-                        activeOutputCells.some(
-                            (cell) =>
-                                cell.row === rowIndex && cell.col === index
-                        )
-                            ? "active"
-                            : ""
-                    }
+                    isActive={activeOutputCells.some(
+                        (coords) =>
+                            coords.row === rowIndex && coords.col === index
+                    )}
                     signalsList={signalsList}
                 />
             ))}

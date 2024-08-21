@@ -1,9 +1,11 @@
 import { useRef } from "react";
 import { Automaton } from "../classes/Automaton.ts";
-import { ConjunctionRule, Rule } from "../classes/Rule.ts";
+import { ConjunctionRule, mirror, Rule } from "../classes/Rule.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
 import { Signal } from "../types.ts";
 import RuleGridComponent from "./RuleGridComponent.tsx";
+import { Button } from "./Button.tsx";
+import { Heading } from "./Heading.tsx";
 
 type RuleGridsListProps = {
     grid: RuleGrid;
@@ -12,6 +14,7 @@ type RuleGridsListProps = {
     setRulesGrids: (rulesGrids: RuleGrid[]) => void;
     rules: Rule[];
     addRules: (rules: Rule[]) => void;
+    clearRules: () => void;
     signalsList: Signal[];
     setSignalsList: (signalsList: Signal[]) => void;
 };
@@ -23,6 +26,7 @@ export default function RuleGridsList({
     setRulesGrids,
     rules,
     addRules,
+    clearRules,
     signalsList,
     setSignalsList,
 }: RuleGridsListProps): JSX.Element {
@@ -58,8 +62,8 @@ export default function RuleGridsList({
 
     function printReglesConsole() {
         let stringRule = "";
-        for (let i = 0; i < rules.length; i++) {
-            stringRule += rules[i].toString();
+        for (const rule of rules) {
+            stringRule += rule.toString();
             stringRule += "\n";
         }
         console.log(stringRule);
@@ -67,6 +71,13 @@ export default function RuleGridsList({
 
     function addRuleFromString(input = ""): void {
         const auto = new Automaton().parseRules(input);
+        // TODO: add Mirror option later
+        const mirrorRules = [];
+        for (const rule of auto.getRules()) {
+            mirrorRules.push(mirror(rule, "_d", "_g"));
+        }
+        auto.rules.push(...mirrorRules);
+        
         const newSignalsList = [...signalsList];
         for (const rule of auto.getRules()) {
             for (const signal of rule.getSignals()) {
@@ -94,30 +105,36 @@ export default function RuleGridsList({
 
     return (
         <div>
-            <h2>Règles enregistrées</h2>
-            {rulesGrids.map((rule, index) => (
-                <div key={index} style={{ marginBottom: "10px" }}>
-                    <RuleGridComponent
-                        grid={rule}
-                        onLoadRule={() => onLoadRule(index)}
-                        onDeleteRule={() => onDeleteRule(index)}
-                        onUpdateRule={() => onUpdateRule(index)}
-                        signalsList={signalsList}
-                    />
-                    {rules[index] !== null && rules[index] !== undefined
-                        ? rules[index].toString()
-                        : ""}
-                </div>
-            ))}
-            <button onClick={printReglesConsole}>Sortir règles en texte</button>
+            <Heading level={2}>Règles</Heading>
             <textarea
                 id="rulesText"
-                rows={5}
-                cols={50}
+                className="font-mono p-2 border border-gray-400 shadow-md"
+                rows={12}
+                cols={60}
                 ref={textAreaRef}
                 placeholder="Mettez votre règle ici"
             />
-            <button onClick={handleAddRule}>Ajouter règle depuis texte</button>
+            <div className="flex gap-2">
+            <Button onClick={printReglesConsole}>Sortir règles en texte</Button>
+            <Button onClick={handleAddRule}>Ajouter règle depuis texte</Button>
+            <Button onClick={clearRules}>Effacer les règles</Button>
+            </div>
+            <div className="flex flex-row flex-wrap">
+                {rulesGrids.map((ruleGrid, index) => {
+                    const rule = rules[index];
+                    return (
+                        <RuleGridComponent
+                            key={index}
+                            grid={ruleGrid}
+                            rule={rule}
+                            onLoadRule={() => onLoadRule(index)}
+                            onDeleteRule={() => onDeleteRule(index)}
+                            onUpdateRule={() => onUpdateRule(index)}
+                            signalsList={signalsList}
+                        />
+                    );
+                })}
+            </div>
         </div>
     );
 }

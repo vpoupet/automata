@@ -1,5 +1,4 @@
 import { useState } from "react";
-import "./App.css";
 import { Automaton } from "./classes/Automaton.ts";
 import { Configuration } from "./classes/Configuration.ts";
 import { Rule } from "./classes/Rule.ts";
@@ -9,13 +8,15 @@ import EditGrid from "./components/EditGrid.tsx";
 import RuleGridsList from "./components/RuleGridsList.js";
 import SignalsList from "./components/SignalsList.tsx";
 import "./style/style.scss";
-import { SettingsInterface } from "./types.ts";
+import { SettingsInterface, Signal } from "./types.ts";
+import { Button } from "./components/Button.tsx";
+import { Heading } from "./components/Heading.tsx";
 export default function App() {
     const [settings] = useState<SettingsInterface>({
         gridRadius: 2,
         gridNbFutureSteps: 3,
-        nbCells: 40,
-        nbSteps: 60,
+        nbCells: 100,
+        nbSteps: 110,
         timeGoesUp: true,
     });
 
@@ -26,11 +27,11 @@ export default function App() {
         )
     );
 
-    const [signalsList, setSignalsList] = useState([
+    const [signalsList, setSignalsList] = useState<Signal[]>([
         Symbol.for("Init"),
-        Symbol.for("s1"),
-        Symbol.for("s2"),
     ]);
+
+    const [hiddenSignalsSet, setHiddenSignalsSet] = useState<Set<Signal>>(new Set());
 
     const [historyAutomaton, setHistoryAutomaton] = useState<Automaton[]>([
         new Automaton(),
@@ -72,8 +73,18 @@ export default function App() {
         setAutomaton(auto);
     };
 
+    function clearRules() {
+        const auto = new Automaton();
+        setAutomaton(auto);
+    }
+
+    // Set initial configuration
     const initialConfiguration = Configuration.withSize(settings.nbCells);
-    initialConfiguration.cells[0].addSignal(Symbol.for("Init"));
+    initialConfiguration.cells[0].addSignal(Symbol.for("Gen_g"));
+    initialConfiguration.cells[0].addSignal(Symbol.for("Diag_g"));
+    initialConfiguration.cells[98].addSignal(Symbol.for("Gen_d"));
+    initialConfiguration.cells[98].addSignal(Symbol.for("Diag_d"));
+
 
     const rulesGrid = RuleGrid.makeGridsFromTabRules(
         historyAutomaton[indexAutomaton].getRules(),
@@ -82,10 +93,10 @@ export default function App() {
     );
 
     return (
-        <div className="App">
-            <h1> Outil de création d'automates cellulaires</h1>
-            <div className="top-section">
-                <div className="grille-interactive">
+        <div className="flex flex-col p-2 bg-gradient-to-b from-slate-50 to-slate-100 text-gray-700">
+            <Heading level={1}>Outil de création d'automates cellulaires</Heading>
+            <div className="flex justify-between">
+                <div className="flex">
                     <EditGrid
                         grid={grid}
                         setGrid={setGrid}
@@ -96,23 +107,29 @@ export default function App() {
                         signalsList={signalsList}
                         automaton={historyAutomaton[indexAutomaton]}
                     />
+                    <div>
+                        <Button
+                            onClick={() => changeIndexAutomaton(-1)}
+                            disabled={indexAutomaton === 0}
+                        >
+                            Précédent
+                        </Button>
+                        <Button
+                            onClick={() => changeIndexAutomaton(1)}
+                            disabled={
+                                indexAutomaton >= historyAutomaton.length - 1
+                            }
+                        >
+                            <span>Suivant</span>
+                        </Button>
+                    </div>
                 </div>
-                <button
-                    onClick={() => changeIndexAutomaton(-1)}
-                    disabled={indexAutomaton === 0}
-                >
-                    <span>Previous rules</span>
-                </button>
-                <button
-                    onClick={() => changeIndexAutomaton(1)}
-                    disabled={indexAutomaton >= historyAutomaton.length - 1}
-                >
-                    <span>Next rules</span>
-                </button>
-                <div className="gestion-signaux">
+                <div className="flex">
                     <SignalsList
-                        listeSignaux={signalsList}
-                        setListeSignaux={setSignalsList}
+                        signalsList={signalsList}
+                        setSignalsList={setSignalsList}
+                        hiddenSignalsSet={hiddenSignalsSet}
+                        setHiddenSignalsSet={setHiddenSignalsSet}
                         grid={grid}
                         setGrid={setGrid}
                         rulesGrids={rulesGrid}
@@ -120,21 +137,22 @@ export default function App() {
                     />
                 </div>
             </div>
-            <div className="middle-section">
-                <div className="liste-regles">
+            <div className="flex justify-between">
+                <div className="flex">
                     <RuleGridsList
                         grid={grid}
                         setGrid={setGrid}
                         rulesGrids={rulesGrid}
                         setRulesGrids={setRulesGrids}
                         rules={historyAutomaton[indexAutomaton].getRules()}
+                        clearRules={clearRules}
                         addRules={addRules}
                         signalsList={signalsList}
                         setSignalsList={setSignalsList}
                     />
                 </div>
             </div>
-            <div className="diagram">
+            <div className="self-center">
                 <Diagram
                     automaton={historyAutomaton[indexAutomaton]}
                     initialConfiguration={initialConfiguration}
@@ -143,6 +161,7 @@ export default function App() {
                     gridNbFutureSteps={settings.gridNbFutureSteps}
                     setGrid={setGrid}
                     signalsList={signalsList}
+                    hiddenSignalsSet={hiddenSignalsSet}
                 />
             </div>
         </div>
