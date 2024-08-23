@@ -13,6 +13,19 @@ export interface DNFClause extends Disjunction {
     subclauses: ConjunctionOfLiterals[];
 }
 
+export class EvalContext {
+    multiSignalLiterals: Map<symbol, Set<Signal>>;
+
+    constructor() {
+        this.multiSignalLiterals = new Map();
+    }
+}
+
+export type LiteralTransformation = {
+    signal: (Signal: Signal) => Signal;
+    position: (position: number) => number;
+};
+
 class ClauseParsingException extends Error {
     constructor(message: string) {
         super(message);
@@ -21,17 +34,22 @@ class ClauseParsingException extends Error {
 }
 
 export abstract class Clause {
-    abstract eval(neighborhood: Neighborhood): boolean;
+    abstract eval(neighborhood: Neighborhood, context: EvalContext): boolean;
 
     abstract toString(): string;
 
-    abstract getLiterals(): Literal[];
+    abstract getLiterals(context: EvalContext): Literal[];
 
     abstract toCNF(): CNFClause;
 
     abstract toDNF(): DNFClause;
 
     abstract renameSignal(oldSignal: Signal, newSignal: Signal): Clause;
+
+    abstract transformLiterals(
+        transformation: LiteralTransformation,
+        context: EvalContext
+    ): Clause;
 
     private static readTokens(conditionTokens: string[]): Clause {
         const token = conditionTokens.shift();
@@ -83,12 +101,39 @@ export abstract class Clause {
                     return new Negation(negatedCondition);
                 }
             default:
-                return new Literal(Symbol.for(token));
+                if (token.includes(".")) {
+                    const [position, signal] = token.split(".");
+                    if (signal === undefined) {
+                        throw new ClauseParsingException("Invalid condition");
+                    }
+                    const signalSymbol = Symbol.for(signal);
+                    if (signalSymbol === undefined) {
+                        throw new ClauseParsingException("Invalid signal");
+                    }
+                    if (signal.startsWith("$")) {
+                        return new MultiSignalLiteral(
+                            signalSymbol,
+                            parseInt(position)
+                        );
+                    } else {
+                        return new Literal(
+                            signalSymbol,
+                            parseInt(position),
+                            true
+                        );
+                    }
+                } else {
+                    if (token.startsWith("$")) {
+                        return new MultiSignalLiteral(Symbol.for(token));
+                    } else {
+                        return new Literal(Symbol.for(token));
+                    }
+                }
         }
     }
 
     static fromString(s: string): Clause {
-        const tokens = s.match(/(\(|\)|\[|\]|\+|-|!|\w+)/g);
+        const tokens = s.match(/(\(|\)|\[|\]|!|[\w+-.$]+)/g);
         if (tokens === null) {
             throw new ClauseParsingException("Invalid condition");
         }
@@ -120,7 +165,7 @@ export class Literal extends Clause {
         this.sign = sign;
     }
 
-    eval(neighborhood: Neighborhood): boolean {
+    eval(neighborhood: Neighborhood, _context: EvalContext): boolean {
         return this.sign === neighborhood[this.position].has(this.signal);
     }
 
@@ -135,7 +180,7 @@ export class Literal extends Clause {
         }
     }
 
-    getLiterals(): Literal[] {
+    getLiterals(_context: EvalContext): Literal[] {
         return [this];
     }
 
@@ -147,7 +192,10 @@ export class Literal extends Clause {
         return new Literal(this.signal, this.position, !this.sign);
     }
 
-    equals(other: Literal): boolean {
+    equals(other: Clause): boolean {
+        if (!(other instanceof Literal)) {
+            return false;
+        }
         return (
             this.signal === other.signal &&
             this.position === other.position &&
@@ -178,6 +226,17 @@ export class Literal extends Clause {
         return new Disjunction([new Conjunction([this.copy()])]) as DNFClause;
     }
 
+    transformLiterals(
+        transformation: LiteralTransformation,
+        _context: EvalContext
+    ): Clause {
+        return new Literal(
+            transformation.signal(this.signal),
+            transformation.position(this.position),
+            this.sign
+        );
+    }
+
     renameSignal(oldSignal: Signal, newSignal: Signal): Clause {
         if (this.signal === oldSignal) {
             return new Literal(newSignal, this.position, this.sign);
@@ -195,17 +254,17 @@ export class Negation extends Clause {
         this.subclause = subclause;
     }
 
-    eval(neighborhood: Neighborhood): boolean {
-        return !this.subclause.eval(neighborhood);
+    eval(neighborhood: Neighborhood, context: EvalContext): boolean {
+        return !this.subclause.eval(neighborhood, context);
     }
 
     toString(): string {
         return `!${this.subclause.toString()}`;
     }
 
-    getLiterals(): Literal[] {
+    getLiterals(context: EvalContext): Literal[] {
         return this.subclause
-            .getLiterals()
+            .getLiterals(context)
             .map(
                 (literal) =>
                     new Literal(literal.signal, literal.position, !literal.sign)
@@ -242,6 +301,15 @@ export class Negation extends Clause {
         return this.reduce().toDNF();
     }
 
+    transformLiterals(
+        transformation: LiteralTransformation,
+        context: EvalContext
+    ): Clause {
+        return new Negation(
+            this.subclause.transformLiterals(transformation, context)
+        );
+    }
+
     renameSignal(oldSignal: Signal, newSignal: Signal): Clause {
         return new Negation(this.subclause.renameSignal(oldSignal, newSignal));
     }
@@ -266,9 +334,9 @@ export class Conjunction extends Clause {
         }
     }
 
-    eval(neighborhood: Neighborhood): boolean {
+    eval(neighborhood: Neighborhood, context: EvalContext): boolean {
         return this.subclauses.every((subclause) =>
-            subclause.eval(neighborhood)
+            subclause.eval(neighborhood, context)
         );
     }
 
@@ -278,8 +346,10 @@ export class Conjunction extends Clause {
             .join(" ")})`;
     }
 
-    getLiterals(): Literal[] {
-        return this.subclauses.flatMap((subclause) => subclause.getLiterals());
+    getLiterals(context: EvalContext): Literal[] {
+        return this.subclauses.flatMap((subclause) =>
+            subclause.getLiterals(context)
+        );
     }
 
     toCNF(): CNFClause {
@@ -307,6 +377,17 @@ export class Conjunction extends Clause {
             }
             return new Disjunction(clauses) as DNFClause;
         }, new Disjunction([new Conjunction([])]) as DNFClause);
+    }
+
+    transformLiterals(
+        transformation: LiteralTransformation,
+        context: EvalContext
+    ): Clause {
+        return new Conjunction(
+            this.subclauses.map((subclause) =>
+                subclause.transformLiterals(transformation, context)
+            )
+        );
     }
 
     renameSignal(oldSignal: Signal, newSignal: Signal): Clause {
@@ -337,9 +418,9 @@ export class Disjunction extends Clause {
         }
     }
 
-    eval(neighborhood: Neighborhood): boolean {
+    eval(neighborhood: Neighborhood, context: EvalContext): boolean {
         return this.subclauses.some((subclause) =>
-            subclause.eval(neighborhood)
+            subclause.eval(neighborhood, context)
         );
     }
 
@@ -349,8 +430,10 @@ export class Disjunction extends Clause {
             .join(" ")}]`;
     }
 
-    getLiterals(): Literal[] {
-        return this.subclauses.flatMap((subclause) => subclause.getLiterals());
+    getLiterals(context: EvalContext): Literal[] {
+        return this.subclauses.flatMap((subclause) =>
+            subclause.getLiterals(context)
+        );
     }
 
     toDNF(): DNFClause {
@@ -380,11 +463,100 @@ export class Disjunction extends Clause {
         }, new Conjunction([new Disjunction([])]) as CNFClause);
     }
 
+    transformLiterals(
+        transformation: LiteralTransformation,
+        context: EvalContext
+    ): Clause {
+        return new Disjunction(
+            this.subclauses.map((subclause) =>
+                subclause.transformLiterals(transformation, context)
+            )
+        );
+    }
+
     renameSignal(oldSignal: Signal, newSignal: Signal): Clause {
         return new Disjunction(
             this.subclauses.map((subclause) =>
                 subclause.renameSignal(oldSignal, newSignal)
             )
+        );
+    }
+}
+
+export class MultiSignalLiteral extends Literal {
+    constructor(signal: Signal, position = 0, sign = true) {
+        super(signal, position, sign);
+    }
+
+    getSignals(context: EvalContext): Set<Signal> {
+        const signals = context.multiSignalLiterals.get(this.signal);
+        if (signals === undefined) {
+            throw new Error("Invalid multi-signal");
+        }
+        return signals;
+    }
+
+    eval(neighborhood: Neighborhood, context: EvalContext): boolean {
+        const signals = this.getSignals(context);
+
+        const cellSignals = neighborhood[this.position].signals;
+        for (const signal of signals) {
+            if (cellSignals.has(signal)) {
+                return this.sign;
+            }
+        }
+        return !this.sign;
+    }
+
+    getLiterals(context: EvalContext): Literal[] {
+        const signals = this.getSignals(context);
+        return Array.from(signals).map(
+            (signal) => new Literal(signal, this.position)
+        );
+    }
+
+    copy(): MultiSignalLiteral {
+        return new MultiSignalLiteral(this.signal, this.position, this.sign);
+    }
+
+    negate(): MultiSignalLiteral {
+        return new MultiSignalLiteral(this.signal, this.position, !this.sign);
+    }
+
+    asDisjunctionOfLiterals(context: EvalContext): DisjunctionOfLiterals {
+        return new Disjunction(
+            Array.from(this.getSignals(context)).map(
+                (signal) => new Literal(signal, this.position)
+            )
+        ) as DisjunctionOfLiterals;
+    }
+
+    toCNF(): CNFClause {
+        return new Conjunction([new Disjunction([this.copy()])]) as CNFClause;
+    }
+
+    toDNF(): DNFClause {
+        return new Disjunction([new Conjunction([this.copy()])]) as DNFClause;
+    }
+
+    transformLiterals(
+        transformation: LiteralTransformation,
+        context: EvalContext
+    ): Clause {
+        const newSignal = transformation.signal(this.signal);
+        if (newSignal != this.signal) {
+            const signals = this.getSignals(context);
+            const newSignals = new Set(
+                Array.from(signals).map((signal) =>
+                    transformation.signal(signal)
+                )
+            );
+            context.multiSignalLiterals.set(newSignal, newSignals);
+        }
+        return new MultiSignalLiteral(
+            transformation.signal(this.signal),
+            transformation.position(this.position),
+            this.sign
         );
     }
 }

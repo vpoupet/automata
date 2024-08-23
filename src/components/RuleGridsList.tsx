@@ -1,11 +1,11 @@
 import { useRef } from "react";
-import { Automaton } from "../classes/Automaton.ts";
-import { ConjunctionRule, mirror, Rule } from "../classes/Rule.ts";
+import { EvalContext } from "../classes/Clause.ts";
+import { ConjunctionRule, Rule } from "../classes/Rule.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
 import { Signal } from "../types.ts";
-import RuleGridComponent from "./RuleGridComponent.tsx";
 import { Button } from "./Button.tsx";
 import { Heading } from "./Heading.tsx";
+import RuleGridComponent from "./RuleGridComponent.tsx";
 
 type RuleGridsListProps = {
     grid: RuleGrid;
@@ -17,6 +17,7 @@ type RuleGridsListProps = {
     clearRules: () => void;
     signalsList: Signal[];
     setSignalsList: (signalsList: Signal[]) => void;
+    context: EvalContext;
 };
 
 export default function RuleGridsList({
@@ -29,6 +30,7 @@ export default function RuleGridsList({
     clearRules,
     signalsList,
     setSignalsList,
+    context,
 }: RuleGridsListProps): JSX.Element {
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -70,17 +72,10 @@ export default function RuleGridsList({
     }
 
     function addRuleFromString(input = ""): void {
-        const auto = new Automaton().parseRules(input);
-        // TODO: add Mirror option later
-        const mirrorRules = [];
-        for (const rule of auto.getRules()) {
-            mirrorRules.push(mirror(rule, "_d", "_g"));
-        }
-        auto.rules.push(...mirrorRules);
-        
+        const newRules = Rule.parseString(input, context);
         const newSignalsList = [...signalsList];
-        for (const rule of auto.getRules()) {
-            for (const signal of rule.getSignals()) {
+        for (const rule of newRules) {
+            for (const signal of rule.getSignals(context)) {
                 if (!newSignalsList.includes(signal)) {
                     newSignalsList.push(signal);
                 }
@@ -91,16 +86,16 @@ export default function RuleGridsList({
         }
 
         // Transform all rules to have ConjunctionOfLiterals conditions
-        const newRules: ConjunctionRule[] = [];
-        for (const rule of auto.getRules()) {
+        const newConjunctionRules: ConjunctionRule[] = [];
+        for (const rule of newRules) {
             const newCondition = rule.condition.toDNF();
             for (const conjunction of newCondition.subclauses) {
-                newRules.push(
+                newConjunctionRules.push(
                     new Rule(conjunction, rule.outputs) as ConjunctionRule
                 );
             }
         }
-        addRules(newRules);
+        addRules(newConjunctionRules);
     }
 
     return (
@@ -115,9 +110,13 @@ export default function RuleGridsList({
                 placeholder="Mettez votre règle ici"
             />
             <div className="flex gap-2">
-            <Button onClick={printReglesConsole}>Sortir règles en texte</Button>
-            <Button onClick={handleAddRule}>Ajouter règle depuis texte</Button>
-            <Button onClick={clearRules}>Effacer les règles</Button>
+                <Button onClick={printReglesConsole}>
+                    Sortir règles en texte
+                </Button>
+                <Button onClick={handleAddRule}>
+                    Ajouter règle depuis texte
+                </Button>
+                <Button onClick={clearRules}>Effacer les règles</Button>
             </div>
             <div className="flex flex-row flex-wrap">
                 {rulesGrids.map((ruleGrid, index) => {

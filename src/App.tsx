@@ -15,8 +15,8 @@ export default function App() {
     const [settings] = useState<SettingsInterface>({
         gridRadius: 2,
         gridNbFutureSteps: 3,
-        nbCells: 100,
-        nbSteps: 110,
+        nbCells: 40,
+        nbSteps: 60,
         timeGoesUp: true,
     });
 
@@ -67,8 +67,10 @@ export default function App() {
     };
 
     const addRules = (rules: Rule[]) => {
+        const currentAutomaton = historyAutomaton[indexAutomaton];
         const auto = new Automaton(
-            historyAutomaton[indexAutomaton].getRules().concat(rules)
+            currentAutomaton.getRules().concat(rules),
+            currentAutomaton.evalContext,
         );
         setAutomaton(auto);
     };
@@ -80,14 +82,11 @@ export default function App() {
 
     // Set initial configuration
     const initialConfiguration = Configuration.withSize(settings.nbCells);
-    initialConfiguration.cells[0].addSignal(Symbol.for("Gen_g"));
-    initialConfiguration.cells[0].addSignal(Symbol.for("Diag_g"));
-    initialConfiguration.cells[98].addSignal(Symbol.for("Gen_d"));
-    initialConfiguration.cells[98].addSignal(Symbol.for("Diag_d"));
-
+    initialConfiguration.cells[0].addSignal(Symbol.for("Init"));
 
     const rulesGrid = RuleGrid.makeGridsFromTabRules(
         historyAutomaton[indexAutomaton].getRules(),
+        historyAutomaton[indexAutomaton].evalContext,
         settings.gridRadius,
         settings.gridNbFutureSteps
     );
@@ -149,6 +148,7 @@ export default function App() {
                         addRules={addRules}
                         signalsList={signalsList}
                         setSignalsList={setSignalsList}
+                        context={historyAutomaton[indexAutomaton].evalContext}
                     />
                 </div>
             </div>

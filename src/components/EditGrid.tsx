@@ -89,7 +89,8 @@ export default function EditGrid({
         for (const rule of automaton.getRules()) {
             const ruleAndOutput = adaptRule(
                 rule as ConjunctionRule,
-                ruleFromGrid
+                ruleFromGrid,
+                automaton.evalContext,
             );
             setOutput = new Set([...setOutput, ...ruleAndOutput.outputs]);
             newRules.push(...ruleAndOutput.rules);
@@ -106,7 +107,7 @@ export default function EditGrid({
         // setRulesGrid(newRules.map(getRuleGrid));
         setRulesGrid(
             newRules.map((rule) =>
-                RuleGrid.makeGridFromRule(rule, radius, nbFutureSteps)
+                RuleGrid.makeGridFromRule(rule, automaton.evalContext, radius, nbFutureSteps)
             )
         );
     }

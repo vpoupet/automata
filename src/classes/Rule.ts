@@ -1,9 +1,13 @@
+import nearley from "nearley";
+import grammar, { ParsedLine } from "../grammar/grammar.ts";
+import { transformations } from "./Transformation";
 import { Neighborhood, Signal } from "../types";
 import { Cell } from "./Cell";
 import {
     Clause,
     Conjunction,
     ConjunctionOfLiterals,
+    EvalContext,
     Negation,
     simplifyDNF,
 } from "./Clause";
@@ -73,9 +77,9 @@ export class Rule {
             .join(" ")}`;
     }
 
-    getSignals(): Set<Signal> {
+    getSignals(context: EvalContext): Set<Signal> {
         const signals = new Set<Signal>();
-        for (const literal of this.condition.getLiterals()) {
+        for (const literal of this.condition.getLiterals(context)) {
             signals.add(literal.signal);
         }
         for (const output of this.outputs) {
@@ -87,8 +91,120 @@ export class Rule {
     renameSignal(oldSignal: Signal, newSignal: Signal): Rule {
         return new Rule(
             this.condition.renameSignal(oldSignal, newSignal),
-            this.outputs.map((output) => output.renameSignal(oldSignal, newSignal))
+            this.outputs.map((output) =>
+                output.renameSignal(oldSignal, newSignal)
+            )
         );
+    }
+
+    static parseString(inputString: string, context: EvalContext): Rule[] {
+        const parser = new nearley.Parser(
+            nearley.Grammar.fromCompiled(grammar)
+        );
+        try {
+            parser.feed(inputString);
+            if (parser.results.length !== 1) {
+                throw new Error("Ambiguous grammar!");
+            }
+        } catch (e) {
+            console.log(e);
+        }
+        const outputLines = parser.results[0] as ParsedLine[];
+        const functionsStack: {
+            name: string | undefined;
+            parameters: string[];
+            rules: Rule[];
+        }[] = [
+            {
+                name: undefined,
+                parameters: [],
+                rules: [],
+            },
+        ];
+        let rules = functionsStack[0].rules;
+        const conditionsStack: { condition: Clause; indent: number }[] = [];
+        for (const line of outputLines) {
+            switch (line.type) {
+                case "rule_line": {
+                    while (
+                        conditionsStack.length > 0 &&
+                        conditionsStack[0].indent >= line.indent
+                    ) {
+                        // remove irrelevant conditions from stack
+                        conditionsStack.shift();
+                    }
+                    let condition: Clause;
+                    if (line.condition !== undefined) {
+                        if (conditionsStack.length === 0) {
+                            condition = line.condition;
+                        } else {
+                            condition = new Conjunction([
+                                conditionsStack[0].condition,
+                                line.condition,
+                            ]);
+                        }
+                        conditionsStack.unshift({
+                            condition,
+                            indent: line.indent,
+                        });
+                    } else {
+                        condition = conditionsStack[0].condition;
+                    }
+                    if (line.outputs !== undefined) {
+                        rules.push(new Rule(condition, line.outputs));
+                    }
+                    break;
+                }
+                case "begin_function": {
+                    functionsStack.unshift({
+                        name: line.function_name,
+                        parameters: line.parameters,
+                        rules: [],
+                    });
+                    rules = functionsStack[0].rules;
+                    break;
+                }
+                case "end_function": {
+                    const functionData = functionsStack.shift();
+                    if (
+                        functionData === undefined ||
+                        functionData.name === undefined
+                    ) {
+                        throw new Error("Not currently in a function");
+                    }
+                    const transformation = transformations.get(
+                        functionData.name
+                    );
+                    if (transformation === undefined) {
+                        throw new Error(
+                            `Unknown transformation: ${functionData.name}`
+                        );
+                    }
+
+                    const newRules = transformation(
+                        rules,
+                        context,
+                        functionData.parameters
+                    );
+                    functionsStack[0].rules.push(...newRules);
+                    rules = functionsStack[0].rules;
+                    break;
+                }
+                case "multi_signal": {
+                    context.multiSignalLiterals.set(
+                        line.signal,
+                        new Set(line.values)
+                    );
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+        if (functionsStack.length > 1) {
+            throw new Error("Function not closed");
+        }
+        return rules;
     }
 }
 
@@ -96,7 +212,8 @@ export type ConjunctionRule = Rule & { condition: ConjunctionOfLiterals };
 
 export function adaptRule(
     rule: ConjunctionRule,
-    target: ConjunctionRule
+    target: ConjunctionRule,
+    context: EvalContext
 ): {
     rules: ConjunctionRule[];
     outputs: Set<RuleOutput>;
@@ -116,7 +233,7 @@ export function adaptRule(
         }
     }
 
-    if (!rule.condition.eval(neighborhood)) {
+    if (!rule.condition.eval(neighborhood, context)) {
         // the rule does not match the targetRule condition, no change required
         return { rules: [rule], outputs: outputs };
     }

@@ -1,5 +1,10 @@
 import { Cell, InputCell } from "./Cell.ts";
-import { Conjunction, ConjunctionOfLiterals, Literal } from "./Clause.ts";
+import {
+    Conjunction,
+    ConjunctionOfLiterals,
+    EvalContext,
+    Literal,
+} from "./Clause.ts";
 import { Configuration } from "./Configuration.ts";
 import { ConjunctionRule, Rule, RuleOutput } from "./Rule.ts";
 
@@ -165,7 +170,12 @@ class RuleGrid {
         return new Conjunction(literals) as ConjunctionOfLiterals;
     }
 
-    static makeGridFromRule(rule: Rule, radius: number, futureStep: number) {
+    static makeGridFromRule(
+        rule: Rule,
+        context: EvalContext,
+        radius: number,
+        futureStep: number
+    ) {
         const grid = RuleGrid.withSize(2 * radius + 1, futureStep);
         const ruleOutputs = rule.outputs;
         ruleOutputs.forEach((ruleOutput) => {
@@ -179,7 +189,7 @@ class RuleGrid {
             grid.outputs[row][col].signals.add(ruleOutput.signal);
         });
         const ruleCondition = rule.condition;
-        ruleCondition.getLiterals().forEach((literal) => {
+        ruleCondition.getLiterals(context).forEach((literal) => {
             const col = literal.position + radius;
             if (literal.sign) {
                 grid.inputs[col].signals.add(literal.signal);
@@ -192,12 +202,18 @@ class RuleGrid {
 
     static makeGridsFromTabRules(
         rules: Rule[],
+        context: EvalContext,
         radius: number,
         futureStep: number
     ) {
         const tabRuleGrid: RuleGrid[] = [];
         for (const rule of rules) {
-            const grid = RuleGrid.makeGridFromRule(rule, radius, futureStep);
+            const grid = RuleGrid.makeGridFromRule(
+                rule,
+                context,
+                radius,
+                futureStep
+            );
             tabRuleGrid.push(grid);
         }
         return tabRuleGrid;
