@@ -4,52 +4,13 @@
 @{%
 import { Literal, MultiSignalLiteral, Conjunction, Disjunction, Negation } from "../classes/Clause.ts";
 import { RuleOutput } from "../classes/Rule.ts";
-import moo from "moo-ignore";
-import {  } from "nearley";
+import moo from "moo";
 
 function getValue(x) {
     return x[0].value;
 }
 
-export interface Line {
-    type: string;
-}
-
-export interface EmptyLine extends Line {
-    type: "empty_line";
-}
-
-export interface BeginFunctionLine extends Line {
-    type: "begin_function";
-    function_name: string;
-    parameters: string[];
-}
-
-export interface EndFunctionLine extends Line {
-    type: "end_function";
-}
-
-export interface RuleLine extends Line {
-    type: "rule_line";
-    indent: number;
-    condition: Clause | undefined;
-    outputs: RuleOutput[] | undefined;
-}
-
-export interface MultiSignalLine extends Line {
-    type: "multi_signal";
-    signal: Signal;
-    values: Signal[];
-}
-
-export type ParsedLine =
-    | RuleLine
-    | MultiSignalLine
-    | BeginFunctionLine
-    | EndFunctionLine
-    | EmptyLine;
-
-const tokens = {
+const lexer = moo.compile({
     indent: /^[ \t]+/,
     ws: { match: /[ \t]+/},
     newline: { match: /[\n]+/, lineBreaks: true },
@@ -73,17 +34,21 @@ const tokens = {
     ra: "}",
     at: "@",
     identifier: /[a-zA-Z_][a-zA-Z_0-9]*/,
-};
-const lexer = moo.makeLexer(tokens);
-lexer.ignore("ws", "comment");
-
+});
+lexer.next = (next => () => {
+    let tok;
+    do {
+        tok = next.call(lexer);
+    } while(tok && ["ws", "comment"].includes(tok.type));
+    return tok;
+})(lexer.next);
 
 %}
 @builtin "string.ne"
 @lexer lexer
 
 LINES -> LINE
-LINES -> LINES %newline LINE {% ([lines, _, line]) => [...lines, line] %}
+LINES -> LINES %newline LINE {% ([lines, , line]) => [...lines, line] %}
 
 LINE -> EMPTY_LINE
 LINE -> RULE_LINE {% id %}
@@ -93,19 +58,19 @@ LINE -> FUNCTION_END_LINE {% id %}
 
 EMPTY_LINE -> INDENT {% () => ({ type: "empty_line" }) %}
 
-RULE_LINE -> INDENT CLAUSE ":" {% ([indent, clause, _]) => ({
+RULE_LINE -> INDENT CLAUSE ":" {% ([indent, clause, ]) => ({
     type: "rule_line",
     indent: indent,
     condition: clause,
     outputs: undefined,
 }) %}
-RULE_LINE -> INDENT CLAUSE ":" OUTPUTS_LIST {% ([indent, clause, _, outputs]) => ({
+RULE_LINE -> INDENT CLAUSE ":" OUTPUTS_LIST {% ([indent, clause, , outputs]) => ({
     type: "rule_line",
     indent: indent,
     condition: clause,
     outputs: outputs,
 }) %}
-RULE_LINE -> INDENT OUTPUTS_LIST {% ([indent, outputs, _]) => ({
+RULE_LINE -> INDENT OUTPUTS_LIST {% ([indent, outputs, ]) => ({
     type: "rule_line",
     indent: indent,
     condition: undefined,
@@ -123,13 +88,13 @@ CLAUSE -> MULTI_LITERAL {% id %}
 CLAUSE -> CONJUNCTION {% id %}
 CLAUSE -> DISJUNCTION {% id %}
 CLAUSE -> NEGATION {% id %}
-CLAUSES_LIST -> CLAUSE | CLAUSES_LIST CLAUSE {% ([list, c]) => [...list, c] %}
-CONJUNCTION -> "(" CLAUSES_LIST ")" {% ([_1, list, _2]) => new Conjunction(list) %}
-DISJUNCTION -> "[" CLAUSES_LIST "]" {% ([_1, list, _2]) => new Disjunction(list) %}
+CLAUSES_LIST -> null {% () => [] %} | CLAUSE | CLAUSES_LIST CLAUSE {% ([list, c]) => [...list, c] %}
+CONJUNCTION -> "(" CLAUSES_LIST ")" {% ([ , list, ]) => new Conjunction(list) %}
+DISJUNCTION -> "[" CLAUSES_LIST "]" {% ([ , list, ]) => new Disjunction(list) %}
 NEGATION -> "!" CLAUSE {%
 ([_, c]) => {
     if (c instanceof Literal || c instanceof MultiSignalLiteral) {
-        return c.negate();
+        return c.negated();
     } else if (c instanceof Negation) {
         return c.subclause;
     } else {
@@ -138,29 +103,32 @@ NEGATION -> "!" CLAUSE {%
 }
 %}
 SIGNAL_NAME -> IDENTIFIER {% id %}
-LITERAL -> INT "." SIGNAL_NAME {% ([pos, _, signalName]) => new Literal(Symbol.for(signalName), pos) %}
+LITERAL -> INT "." SIGNAL_NAME {% ([pos, , signalName]) => new Literal(Symbol.for(signalName), pos) %}
 LITERAL -> SIGNAL_NAME {% ([signalName]) => new Literal(Symbol.for(signalName)) %}
-MULTI_LITERAL -> "$" SIGNAL_NAME {% ([_, signalName]) => new MultiSignalLiteral(Symbol.for("$" + signalName)) %}
-MULTI_LITERAL -> INT ("." "$") SIGNAL_NAME {% ([pos, _, signalName]) => new MultiSignalLiteral(Symbol.for("$" + signalName), pos) %}
+MULTI_LITERAL -> "$" SIGNAL_NAME {% ([ , signalName]) => new MultiSignalLiteral(Symbol.for("$" + signalName)) %}
+MULTI_LITERAL -> INT ("." "$") SIGNAL_NAME {% ([pos, , signalName]) => new MultiSignalLiteral(Symbol.for("$" + signalName), pos) %}
 
 OUTPUT -> SIGNAL_NAME {% ([signalName]) => new RuleOutput(0, Symbol.for(signalName)) %}
-OUTPUT -> INT "." SIGNAL_NAME {% ([pos, _, signalName]) => new RuleOutput(pos, Symbol.for(signalName)) %}
-OUTPUT -> INT "/" INT "." SIGNAL_NAME {% ([pos, _1, step, _2, signalName]) => new RuleOutput(pos, Symbol.for(signalName), step) %}
+OUTPUT -> INT "." SIGNAL_NAME {% ([pos, , signalName]) => new RuleOutput(pos, Symbol.for(signalName)) %}
+OUTPUT -> "/" INT "." SIGNAL_NAME {% ([ , step, , signalName]) => new RuleOutput(0, Symbol.for(signalName, step)) %}
+OUTPUT -> INT "/" INT "." SIGNAL_NAME {% ([pos, , step, , signalName]) => new RuleOutput(pos, Symbol.for(signalName), step) %}
 OUTPUTS_LIST -> OUTPUT | OUTPUTS_LIST OUTPUT {% ([list, o]) => [...list, o] %}
 
-MULTISIGNAL_LINE -> INDENT MULTI_SIGNAL_NAME "=" SIGNAL_VALUES {% ([_1, multiSignalName, _2, values]) => ({
+MULTISIGNAL_LINE -> INDENT MULTI_SIGNAL_NAME "=" SIGNAL_VALUES {% ([indent, multiSignalName, , values]) => ({
     type: "multi_signal",
+    indent: indent,
     signal: Symbol.for(multiSignalName),
     values: values,
 }) %}
-MULTI_SIGNAL_NAME -> "$" IDENTIFIER {% ([_, i]) => "$" + i %}
+MULTI_SIGNAL_NAME -> "$" IDENTIFIER {% ([ , i]) => "$" + i %}
 SIGNAL_VALUES -> SIGNAL | SIGNAL_VALUES SIGNAL {% ([list, s]) => [...list, s] %}
 SIGNAL -> IDENTIFIER {% ([signalName]) => Symbol.for(signalName) %}
 
-FUNCTION_BEGIN_LINE -> (INDENT "@begin") FUNCTION_NAME "(" FUNC_PARAMETERS_LIST ")" {%
-([_, functionName, _1, params]) => (
+FUNCTION_BEGIN_LINE -> INDENT "@begin" FUNCTION_NAME "(" FUNC_PARAMETERS_LIST ")" {%
+([indent, , functionName, , params]) => (
     {
         type: "begin_function",
+        indent: indent,
         function_name: functionName,
         parameters: params,
     }
@@ -168,11 +136,12 @@ FUNCTION_BEGIN_LINE -> (INDENT "@begin") FUNCTION_NAME "(" FUNC_PARAMETERS_LIST 
 FUNCTION_NAME -> IDENTIFIER {% id %}
 FUNC_PARAMETERS_LIST -> null
 FUNC_PARAMETERS_LIST -> FUNC_PARAMETER
-FUNC_PARAMETERS_LIST -> FUNC_PARAMETERS_LIST "," FUNC_PARAMETER {% ([list, _, p]) => [...list, p] %}
+FUNC_PARAMETERS_LIST -> FUNC_PARAMETERS_LIST "," FUNC_PARAMETER {% ([list, , p]) => [...list, p] %}
 FUNC_PARAMETER -> STRING {% id %}
 FUNC_PARAMETER -> INT {% id %}
-FUNCTION_END_LINE -> (INDENT "@end") {% (_) => ({
+FUNCTION_END_LINE -> INDENT "@end" {% ([indent, ]) => ({
     type: "end_function",
+    indent: indent,
 }) %}
 
 IDENTIFIER -> %identifier {% getValue %}

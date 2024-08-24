@@ -11,5 +11,6 @@ module.exports = {
   rules: {
     'react-refresh/only-export-components': 'warn',
     '@typescript-eslint/no-unused-vars': ['error', { 'argsIgnorePattern': '^_' }],
+    "@typescript-eslint/ban-ts-comment": ["error", { "ts-nocheck": "allow-with-description" }],
   },
 }

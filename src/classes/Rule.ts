@@ -1,5 +1,8 @@
+// @ts-nocheck: type definitions for nearly are neither complete nor correct
 import nearley from "nearley";
-import grammar, { ParsedLine } from "../grammar/grammar.ts";
+// @ts-nocheck: nearley-generated grammars are not compatible with strict mode
+import grammar from "../grammar/grammar.js";
+import { ParsedLine } from "../grammar/types.ts";
 import { transformations } from "./Transformation";
 import { Neighborhood, Signal } from "../types";
 import { Cell } from "./Cell";
@@ -99,7 +102,7 @@ export class Rule {
 
     static parseString(inputString: string, context: EvalContext): Rule[] {
         const parser = new nearley.Parser(
-            nearley.Grammar.fromCompiled(grammar)
+            nearley.Grammar.fromCompiled(grammar as nearley.CompiledRules)
         );
         try {
             parser.feed(inputString);
@@ -124,15 +127,17 @@ export class Rule {
         let rules = functionsStack[0].rules;
         const conditionsStack: { condition: Clause; indent: number }[] = [];
         for (const line of outputLines) {
+            if (line.type !== "empty_line") {
+                // remove irrelevant conditions from stack
+                while (
+                    conditionsStack.length > 0 &&
+                    conditionsStack[0].indent >= line.indent
+                ) {
+                    conditionsStack.shift();
+                }
+            }
             switch (line.type) {
                 case "rule_line": {
-                    while (
-                        conditionsStack.length > 0 &&
-                        conditionsStack[0].indent >= line.indent
-                    ) {
-                        // remove irrelevant conditions from stack
-                        conditionsStack.shift();
-                    }
                     let condition: Clause;
                     if (line.condition !== undefined) {
                         if (conditionsStack.length === 0) {
@@ -197,7 +202,7 @@ export class Rule {
                     );
                     break;
                 }
-                default:
+                case "empty_line":
                     break;
             }
         }
