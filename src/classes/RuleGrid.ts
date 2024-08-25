@@ -2,7 +2,6 @@ import { Cell, InputCell } from "./Cell.ts";
 import {
     Conjunction,
     ConjunctionOfLiterals,
-    EvalContext,
     Literal,
 } from "./Clause.ts";
 import { Configuration } from "./Configuration.ts";
@@ -172,7 +171,6 @@ class RuleGrid {
 
     static makeGridFromRule(
         rule: Rule,
-        context: EvalContext,
         radius: number,
         futureStep: number
     ) {
@@ -189,7 +187,7 @@ class RuleGrid {
             grid.outputs[row][col].signals.add(ruleOutput.signal);
         });
         const ruleCondition = rule.condition;
-        ruleCondition.getLiterals(context).forEach((literal) => {
+        ruleCondition.getLiterals().forEach((literal) => {
             const col = literal.position + radius;
             if (literal.sign) {
                 grid.inputs[col].signals.add(literal.signal);
@@ -202,7 +200,6 @@ class RuleGrid {
 
     static makeGridsFromTabRules(
         rules: Rule[],
-        context: EvalContext,
         radius: number,
         futureStep: number
     ) {
@@ -210,7 +207,6 @@ class RuleGrid {
         for (const rule of rules) {
             const grid = RuleGrid.makeGridFromRule(
                 rule,
-                context,
                 radius,
                 futureStep
             );

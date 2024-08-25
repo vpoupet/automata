@@ -1,16 +1,15 @@
 import { useState } from "react";
 import { Automaton } from "./classes/Automaton.ts";
 import { Configuration } from "./classes/Configuration.ts";
-import { Rule } from "./classes/Rule.ts";
 import RuleGrid from "./classes/RuleGrid.ts";
+import { Button } from "./components/Button.tsx";
 import { Diagram } from "./components/Diagram.tsx";
 import EditGrid from "./components/EditGrid.tsx";
-import RuleGridsList from "./components/RuleGridsList.js";
+import { Heading } from "./components/Heading.tsx";
+import { RuleImportArea } from "./components/RuleInputArea.tsx";
 import SignalsList from "./components/SignalsList.tsx";
 import "./style/style.scss";
 import { SettingsInterface, Signal } from "./types.ts";
-import { Button } from "./components/Button.tsx";
-import { Heading } from "./components/Heading.tsx";
 export default function App() {
     const [settings] = useState<SettingsInterface>({
         gridRadius: 2,
@@ -27,11 +26,9 @@ export default function App() {
         )
     );
 
-    const [signalsList, setSignalsList] = useState<Signal[]>([
-        Symbol.for("Init"),
-    ]);
-
-    const [hiddenSignalsSet, setHiddenSignalsSet] = useState<Set<Signal>>(new Set());
+    const [hiddenSignalsSet, setHiddenSignalsSet] = useState<Set<Signal>>(
+        new Set()
+    );
 
     const [historyAutomaton, setHistoryAutomaton] = useState<Automaton[]>([
         new Automaton(),
@@ -48,63 +45,57 @@ export default function App() {
         setIndexAutomaton(indexAutomaton + addToindex);
     };
 
-    function setAutomaton(auto: Automaton) {
+    function setAutomaton(automaton: Automaton) {
         if (indexAutomaton < historyAutomaton.length - 1) {
             setHistoryAutomaton([
                 ...historyAutomaton.slice(0, indexAutomaton + 1),
-                auto,
+                automaton,
             ]);
         } else {
-            setHistoryAutomaton([...historyAutomaton, auto]);
+            setHistoryAutomaton([...historyAutomaton, automaton]);
         }
         setIndexAutomaton(indexAutomaton + 1);
     }
 
-    const setRulesGrids = (rulesGrids: RuleGrid[]) => {
+    function setSignalsList(_signalsList: Signal[]) {
+        // TODO: Implement
+    }
+
+    function setRulesGrids(rulesGrids: RuleGrid[]) {
         const rules = rulesGrids.map((ruleGrid) => RuleGrid.makeRule(ruleGrid));
         const auto = new Automaton(rules);
         setAutomaton(auto);
-    };
-
-    const addRules = (rules: Rule[]) => {
-        const currentAutomaton = historyAutomaton[indexAutomaton];
-        const auto = new Automaton(
-            currentAutomaton.getRules().concat(rules),
-            currentAutomaton.multiSignals,
-        );
-        setAutomaton(auto);
-    };
-
-    function clearRules() {
-        const auto = new Automaton();
-        setAutomaton(auto);
     }
+
+    const automaton = historyAutomaton[indexAutomaton];
 
     // Set initial configuration
     const initialConfiguration = Configuration.withSize(settings.nbCells);
     initialConfiguration.cells[0].addSignal(Symbol.for("Init"));
 
     const rulesGrid = RuleGrid.makeGridsFromTabRules(
-        historyAutomaton[indexAutomaton].getRules(),
-        historyAutomaton[indexAutomaton].getEvalContext(),
+        automaton.getRules(),
         settings.gridRadius,
         settings.gridNbFutureSteps
     );
 
+    const signalsList = automaton.getSignalsList();
+
     return (
         <div className="flex flex-col p-2 bg-gradient-to-b from-slate-50 to-slate-100 text-gray-700">
-            <Heading level={1}>Outil de création d'automates cellulaires</Heading>
+            <Heading level={1}>
+                Outil de création d'automates cellulaires
+            </Heading>
             <div className="flex justify-between">
                 <div className="flex">
                     <EditGrid
                         grid={grid}
                         setGrid={setGrid}
-                        nbFutureSteps={settings.gridNbFutureSteps}
                         radius={settings.gridRadius}
+                        nbFutureSteps={settings.gridNbFutureSteps}
                         rulesGrid={rulesGrid}
                         setRulesGrid={setRulesGrids}
-                        signalsList={signalsList}
-                        automaton={historyAutomaton[indexAutomaton]}
+                        automaton={automaton}
                     />
                     <div>
                         <Button
@@ -138,17 +129,9 @@ export default function App() {
             </div>
             <div className="flex justify-between">
                 <div className="flex">
-                    <RuleGridsList
-                        grid={grid}
-                        setGrid={setGrid}
-                        rulesGrids={rulesGrid}
-                        setRulesGrids={setRulesGrids}
-                        rules={historyAutomaton[indexAutomaton].getRules()}
-                        clearRules={clearRules}
-                        addRules={addRules}
-                        signalsList={signalsList}
-                        setSignalsList={setSignalsList}
-                        context={historyAutomaton[indexAutomaton].getEvalContext()}
+                    <RuleImportArea
+                        automaton={historyAutomaton[indexAutomaton]}
+                        setAutomaton={setAutomaton}
                     />
                 </div>
             </div>

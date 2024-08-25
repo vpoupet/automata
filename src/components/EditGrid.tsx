@@ -23,7 +23,6 @@ type EditGridProps = {
     rulesGrid: RuleGrid[];
     setRulesGrid: (rulesGrid: RuleGrid[]) => void;
     automaton: Automaton;
-    signalsList: Signal[];
 };
 
 export default function EditGrid({
@@ -34,7 +33,6 @@ export default function EditGrid({
     rulesGrid,
     setRulesGrid,
     automaton,
-    signalsList,
 }: EditGridProps): JSX.Element {
     function applyToActiveCells(f: (cell: Cell) => void) {
         const newGrid = grid.clone();
@@ -57,6 +55,8 @@ export default function EditGrid({
     const [activeOutputCells, setActiveOutputCells] = useState<Coordinates[]>(
         []
     );
+    const signalsList = automaton.getSignalsList();
+
     function saveGridAsRule() {
         let hasOutputs = false;
         outer: for (const row of grid.outputs) {
@@ -83,6 +83,7 @@ export default function EditGrid({
     // }
 
     function modifyRule() {
+        const context = automaton.getEvalContext();
         const ruleFromGrid = RuleGrid.makeRule(grid.clone());
         const newRules: Rule[] = [];
         let setOutput: Set<RuleOutput> = new Set();
@@ -90,7 +91,7 @@ export default function EditGrid({
             const ruleAndOutput = adaptRule(
                 rule as ConjunctionRule,
                 ruleFromGrid,
-                automaton.evalContext,
+                context
             );
             setOutput = new Set([...setOutput, ...ruleAndOutput.outputs]);
             newRules.push(...ruleAndOutput.rules);
@@ -107,7 +108,7 @@ export default function EditGrid({
         // setRulesGrid(newRules.map(getRuleGrid));
         setRulesGrid(
             newRules.map((rule) =>
-                RuleGrid.makeGridFromRule(rule, automaton.evalContext, radius, nbFutureSteps)
+                RuleGrid.makeGridFromRule(rule, radius, nbFutureSteps)
             )
         );
     }

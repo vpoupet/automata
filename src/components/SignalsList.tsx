@@ -7,7 +7,7 @@ import { Heading } from "./Heading";
 
 type SignalsListProps = {
     signalsList: Signal[];
-    setSignalsList: React.Dispatch<React.SetStateAction<Signal[]>>;
+    setSignalsList: (signals: Signal[]) => void;
     hiddenSignalsSet: Set<Signal>;
     setHiddenSignalsSet: React.Dispatch<React.SetStateAction<Set<Signal>>>;
     grid: RuleGrid;
@@ -58,7 +58,7 @@ export default function SignalsList({
             alert(`Le signal ${signalValue.description} existe déjà.`);
             return;
         }
-        setSignalsList((prev) => [...prev, signalValue]);
+        setSignalsList([...signalsList, signalValue]);
     }
 
     function updateSignal(
@@ -74,8 +74,8 @@ export default function SignalsList({
             return { oldValue: null, newValue: null };
         }
 
-        setSignalsList((prev) =>
-            prev.map((signal, i) => (i === index ? newValue : signal))
+        setSignalsList(
+            signalsList.map((signal, i) => (i === index ? newValue : signal))
         );
 
         return { oldValue, newValue };
@@ -134,7 +134,7 @@ export default function SignalsList({
 
     function deleteSignal(index: number): Signal | undefined {
         const signal = signalsList[index];
-        setSignalsList((prev) => prev.filter((_, i) => i !== index));
+        setSignalsList(signalsList.filter((_, i) => i !== index));
         return signal;
     }
 
@@ -206,7 +206,9 @@ export default function SignalsList({
         <div>
             <Heading level={2}>Liste des signaux</Heading>
             <div className="flex flex-col gap-1">
-                <Button onClick={toggleAllSignals} variant="secondary">Toggle</Button>
+                <Button onClick={toggleAllSignals} variant="secondary">
+                    Toggle
+                </Button>
                 {signalsList.map((signal, idx) => (
                     <div key={idx} className="flex justify-between">
                         <span className="flex gap-2">

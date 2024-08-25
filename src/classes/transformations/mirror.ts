@@ -1,17 +1,10 @@
-import { Signal } from "../types";
-import { EvalContext } from "./Clause";
-import { Rule, RuleOutput } from "./Rule";
-
-type TransformationParameter = string | number;
-type TransformationOutput = {
-    rules: Rule[];
-    context: EvalContext;
-};
-type Transformation = (
-    rules: Rule[],
-    context: EvalContext,
-    parameters: TransformationParameter[]
-) => TransformationOutput;
+import { Signal } from "../../types";
+import { EvalContext } from "../Clause";
+import { Rule, RuleOutput } from "../Rule";
+import {
+    TransformationOutput,
+    TransformationParameter,
+} from "./Transformation";
 
 export function mirror(
     rules: Rule[],
@@ -64,7 +57,7 @@ export function mirror(
     );
 
     // add new multi-signals
-    const newMultiSignals = new Map<Signal, Set<Signal>>();
+    const newMultiSignals = new Map<Signal, Set<Signal>>(context.multiSignals);
     for (const [signal, subSignals] of context.multiSignals.entries()) {
         const newSignal = switchTags(signal);
         if (newSignal !== signal) {
@@ -75,27 +68,11 @@ export function mirror(
         }
     }
 
+    console.log([...rules, ...newRules]);
+    console.log(newMultiSignals);
+
     return {
         rules: [...rules, ...newRules],
-        context: new EvalContext({
-            ...context.multiSignals,
-            ...newMultiSignals,
-        }),
+        context: new EvalContext(newMultiSignals),
     };
 }
-
-function dummy(
-    rules: Rule[],
-    context: EvalContext,
-    _parameters: TransformationParameter[]
-): TransformationOutput {
-    return {
-        rules: rules,
-        context: context,
-    };
-}
-
-export const transformations: Map<string, Transformation> = new Map([
-    ["mirror", mirror],
-    ["dummy", dummy],
-]);

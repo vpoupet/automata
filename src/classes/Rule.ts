@@ -1,9 +1,3 @@
-// @ts-nocheck: type definitions for nearly are neither complete nor correct
-import nearley from "nearley";
-// @ts-nocheck: nearley-generated grammars are not compatible with strict mode
-import grammar from "../grammar/grammar.js";
-import { ParsedLine } from "../grammar/types.ts";
-import { transformations } from "./Transformation";
 import { Neighborhood, Signal } from "../types";
 import { Cell } from "./Cell";
 import {
@@ -27,13 +21,11 @@ export class RuleOutput {
     }
 
     toString(): string {
-        if (this.futureStep === 1) {
-            return `${this.neighbor}.${Symbol.keyFor(this.signal)}`;
-        } else {
-            return `${this.neighbor}/${this.futureStep}.${Symbol.keyFor(
-                this.signal
-            )}`;
-        }
+        const positionStr = this.neighbor === 0 ? "" : `${this.neighbor}`;
+        const futureStepStr = this.futureStep === 1 ? "" : `/${this.futureStep}`;
+        const dotStr = (positionStr !== "" || futureStepStr !== "") ? "." : "";
+        
+        return `${positionStr}${futureStepStr}${dotStr}${Symbol.keyFor(this.signal)}`;
     }
 
     equals(other: RuleOutput): boolean {
@@ -80,9 +72,9 @@ export class Rule {
             .join(" ")}`;
     }
 
-    getSignals(context: EvalContext): Set<Signal> {
+    getSignals(): Set<Signal> {
         const signals = new Set<Signal>();
-        for (const literal of this.condition.getLiterals(context)) {
+        for (const literal of this.condition.getLiterals()) {
             signals.add(literal.signal);
         }
         for (const output of this.outputs) {
@@ -98,120 +90,6 @@ export class Rule {
                 output.renameSignal(oldSignal, newSignal)
             )
         );
-    }
-
-    static parseString(inputString: string, context: EvalContext): Rule[] {
-        const parser = new nearley.Parser(
-            nearley.Grammar.fromCompiled(grammar as nearley.CompiledRules)
-        );
-        try {
-            parser.feed(inputString);
-            if (parser.results.length !== 1) {
-                throw new Error("Ambiguous grammar!");
-            }
-        } catch (e) {
-            console.log(e);
-        }
-        const outputLines = parser.results[0] as ParsedLine[];
-        const functionsStack: {
-            name: string | undefined;
-            parameters: string[];
-            rules: Rule[];
-        }[] = [
-            {
-                name: undefined,
-                parameters: [],
-                rules: [],
-            },
-        ];
-        let rules = functionsStack[0].rules;
-        const conditionsStack: { condition: Clause; indent: number }[] = [];
-        for (const line of outputLines) {
-            if (line.type !== "empty_line") {
-                // remove irrelevant conditions from stack
-                while (
-                    conditionsStack.length > 0 &&
-                    conditionsStack[0].indent >= line.indent
-                ) {
-                    conditionsStack.shift();
-                }
-            }
-            switch (line.type) {
-                case "rule_line": {
-                    let condition: Clause;
-                    if (line.condition !== undefined) {
-                        if (conditionsStack.length === 0) {
-                            condition = line.condition;
-                        } else {
-                            condition = new Conjunction([
-                                conditionsStack[0].condition,
-                                line.condition,
-                            ]);
-                        }
-                        conditionsStack.unshift({
-                            condition,
-                            indent: line.indent,
-                        });
-                    } else {
-                        condition = conditionsStack[0].condition;
-                    }
-                    if (line.outputs !== undefined) {
-                        rules.push(new Rule(condition, line.outputs));
-                    }
-                    break;
-                }
-                case "begin_function": {
-                    functionsStack.unshift({
-                        name: line.function_name,
-                        parameters: line.parameters,
-                        rules: [],
-                    });
-                    rules = functionsStack[0].rules;
-                    break;
-                }
-                case "end_function": {
-                    const functionData = functionsStack.shift();
-                    if (
-                        functionData === undefined ||
-                        functionData.name === undefined
-                    ) {
-                        throw new Error("Not currently in a function");
-                    }
-                    const transformation = transformations.get(
-                        functionData.name
-                    );
-                    if (transformation === undefined) {
-                        throw new Error(
-                            `Unknown transformation: ${functionData.name}`
-                        );
-                    }
-
-                    const {rules: newRules, context: newContext} = transformation(
-                        rules,
-                        context,
-                        functionData.parameters
-                    );
-                    
-                    context = newContext;
-                    functionsStack[0].rules.push(...newRules);
-                    rules = functionsStack[0].rules;
-                    break;
-                }
-                case "multi_signal": {
-                    context.multiSignals.set(
-                        line.signal,
-                        new Set(line.values)
-                    );
-                    break;
-                }
-                case "empty_line":
-                    break;
-            }
-        }
-        if (functionsStack.length > 1) {
-            throw new Error("Function not closed");
-        }
-        return rules;
     }
 }
 

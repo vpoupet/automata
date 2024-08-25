@@ -57,10 +57,7 @@ export abstract class Clause {
 
     abstract toString(): string;
 
-    abstract getLiterals(
-        context: EvalContext,
-        resolveMultiSignals: boolean
-    ): Literal[];
+    abstract getLiterals(): Literal[];
 
     simplified(): Clause {
         return this;
@@ -127,14 +124,8 @@ export class Literal extends Clause {
         }
     }
 
-    getLiterals(context: EvalContext, resolveMultiSignals: boolean): Literal[] {
-        if (resolveMultiSignals) {
-            return Array.from(context.getSignalsFor(this.signal)).map(
-                (s) => new Literal(s, this.position, this.sign)
-            );
-        } else {
-            return [this];
-        }
+    getLiterals(): Literal[] {
+        return [this];
     }
 
     copy(): Literal {
@@ -212,9 +203,9 @@ export class Negation extends Clause {
         return `!${this.subclause.toString()}`;
     }
 
-    getLiterals(context: EvalContext, resolveMultiSignals: boolean): Literal[] {
+    getLiterals(): Literal[] {
         return this.subclause
-            .getLiterals(context, resolveMultiSignals)
+            .getLiterals()
             .map(
                 (literal) =>
                     new Literal(literal.signal, literal.position, !literal.sign)
@@ -309,9 +300,9 @@ export class Conjunction extends Clause {
             .join(" ")})`;
     }
 
-    getLiterals(context: EvalContext, resolveMultiSignals: boolean): Literal[] {
+    getLiterals(): Literal[] {
         return this.subclauses.flatMap((subclause) =>
-            subclause.getLiterals(context, resolveMultiSignals)
+            subclause.getLiterals()
         );
     }
 
@@ -422,9 +413,9 @@ export class Disjunction extends Clause {
             .join(" ")}]`;
     }
 
-    getLiterals(context: EvalContext, resolveMultiSignals: boolean): Literal[] {
+    getLiterals(): Literal[] {
         return this.subclauses.flatMap((subclause) =>
-            subclause.getLiterals(context, resolveMultiSignals)
+            subclause.getLiterals()
         );
     }
 
