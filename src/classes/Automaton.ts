@@ -4,6 +4,7 @@ import { Configuration } from "./Configuration.ts";
 import { Rule } from "./Rule.ts";
 
 export class Automaton {
+    multiSignals: Map<symbol, Set<Signal>>;
     /**
      * List of rules of the automaton (the rules are executed on each cell in the order they appear in the list)
      */
@@ -17,24 +18,29 @@ export class Automaton {
      * This value is automatically updated when parsing the rules.
      */
     maxFutureDepth: number;
-    evalContext: EvalContext;
 
     constructor(
         rules: Rule[] = [],
-        evalContext: EvalContext = new EvalContext()
+        multiSignals: Map<symbol, Set<Signal>> = new Map()
     ) {
         this.minNeighbor = 0;
         this.maxNeighbor = 0;
         this.maxFutureDepth = 1;
         this.rules = rules;
-        this.evalContext = evalContext;
+        this.multiSignals = multiSignals;
         this.updateParameters();
+    }
+
+    getEvalContext(): EvalContext {
+        return new EvalContext(this.multiSignals);
     }
 
     private updateParameters() {
         this.minNeighbor = Infinity;
         this.maxNeighbor = -Infinity;
         this.maxFutureDepth = 1;
+        const evalContext = this.getEvalContext();
+
         for (const rule of this.rules) {
             for (const output of rule.outputs) {
                 this.maxFutureDepth = Math.max(
@@ -42,9 +48,7 @@ export class Automaton {
                     output.futureStep
                 );
             }
-            for (const literal of rule.condition.getLiterals(
-                this.evalContext
-            )) {
+            for (const literal of rule.condition.getLiterals(evalContext, false)) {
                 this.minNeighbor = Math.min(this.minNeighbor, literal.position);
                 this.maxNeighbor = Math.max(this.maxNeighbor, literal.position);
             }
@@ -68,6 +72,8 @@ export class Automaton {
     ): Configuration[] {
         const nbCells = initialConfiguration.getSize();
         const diagram = [initialConfiguration];
+        const evalContext = this.getEvalContext();
+
         for (let i = 0; i < nbSteps; i++) {
             diagram.push(Configuration.withSize(nbCells));
         }
@@ -80,7 +86,7 @@ export class Automaton {
                     this.maxNeighbor
                 );
                 for (const rule of this.rules) {
-                    if (rule.condition.eval(neighborhood, this.evalContext)) {
+                    if (rule.condition.eval(neighborhood, evalContext)) {
                         rule.outputs.forEach((output) => {
                             const targetCell = c + output.neighbor;
                             if (

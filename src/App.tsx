@@ -70,7 +70,7 @@ export default function App() {
         const currentAutomaton = historyAutomaton[indexAutomaton];
         const auto = new Automaton(
             currentAutomaton.getRules().concat(rules),
-            currentAutomaton.evalContext,
+            currentAutomaton.multiSignals,
         );
         setAutomaton(auto);
     };
@@ -86,7 +86,7 @@ export default function App() {
 
     const rulesGrid = RuleGrid.makeGridsFromTabRules(
         historyAutomaton[indexAutomaton].getRules(),
-        historyAutomaton[indexAutomaton].evalContext,
+        historyAutomaton[indexAutomaton].getEvalContext(),
         settings.gridRadius,
         settings.gridNbFutureSteps
     );
@@ -148,7 +148,7 @@ export default function App() {
                         addRules={addRules}
                         signalsList={signalsList}
                         setSignalsList={setSignalsList}
-                        context={historyAutomaton[indexAutomaton].evalContext}
+                        context={historyAutomaton[indexAutomaton].getEvalContext()}
                     />
                 </div>
             </div>

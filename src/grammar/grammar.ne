@@ -2,7 +2,7 @@
 @preprocessor module
 
 @{%
-import { Literal, MultiSignalLiteral, Conjunction, Disjunction, Negation } from "../classes/Clause.ts";
+import { Literal, Conjunction, Disjunction, Negation } from "../classes/Clause.ts";
 import { RuleOutput } from "../classes/Rule.ts";
 import moo from "moo";
 
@@ -24,7 +24,6 @@ const lexer = moo.compile({
     bang: "!",
     slash: "/",
     comma: ",",
-    dollar: "$",
     eq: "=",
     lb: "[",
     rb: "]",
@@ -33,7 +32,7 @@ const lexer = moo.compile({
     la: "{",
     ra: "}",
     at: "@",
-    identifier: /[a-zA-Z_][a-zA-Z_0-9]*/,
+    identifier: /[a-zA-Z_$][a-zA-Z_$0-9]*/,
 });
 lexer.next = (next => () => {
     let tok;
@@ -47,8 +46,7 @@ lexer.next = (next => () => {
 @builtin "string.ne"
 @lexer lexer
 
-LINES -> LINE
-LINES -> LINES %newline LINE {% ([lines, , line]) => [...lines, line] %}
+LINES -> LINE | LINES %newline LINE {% ([lines, , line]) => [...lines, line] %}
 
 LINE -> EMPTY_LINE
 LINE -> RULE_LINE {% id %}
@@ -84,16 +82,17 @@ INDENT -> %indent:? {% ([indent]) => {
 } %}
 
 CLAUSE -> LITERAL {% id %}
-CLAUSE -> MULTI_LITERAL {% id %}
 CLAUSE -> CONJUNCTION {% id %}
 CLAUSE -> DISJUNCTION {% id %}
 CLAUSE -> NEGATION {% id %}
-CLAUSES_LIST -> null {% () => [] %} | CLAUSE | CLAUSES_LIST CLAUSE {% ([list, c]) => [...list, c] %}
+CLAUSES_LIST -> CLAUSE | CLAUSES_LIST CLAUSE {% ([list, c]) => [...list, c] %}
+CONJUNCTION -> "(" ")" {% () => new Conjunction([]) %}
 CONJUNCTION -> "(" CLAUSES_LIST ")" {% ([ , list, ]) => new Conjunction(list) %}
+DISJUNCTION -> "[" "]" {% () => new Disjunction([]) %}
 DISJUNCTION -> "[" CLAUSES_LIST "]" {% ([ , list, ]) => new Disjunction(list) %}
 NEGATION -> "!" CLAUSE {%
 ([_, c]) => {
-    if (c instanceof Literal || c instanceof MultiSignalLiteral) {
+    if (c instanceof Literal) {
         return c.negated();
     } else if (c instanceof Negation) {
         return c.subclause;
@@ -105,8 +104,6 @@ NEGATION -> "!" CLAUSE {%
 SIGNAL_NAME -> IDENTIFIER {% id %}
 LITERAL -> INT "." SIGNAL_NAME {% ([pos, , signalName]) => new Literal(Symbol.for(signalName), pos) %}
 LITERAL -> SIGNAL_NAME {% ([signalName]) => new Literal(Symbol.for(signalName)) %}
-MULTI_LITERAL -> "$" SIGNAL_NAME {% ([ , signalName]) => new MultiSignalLiteral(Symbol.for("$" + signalName)) %}
-MULTI_LITERAL -> INT ("." "$") SIGNAL_NAME {% ([pos, , signalName]) => new MultiSignalLiteral(Symbol.for("$" + signalName), pos) %}
 
 OUTPUT -> SIGNAL_NAME {% ([signalName]) => new RuleOutput(0, Symbol.for(signalName)) %}
 OUTPUT -> INT "." SIGNAL_NAME {% ([pos, , signalName]) => new RuleOutput(pos, Symbol.for(signalName)) %}
@@ -114,13 +111,12 @@ OUTPUT -> "/" INT "." SIGNAL_NAME {% ([ , step, , signalName]) => new RuleOutput
 OUTPUT -> INT "/" INT "." SIGNAL_NAME {% ([pos, , step, , signalName]) => new RuleOutput(pos, Symbol.for(signalName), step) %}
 OUTPUTS_LIST -> OUTPUT | OUTPUTS_LIST OUTPUT {% ([list, o]) => [...list, o] %}
 
-MULTISIGNAL_LINE -> INDENT MULTI_SIGNAL_NAME "=" SIGNAL_VALUES {% ([indent, multiSignalName, , values]) => ({
+MULTISIGNAL_LINE -> INDENT SIGNAL_NAME "=" SIGNAL_VALUES {% ([indent, multiSignalName, , values]) => ({
     type: "multi_signal",
     indent: indent,
     signal: Symbol.for(multiSignalName),
     values: values,
 }) %}
-MULTI_SIGNAL_NAME -> "$" IDENTIFIER {% ([ , i]) => "$" + i %}
 SIGNAL_VALUES -> SIGNAL | SIGNAL_VALUES SIGNAL {% ([list, s]) => [...list, s] %}
 SIGNAL -> IDENTIFIER {% ([signalName]) => Symbol.for(signalName) %}
 

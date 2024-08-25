@@ -2,7 +2,7 @@
 // http://github.com/Hardmath123/nearley
 function id(x) { return x[0]; }
 
-import { Literal, MultiSignalLiteral, Conjunction, Disjunction, Negation } from "../classes/Clause.ts";
+import { Literal, Conjunction, Disjunction, Negation } from "../classes/Clause.ts";
 import { RuleOutput } from "../classes/Rule.ts";
 import moo from "moo";
 
@@ -24,7 +24,6 @@ const lexer = moo.compile({
     bang: "!",
     slash: "/",
     comma: ",",
-    dollar: "$",
     eq: "=",
     lb: "[",
     rb: "]",
@@ -33,7 +32,7 @@ const lexer = moo.compile({
     la: "{",
     ra: "}",
     at: "@",
-    identifier: /[a-zA-Z_][a-zA-Z_0-9]*/,
+    identifier: /[a-zA-Z_$][a-zA-Z_$0-9]*/,
 });
 lexer.next = (next => () => {
     let tok;
@@ -105,18 +104,18 @@ let ParserRules = [
             return 0;
         } },
     {"name": "CLAUSE", "symbols": ["LITERAL"], "postprocess": id},
-    {"name": "CLAUSE", "symbols": ["MULTI_LITERAL"], "postprocess": id},
     {"name": "CLAUSE", "symbols": ["CONJUNCTION"], "postprocess": id},
     {"name": "CLAUSE", "symbols": ["DISJUNCTION"], "postprocess": id},
     {"name": "CLAUSE", "symbols": ["NEGATION"], "postprocess": id},
-    {"name": "CLAUSES_LIST", "symbols": [], "postprocess": () => []},
     {"name": "CLAUSES_LIST", "symbols": ["CLAUSE"]},
     {"name": "CLAUSES_LIST", "symbols": ["CLAUSES_LIST", "CLAUSE"], "postprocess": ([list, c]) => [...list, c]},
+    {"name": "CONJUNCTION", "symbols": [{"literal":"("}, {"literal":")"}], "postprocess": () => new Conjunction([])},
     {"name": "CONJUNCTION", "symbols": [{"literal":"("}, "CLAUSES_LIST", {"literal":")"}], "postprocess": ([ , list, ]) => new Conjunction(list)},
+    {"name": "DISJUNCTION", "symbols": [{"literal":"["}, {"literal":"]"}], "postprocess": () => new Disjunction([])},
     {"name": "DISJUNCTION", "symbols": [{"literal":"["}, "CLAUSES_LIST", {"literal":"]"}], "postprocess": ([ , list, ]) => new Disjunction(list)},
     {"name": "NEGATION", "symbols": [{"literal":"!"}, "CLAUSE"], "postprocess": 
         ([_, c]) => {
-            if (c instanceof Literal || c instanceof MultiSignalLiteral) {
+            if (c instanceof Literal) {
                 return c.negated();
             } else if (c instanceof Negation) {
                 return c.subclause;
@@ -128,22 +127,18 @@ let ParserRules = [
     {"name": "SIGNAL_NAME", "symbols": ["IDENTIFIER"], "postprocess": id},
     {"name": "LITERAL", "symbols": ["INT", {"literal":"."}, "SIGNAL_NAME"], "postprocess": ([pos, , signalName]) => new Literal(Symbol.for(signalName), pos)},
     {"name": "LITERAL", "symbols": ["SIGNAL_NAME"], "postprocess": ([signalName]) => new Literal(Symbol.for(signalName))},
-    {"name": "MULTI_LITERAL", "symbols": [{"literal":"$"}, "SIGNAL_NAME"], "postprocess": ([ , signalName]) => new MultiSignalLiteral(Symbol.for("$" + signalName))},
-    {"name": "MULTI_LITERAL$subexpression$1", "symbols": [{"literal":"."}, {"literal":"$"}]},
-    {"name": "MULTI_LITERAL", "symbols": ["INT", "MULTI_LITERAL$subexpression$1", "SIGNAL_NAME"], "postprocess": ([pos, , signalName]) => new MultiSignalLiteral(Symbol.for("$" + signalName), pos)},
     {"name": "OUTPUT", "symbols": ["SIGNAL_NAME"], "postprocess": ([signalName]) => new RuleOutput(0, Symbol.for(signalName))},
     {"name": "OUTPUT", "symbols": ["INT", {"literal":"."}, "SIGNAL_NAME"], "postprocess": ([pos, , signalName]) => new RuleOutput(pos, Symbol.for(signalName))},
     {"name": "OUTPUT", "symbols": [{"literal":"/"}, "INT", {"literal":"."}, "SIGNAL_NAME"], "postprocess": ([ , step, , signalName]) => new RuleOutput(0, Symbol.for(signalName, step))},
     {"name": "OUTPUT", "symbols": ["INT", {"literal":"/"}, "INT", {"literal":"."}, "SIGNAL_NAME"], "postprocess": ([pos, , step, , signalName]) => new RuleOutput(pos, Symbol.for(signalName), step)},
     {"name": "OUTPUTS_LIST", "symbols": ["OUTPUT"]},
     {"name": "OUTPUTS_LIST", "symbols": ["OUTPUTS_LIST", "OUTPUT"], "postprocess": ([list, o]) => [...list, o]},
-    {"name": "MULTISIGNAL_LINE", "symbols": ["INDENT", "MULTI_SIGNAL_NAME", {"literal":"="}, "SIGNAL_VALUES"], "postprocess":  ([indent, multiSignalName, , values]) => ({
+    {"name": "MULTISIGNAL_LINE", "symbols": ["INDENT", "SIGNAL_NAME", {"literal":"="}, "SIGNAL_VALUES"], "postprocess":  ([indent, multiSignalName, , values]) => ({
             type: "multi_signal",
             indent: indent,
             signal: Symbol.for(multiSignalName),
             values: values,
         }) },
-    {"name": "MULTI_SIGNAL_NAME", "symbols": [{"literal":"$"}, "IDENTIFIER"], "postprocess": ([ , i]) => "$" + i},
     {"name": "SIGNAL_VALUES", "symbols": ["SIGNAL"]},
     {"name": "SIGNAL_VALUES", "symbols": ["SIGNAL_VALUES", "SIGNAL"], "postprocess": ([list, s]) => [...list, s]},
     {"name": "SIGNAL", "symbols": ["IDENTIFIER"], "postprocess": ([signalName]) => Symbol.for(signalName)},

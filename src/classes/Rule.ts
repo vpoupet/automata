@@ -186,17 +186,19 @@ export class Rule {
                         );
                     }
 
-                    const newRules = transformation(
+                    const {rules: newRules, context: newContext} = transformation(
                         rules,
                         context,
                         functionData.parameters
                     );
+                    
+                    context = newContext;
                     functionsStack[0].rules.push(...newRules);
                     rules = functionsStack[0].rules;
                     break;
                 }
                 case "multi_signal": {
-                    context.multiSignalLiterals.set(
+                    context.multiSignals.set(
                         line.signal,
                         new Set(line.values)
                     );
