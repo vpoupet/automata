@@ -1,0 +1,134 @@
+@startuml React Components
+class App {
+    - settings
+    - colorPickingsignal
+    - colorMap
+    - grid
+    - extraSignalsSet
+    - hiddenSignalsSet
+    - automataHistory
+    - automatonIndex
+}
+
+App *-- EditGrid
+App *-- SignalsList
+App *-- RulesList
+App *-- RuleInputArea
+App *-- Diagram
+
+class EditGrid {
+    # grid
+    # setGrid
+    # nbFutureSteps
+    # radius
+    # rulesGrid
+    # setRulesGrid
+    # automaton
+    # extraSignalsSet
+    # colorMap
+    - activeInputCells
+    - activeOutputCells
+}
+
+EditGrid *-- GridInputsRow
+EditGrid *-- GridOutputsRow
+
+class GridInputsRow {
+    # inputs
+    # activeInputCells
+    # setActiveInputCells
+    # setActiveOutputCells
+    # colorMap
+}
+
+GridInputsRow *-- CellComponent
+
+class GridOutputsRow {
+    # outputs
+    # rowIndex
+    # activeOutputCells
+    # setActiveInputCells
+    # setActiveOutputCells
+    # colorMap
+}
+
+GridOutputsRow *-- CellComponent
+
+class CellComponent {
+    # cell
+    # onClick?
+    # isActive?
+    # hiddenSignalsSet?
+    # colorMap
+}
+
+class SignalsList {
+    # automaton
+    # setAutomaton
+    # extraSignalsSet
+    # setExtraSignalsSet
+    # hiddenSignalsSet
+    # setHiddenSignalsSet
+    # colorMap
+    # setColorMap
+    # colorPickingSignal
+    # setColorPickingSignal
+    # setSignalColor
+    - newSignalValue
+}
+
+SignalsList *-- SignalComponent
+
+class SignalComponent {
+    # signal
+    # color
+    # isVisible
+    # setIsVisible
+    # replaceSignal
+    # canDeleteSignal
+    # deleteSignal
+    # setColor
+    # isSelectingColor
+    # setIsSelectingColor
+    - isEditing
+    - editValue
+}
+
+class RulesList {
+    # automaton
+}
+
+RulesList *-- RuleComponent
+
+class RuleComponent {
+    # rule
+}
+
+class RuleInputArea {
+    # automaton
+    # setAutomaton
+}
+
+class Diagram {
+    # automaton
+    # initialConfiguration
+    # nbSteps
+    # gridRadius?
+    # gridNbFutureSteps?
+    # setGrid?
+    # hiddenSignalsSet?
+    # colorMap
+}
+
+Diagram *-- DiagramRow
+
+class DiagramRow {
+    # config
+    # onClickCell?
+    # hiddenSignalsSet?
+    # colorMap
+}
+
+DiagramRow *-- CellComponent
+
+@enduml
