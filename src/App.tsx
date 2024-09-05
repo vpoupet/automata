@@ -1,15 +1,18 @@
 import { useState } from "react";
-import { Automaton } from "./classes/Automaton.ts";
-import { Configuration } from "./classes/Configuration.ts";
+import Automaton from "./classes/Automaton.ts";
+import Configuration from "./classes/Configuration.ts";
 import RuleGrid from "./classes/RuleGrid.ts";
-import { Button } from "./components/Button.tsx";
-import { Diagram } from "./components/Diagram.tsx";
+import Button from "./components/Button.tsx";
+import Diagram from "./components/Diagram.tsx";
 import EditGrid from "./components/EditGrid.tsx";
-import { Heading } from "./components/Heading.tsx";
-import { RuleImportArea } from "./components/RuleInputArea.tsx";
+import Heading from "./components/Heading.tsx";
+import RuleInputArea from "./components/RuleInputArea.tsx";
+import RulesList from "./components/RulesList.tsx";
 import SignalsList from "./components/SignalsList.tsx";
 import "./style/style.scss";
 import { SettingsInterface, Signal } from "./types.ts";
+import { randomColor } from "./style/materialColors.ts";
+
 export default function App() {
     const [settings] = useState<SettingsInterface>({
         gridRadius: 2,
@@ -18,6 +21,10 @@ export default function App() {
         nbSteps: 60,
         timeGoesUp: true,
     });
+    const [colorPickingSignal, setColorPickingSignal] = useState<
+        Signal | undefined
+    >(undefined);
+    const [colorMap, setColorMap] = useState(new Map<Signal, string>());
 
     const [grid, setGrid] = useState<RuleGrid>(
         RuleGrid.withSize(
@@ -26,39 +33,38 @@ export default function App() {
         )
     );
 
+    const [extraSignalsSet, setExtraSignalsSet] = useState<Set<Signal>>(
+        new Set()
+    );
     const [hiddenSignalsSet, setHiddenSignalsSet] = useState<Set<Signal>>(
         new Set()
     );
 
-    const [historyAutomaton, setHistoryAutomaton] = useState<Automaton[]>([
+    const [automataHistory, setAutomataHistory] = useState<Automaton[]>([
         new Automaton(),
     ]);
-    const [indexAutomaton, setIndexAutomaton] = useState(0);
+    const [automatonIndex, setAutomatonIndex] = useState(0);
 
-    const changeIndexAutomaton = (addToindex: number) => {
+    function changeIndexAutomaton(deltaIndex: number) {
         if (
-            indexAutomaton + addToindex < 0 ||
-            indexAutomaton + addToindex >= historyAutomaton.length
+            automatonIndex + deltaIndex < 0 ||
+            automatonIndex + deltaIndex >= automataHistory.length
         ) {
             return;
         }
-        setIndexAutomaton(indexAutomaton + addToindex);
-    };
+        setAutomatonIndex(automatonIndex + deltaIndex);
+    }
 
     function setAutomaton(automaton: Automaton) {
-        if (indexAutomaton < historyAutomaton.length - 1) {
-            setHistoryAutomaton([
-                ...historyAutomaton.slice(0, indexAutomaton + 1),
+        if (automatonIndex < automataHistory.length - 1) {
+            setAutomataHistory([
+                ...automataHistory.slice(0, automatonIndex + 1),
                 automaton,
             ]);
         } else {
-            setHistoryAutomaton([...historyAutomaton, automaton]);
+            setAutomataHistory([...automataHistory, automaton]);
         }
-        setIndexAutomaton(indexAutomaton + 1);
-    }
-
-    function setSignalsList(_signalsList: Signal[]) {
-        // TODO: Implement
+        setAutomatonIndex(automatonIndex + 1);
     }
 
     function setRulesGrids(rulesGrids: RuleGrid[]) {
@@ -67,7 +73,31 @@ export default function App() {
         setAutomaton(auto);
     }
 
-    const automaton = historyAutomaton[indexAutomaton];
+    function setSignalColor(signal: Signal, color: string) {
+        const newColorMap = new Map(colorMap);
+        newColorMap.set(signal, color);
+        setColorMap(newColorMap);
+    }
+
+    const automaton = automataHistory[automatonIndex];
+    const signalsList = Array.from(
+        automaton.signals.union(extraSignalsSet)
+    ).sort((a, b) => {
+        const descA = a.description || "";
+        const descB = b.description || "";
+        return descA.localeCompare(descB);
+    });
+
+    const uncoloredSignals = signalsList.filter(
+        (signal) => !colorMap.has(signal)
+    );
+    if (uncoloredSignals.length > 0) {
+        const newColorMap = new Map(colorMap);
+        for (const signal of uncoloredSignals) {
+            newColorMap.set(signal, randomColor());
+        }
+        setColorMap(newColorMap);
+    }
 
     // Set initial configuration
     const initialConfiguration = Configuration.withSize(settings.nbCells);
@@ -78,8 +108,6 @@ export default function App() {
         settings.gridRadius,
         settings.gridNbFutureSteps
     );
-
-    const signalsList = automaton.getSignalsList();
 
     return (
         <div className="flex flex-col p-2 bg-gradient-to-b from-slate-50 to-slate-100 text-gray-700">
@@ -96,18 +124,20 @@ export default function App() {
                         rulesGrid={rulesGrid}
                         setRulesGrid={setRulesGrids}
                         automaton={automaton}
+                        extraSignalsSet={extraSignalsSet}
+                        colorMap={colorMap}
                     />
                     <div>
                         <Button
                             onClick={() => changeIndexAutomaton(-1)}
-                            disabled={indexAutomaton === 0}
+                            disabled={automatonIndex === 0}
                         >
                             Précédent
                         </Button>
                         <Button
                             onClick={() => changeIndexAutomaton(1)}
                             disabled={
-                                indexAutomaton >= historyAutomaton.length - 1
+                                automatonIndex >= automataHistory.length - 1
                             }
                         >
                             <span>Suivant</span>
@@ -116,35 +146,39 @@ export default function App() {
                 </div>
                 <div className="flex">
                     <SignalsList
-                        signalsList={signalsList}
-                        setSignalsList={setSignalsList}
+                        automaton={automaton}
+                        setAutomaton={setAutomaton}
+                        extraSignalsSet={extraSignalsSet}
+                        setExtraSignalsSet={setExtraSignalsSet}
                         hiddenSignalsSet={hiddenSignalsSet}
                         setHiddenSignalsSet={setHiddenSignalsSet}
-                        grid={grid}
-                        setGrid={setGrid}
-                        rulesGrids={rulesGrid}
-                        setRulesGrids={setRulesGrids}
+                        colorMap={colorMap}
+                        setColorMap={setColorMap}
+                        colorPickingSignal={colorPickingSignal}
+                        setColorPickingSignal={setColorPickingSignal}
+                        setSignalColor={setSignalColor}
                     />
                 </div>
             </div>
+            <RulesList automaton={automaton} />
             <div className="flex justify-between">
                 <div className="flex">
-                    <RuleImportArea
-                        automaton={historyAutomaton[indexAutomaton]}
+                    <RuleInputArea
+                        automaton={automataHistory[automatonIndex]}
                         setAutomaton={setAutomaton}
                     />
                 </div>
             </div>
             <div className="self-center">
                 <Diagram
-                    automaton={historyAutomaton[indexAutomaton]}
+                    automaton={automataHistory[automatonIndex]}
                     initialConfiguration={initialConfiguration}
                     nbSteps={settings.nbSteps}
                     gridRadius={settings.gridRadius}
                     gridNbFutureSteps={settings.gridNbFutureSteps}
                     setGrid={setGrid}
-                    signalsList={signalsList}
                     hiddenSignalsSet={hiddenSignalsSet}
+                    colorMap={colorMap}
                 />
             </div>
         </div>

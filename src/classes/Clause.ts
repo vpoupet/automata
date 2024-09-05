@@ -52,7 +52,7 @@ export type LiteralTransformation = {
     position: (position: number) => number;
 };
 
-export abstract class Clause {
+export default abstract class Clause {
     abstract eval(neighborhood: Neighborhood, context: EvalContext): boolean;
 
     abstract toString(): string;

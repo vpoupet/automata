@@ -3,7 +3,7 @@ interface HeaderProps {
     children: React.ReactNode;
 }
 
-export function Heading(props: HeaderProps) {
+export default function Heading(props: HeaderProps) {
     const { level, children } = props;
 
     switch (level) {

@@ -1,11 +1,11 @@
 import { MdChangeCircle, MdDelete } from "react-icons/md";
 import { InputCell } from "../classes/Cell.ts";
-import { Rule } from "../classes/Rule.ts";
+import Rule from "../classes/Rule.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
 import "../style/Cell.scss";
-import { Signal } from "../types.ts";
-import { DiagramCell } from "./Diagram.tsx";
-import { Button } from "./Button.tsx";
+import type { Signal } from "../types.ts";
+import Button from "./Button.tsx";
+import CellComponent from "./CellComponent.tsx";
 
 type RuleGridComponentProps = {
     grid: RuleGrid;
@@ -14,6 +14,7 @@ type RuleGridComponentProps = {
     onUpdateRule: () => void;
     onLoadRule: () => void;
     signalsList: Signal[];
+    colorMap: Map<Signal, string>;
 };
 
 export default function RuleGridComponent({
@@ -22,22 +23,25 @@ export default function RuleGridComponent({
     onDeleteRule,
     onUpdateRule,
     onLoadRule,
-    signalsList,
+    colorMap,
 }: RuleGridComponentProps): JSX.Element {
     return (
         <div className="m-2 shadow-md p-2 w-64 flex flex-col content-center gap-2 bg-gray-200">
-            <div onClick={() => onLoadRule()} className="flex flex-col items-center">
+            <div
+                onClick={() => onLoadRule()}
+                className="flex flex-col items-center"
+            >
                 {grid.outputs
                     .slice()
                     .reverse()
                     .map((row, rowIndex) => (
                         <div key={rowIndex} className="flex flex-row">
                             {row.map((cell, colIndex) => (
-                                <DiagramCell
+                                <CellComponent
                                     key={`${rowIndex + 1}-${colIndex}`}
                                     cell={cell}
-                                    signalsList={signalsList}
                                     hiddenSignalsSet={new Set()}
+                                    colorMap={colorMap}
                                 />
                             ))}
                         </div>
@@ -47,7 +51,7 @@ export default function RuleGridComponent({
                         .slice()
                         .map((cell: InputCell, colIndex: number) => {
                             return (
-                                <DiagramCell
+                                <CellComponent
                                     key={`0-${colIndex}`}
                                     cell={
                                         new InputCell(
@@ -55,8 +59,8 @@ export default function RuleGridComponent({
                                             cell.negatedSignals
                                         )
                                     }
-                                    signalsList={signalsList}
                                     hiddenSignalsSet={new Set()}
+                                    colorMap={colorMap}
                                 />
                             );
                         })}
@@ -66,8 +70,12 @@ export default function RuleGridComponent({
                 <span>{rule.toString()}</span>
             </div>
             <div className="flex gap-2">
-                <Button variant="secondary" onClick={onDeleteRule}><MdDelete /></Button>
-                <Button variant="secondary" onClick={onUpdateRule}><MdChangeCircle /></Button>
+                <Button variant="secondary" onClick={onDeleteRule}>
+                    <MdDelete />
+                </Button>
+                <Button variant="secondary" onClick={onUpdateRule}>
+                    <MdChangeCircle />
+                </Button>
             </div>
         </div>
     );

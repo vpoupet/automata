@@ -1,15 +1,13 @@
-import { Signal } from "../types.ts";
-import { Clause, Conjunction, EvalContext } from "./Clause.ts";
-import { Configuration } from "./Configuration.ts";
-import { Rule } from "./Rule.ts";
-// @ts-nocheck: type definitions for nearly are neither complete nor correct
 import nearley from "nearley";
-// @ts-nocheck: nearley-generated grammars are not compatible with strict mode
 import grammar from "../grammar/grammar.js";
-import { ParsedLine } from "../grammar/types.ts";
+import type { ParsedLine } from "../grammar/types.ts";
+import type { Signal } from "../types.ts";
+import Clause, { Conjunction, EvalContext } from "./Clause.ts";
+import Configuration from "./Configuration.ts";
+import Rule from "./Rule.ts";
 import { transformations } from "./transformations/Transformation.ts";
 
-export class Automaton {
+export default class Automaton {
     signals: Set<Signal>;
     multiSignals: Map<symbol, Set<Signal>>;
     /**
@@ -30,13 +28,45 @@ export class Automaton {
         rules: Rule[] = [],
         multiSignals: Map<symbol, Set<Signal>> = new Map()
     ) {
-        this.minNeighbor = 0;
-        this.maxNeighbor = 0;
-        this.maxFutureDepth = 1;
         this.rules = rules;
-        this.signals = new Set([Symbol.for("Init")]);
         this.multiSignals = multiSignals;
-        this.updateParameters();
+
+        this.signals = new Set([]);
+        this.minNeighbor = Infinity;
+        this.maxNeighbor = -Infinity;
+        this.maxFutureDepth = 1;
+
+        for (const rule of this.rules) {
+            for (const output of rule.outputs) {
+                this.maxFutureDepth = Math.max(
+                    this.maxFutureDepth,
+                    output.futureStep
+                );
+            }
+            for (const literal of rule.condition.getLiterals()) {
+                this.minNeighbor = Math.min(this.minNeighbor, literal.position);
+                this.maxNeighbor = Math.max(this.maxNeighbor, literal.position);
+            }
+
+            for (const literal of rule.condition.getLiterals()) {
+                this.minNeighbor = Math.min(this.minNeighbor, literal.position);
+                this.maxNeighbor = Math.max(this.maxNeighbor, literal.position);
+            }
+
+            for (const signal of rule.getSignals()) {
+                this.signals.add(signal);
+            }
+        }
+
+        for (const [signal, subSignals] of this.multiSignals.entries()) {
+            this.signals.add(signal);
+            for (const subSignal of subSignals) {
+                this.signals.add(subSignal);
+            }
+        }
+
+        if (this.minNeighbor === Infinity) this.minNeighbor = 0;
+        if (this.maxNeighbor === -Infinity) this.maxNeighbor = 0;
     }
 
     getEvalContext(): EvalContext {
@@ -47,14 +77,18 @@ export class Automaton {
         return new EvalContext(new Map(this.multiSignals));
     }
 
-    getSignalsList(): Signal[] {
-        return Array.from(this.signals).sort((a, b) => {
-            const descriptionA = a.description || '';
-            const descriptionB = b.description || '';
+    getSignalsList(extraSignals?: Set<Signal>): Signal[] {
+        if (extraSignals === undefined) {
+            extraSignals = new Set();
+        }
+
+        return Array.from(this.signals.union(extraSignals)).sort((a, b) => {
+            const descriptionA = a.description || "";
+            const descriptionB = b.description || "";
             return descriptionA.localeCompare(descriptionB);
         });
     }
-    
+
     private updateParameters() {
         this.minNeighbor = Infinity;
         this.maxNeighbor = -Infinity;
@@ -102,7 +136,7 @@ export class Automaton {
     parseRules(inputString: string): Automaton {
         let context = this.copyEvalContext();
         const parser = new nearley.Parser(
-            nearley.Grammar.fromCompiled(grammar as nearley.CompiledRules)
+            nearley.Grammar.fromCompiled(grammar)
         );
         try {
             parser.feed(inputString);
@@ -255,9 +289,9 @@ export class Automaton {
         return this.rules;
     }
 
-    renameSignal(oldSignal: Signal, newSignal: Signal): Automaton {
+    replaceSignal(oldSignal: Signal, newSignal: Signal): Automaton {
         return new Automaton(
-            this.rules.map((rule) => rule.renameSignal(oldSignal, newSignal))
+            this.rules.map((rule) => rule.replaceSignal(oldSignal, newSignal))
         );
     }
 

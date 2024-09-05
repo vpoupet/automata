@@ -7,7 +7,7 @@ interface ButtonProps {
     children: React.ReactNode;
 }
 
-export function Button(props: ButtonProps) {
+export default function Button(props: ButtonProps) {
     const { variant = "primary", disabled = false, onClick, children } = props;
     let className;
     switch (variant) {

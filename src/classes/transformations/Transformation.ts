@@ -1,7 +1,7 @@
 import { EvalContext } from "../Clause";
-import { Rule } from "../Rule";
-import { dummy } from "./dummy";
-import { mirror } from "./mirror";
+import Rule from "../Rule";
+import dummy  from "./dummy";
+import  mirror  from "./mirror";
 
 export type TransformationParameter = string | number;
 export type TransformationOutput = {

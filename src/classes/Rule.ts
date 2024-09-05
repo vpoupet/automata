@@ -1,7 +1,6 @@
-import { Neighborhood, Signal } from "../types";
-import { Cell } from "./Cell";
-import {
-    Clause,
+import type { Neighborhood, Signal } from "../types";
+import Cell from "./Cell";
+import Clause, {
     Conjunction,
     ConjunctionOfLiterals,
     EvalContext,
@@ -22,10 +21,13 @@ export class RuleOutput {
 
     toString(): string {
         const positionStr = this.neighbor === 0 ? "" : `${this.neighbor}`;
-        const futureStepStr = this.futureStep === 1 ? "" : `/${this.futureStep}`;
-        const dotStr = (positionStr !== "" || futureStepStr !== "") ? "." : "";
-        
-        return `${positionStr}${futureStepStr}${dotStr}${Symbol.keyFor(this.signal)}`;
+        const futureStepStr =
+            this.futureStep === 1 ? "" : `/${this.futureStep}`;
+        const dotStr = positionStr !== "" || futureStepStr !== "" ? "." : "";
+
+        return `${positionStr}${futureStepStr}${dotStr}${Symbol.keyFor(
+            this.signal
+        )}`;
     }
 
     equals(other: RuleOutput): boolean {
@@ -57,7 +59,7 @@ export class RuleOutput {
  * In order to correspond to a cellular automaton, `futureStep` should be either strictly positive or can be 0 if
  * `neighbor` is also 0.
  */
-export class Rule {
+export default class Rule {
     condition: Clause;
     outputs: RuleOutput[];
 
@@ -83,7 +85,7 @@ export class Rule {
         return signals;
     }
 
-    renameSignal(oldSignal: Signal, newSignal: Signal): Rule {
+    replaceSignal(oldSignal: Signal, newSignal: Signal): Rule {
         return new Rule(
             this.condition.renameSignal(oldSignal, newSignal),
             this.outputs.map((output) =>

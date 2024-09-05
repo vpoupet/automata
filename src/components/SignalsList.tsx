@@ -1,190 +1,96 @@
 import React, { useState } from "react";
-import { Signal } from "../types";
-import RuleGrid from "../classes/RuleGrid";
-import { Button } from "./Button";
-import { MdDelete, MdEdit } from "react-icons/md";
-import { Heading } from "./Heading";
+import Automaton from "../classes/Automaton";
+import type { Signal } from "../types";
+import Button from "./Button";
+import Heading from "./Heading";
+import SignalComponent from "./SignalComponent";
 
 type SignalsListProps = {
-    signalsList: Signal[];
-    setSignalsList: (signals: Signal[]) => void;
+    automaton: Automaton;
+    setAutomaton: (automaton: Automaton) => void;
+    extraSignalsSet: Set<Signal>;
+    setExtraSignalsSet: (signals: Set<Signal>) => void;
     hiddenSignalsSet: Set<Signal>;
     setHiddenSignalsSet: React.Dispatch<React.SetStateAction<Set<Signal>>>;
-    grid: RuleGrid;
-    setGrid: React.Dispatch<React.SetStateAction<RuleGrid>>;
-    rulesGrids: RuleGrid[];
-    setRulesGrids: (rulesGrids: RuleGrid[]) => void;
+    colorMap: Map<Signal, string>;
+    setColorMap: (colorMap: Map<Signal, string>) => void;
+    colorPickingSignal: Signal | undefined;
+    setColorPickingSignal: (signal: Signal | undefined) => void;
+    setSignalColor: (signal: Signal, color: string) => void;
 };
 
 export default function SignalsList({
-    signalsList,
-    setSignalsList,
+    automaton,
+    setAutomaton,
+    extraSignalsSet,
+    setExtraSignalsSet,
     hiddenSignalsSet,
     setHiddenSignalsSet,
-    grid,
-    setGrid,
-    rulesGrids,
-    setRulesGrids,
+    colorMap,
+    setColorMap,
+    colorPickingSignal,
+    setColorPickingSignal,
+    setSignalColor,
 }: SignalsListProps): JSX.Element {
-    const [newSignalValue, setNewSignalValue] = useState<string>("");
-    const [editIndex, setEditIndex] = useState<number | undefined>(undefined);
-    const [editSignalValue, setEditSignalValue] = useState<string>("");
+    const [newSignalValue, setNewSignalValue] = useState("");
+    const signalsList = automaton.getSignalsList(extraSignalsSet);
 
-    const handleAddSignal = () => {
-        if (newSignalValue.trim()) {
-            onAddSignal(Symbol.for(newSignalValue));
-            setNewSignalValue("");
-        }
-    };
-
-    const handleEditSignal = (index: number, value: Signal) => {
-        const symbolName = Symbol.keyFor(value);
-        if (symbolName !== undefined) {
-            setEditIndex(index);
-            setEditSignalValue(symbolName);
-        }
-    };
-
-    const handleUpdateSignal = () => {
-        if (editIndex !== undefined && editSignalValue.trim()) {
-            onUpdateSignal(editIndex, Symbol.for(editSignalValue));
-            setEditIndex(undefined);
-            setEditSignalValue("");
-        }
-    };
-
-    function onAddSignal(signalValue: Signal) {
-        if (signalsList.includes(signalValue)) {
-            alert(`Le signal ${signalValue.description} existe déjà.`);
+    function replaceSignal(oldValue: Signal, newValue: Signal): void {
+        if (oldValue === newValue) {
             return;
         }
-        setSignalsList([...signalsList, signalValue]);
-    }
 
-    function updateSignal(
-        index: number,
-        newValue: Signal
-    ): { oldValue: Signal | null; newValue: Signal | null } {
-        const oldValue = signalsList[index];
-
-        if (
-            signalsList.some((signal, i) => signal === newValue && i !== index)
-        ) {
+        if (automaton.signals.has(newValue) || extraSignalsSet.has(newValue)) {
             alert(`Le signal ${newValue.description} existe déjà.`);
-            return { oldValue: null, newValue: null };
+            return;
         }
 
-        setSignalsList(
-            signalsList.map((signal, i) => (i === index ? newValue : signal))
-        );
-
-        return { oldValue, newValue };
-    }
-
-    function updateSignalInGrid(oldSignal: Signal, newSignal: Signal) {
-        const newGrid = grid.clone();
-        for (let rows = 0; rows < grid.outputs.length; rows++) {
-            for (let cells = 0; cells < grid.outputs[rows].length; cells++) {
-                if (rows === 0) {
-                    if (newGrid.inputs[cells].signals.delete(oldSignal)) {
-                        newGrid.inputs[cells].addSignal(newSignal);
-                    }
-                }
-                if (newGrid.outputs[rows][cells].signals.delete(oldSignal)) {
-                    newGrid.outputs[rows][cells].addSignal(newSignal);
-                }
-            }
+        if (extraSignalsSet.has(oldValue)) {
+            setExtraSignalsSet(
+                new Set(
+                    [...extraSignalsSet].map((signal) =>
+                        signal === oldValue ? newValue : signal
+                    )
+                )
+            );
         }
-        setGrid(newGrid);
-    }
 
-    function updateSignalInRule(oldValue: Signal, newValue: Signal) {
-        // TODO: revenir sur cette fonction après avoir ajouté les signaux négatifs à la Cellule
-        const newRules: RuleGrid[] = [];
-        for (let i = 0; i < rulesGrids.length; i++) {
-            newRules.push(rulesGrids[i].clone());
-            for (let rows = 0; rows < grid.outputs.length; rows++) {
-                for (let col = 0; col < grid.inputs.length; col++) {
-                    if (rows === 0) {
-                        if (newRules[i].inputs[col].signals.delete(oldValue)) {
-                            newRules[i].inputs[col].signals.add(newValue);
-                        }
-                    }
-                    if (
-                        newRules[i].outputs[rows][col].signals.delete(oldValue)
-                    ) {
-                        newRules[i].outputs[rows][col].signals.add(newValue);
-                    }
-                }
-            }
+        const newColorMap = new Map(colorMap);
+        newColorMap.set(newValue, colorMap.get(oldValue) ?? "#000");
+        setColorMap(newColorMap);
+
+        if (automaton.signals.has(oldValue)) {
+            setAutomaton(automaton.replaceSignal(oldValue, newValue));
         }
     }
 
-    function onUpdateSignal(index: number, newValue: Signal) {
-        const { oldValue, newValue: updatedValue } = updateSignal(
-            index,
-            newValue
-        );
-
-        if (oldValue && updatedValue) {
-            updateSignalInRule(oldValue, updatedValue);
-            updateSignalInGrid(oldValue, updatedValue);
+    function addExtraSignal(): void {
+        const validSignalNames = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
+        if (!newSignalValue.match(validSignalNames)) {
+            alert("Nom de signal invalide.");
+            return;
         }
-    }
 
-    function deleteSignal(index: number): Signal | undefined {
-        const signal = signalsList[index];
-        setSignalsList(signalsList.filter((_, i) => i !== index));
-        return signal;
-    }
-
-    function deleteSignalInRules(signalValue: Signal) {
-        const newRulesGrid = [...rulesGrids];
-        // TODO: reprendre la fonction après signaux négatifs dans Cellule
-        for (let i = 0; i < rulesGrids.length; i++) {
-            for (let j = 0; j < rulesGrids[i].inputs.length; j++) {
-                newRulesGrid[i].inputs[j].signals.delete(signalValue);
-                for (let k = 0; k < rulesGrids[i].outputs.length; k++) {
-                    newRulesGrid[i].outputs[k][j].signals.delete(signalValue);
-                }
-            }
+        const newSignal = Symbol.for(newSignalValue);
+        if (
+            automaton.signals.has(newSignal) ||
+            extraSignalsSet.has(newSignal)
+        ) {
+            alert(`Le signal ${newSignalValue} existe déjà.`);
+            return;
         }
-        setRulesGrids(newRulesGrid);
+
+        setExtraSignalsSet(new Set([...extraSignalsSet, newSignal]));
+        setNewSignalValue("");
     }
 
-    function deleteSignalInGrid(signal: Signal) {
-        const newGrid = grid.clone();
-        for (let row = 0; row < grid.outputs.length; row++) {
-            for (let cells = 0; cells < grid.outputs[row].length; cells++) {
-                if (row === 0) {
-                    newGrid.inputs[cells].signals.forEach((s) => {
-                        if (s === signal) {
-                            newGrid.inputs[cells].removeSignal(signal);
-                        }
-                    });
-                } else {
-                    newGrid.outputs[row - 1][cells].signals.forEach((s) => {
-                        if (s === signal) {
-                            newGrid.outputs[row - 1][cells].removeSignal(
-                                signal
-                            );
-                        }
-                    });
-                }
-            }
-        }
-        setGrid(newGrid);
+    function deleteExtraSignal(signal: Signal): void {
+        const newExtraSignalsSet = new Set(extraSignalsSet);
+        newExtraSignalsSet.delete(signal);
+        setExtraSignalsSet(newExtraSignalsSet);
     }
 
-    function onDeleteSignal(index: number) {
-        const signal = deleteSignal(index);
-        if (signal) {
-            deleteSignalInRules(signal);
-            deleteSignalInGrid(signal);
-        }
-    }
-
-    function setSignalVisible(signal: Signal, isVisible: boolean) {
+    function setIsVisible(signal: Signal, isVisible: boolean) {
         const newHiddenSignalsSet = new Set(hiddenSignalsSet);
         if (isVisible) {
             newHiddenSignalsSet.delete(signal);
@@ -209,71 +115,44 @@ export default function SignalsList({
                 <Button onClick={toggleAllSignals} variant="secondary">
                     Toggle
                 </Button>
-                {signalsList.map((signal, idx) => (
-                    <div key={idx} className="flex justify-between">
-                        <span className="flex gap-2">
-                            <input
-                                type="checkbox"
-                                onChange={(event) =>
-                                    setSignalVisible(
-                                        signal,
-                                        event.target.checked
-                                    )
-                                }
-                                checked={!hiddenSignalsSet.has(signal)}
-                            />
-                            <span className="cell">
-                                <span className={`s${idx}`}></span>
-                            </span>
-                            {editIndex === idx ? (
-                                <input
-                                    type="text"
-                                    value={editSignalValue}
-                                    onChange={(e) =>
-                                        setEditSignalValue(e.target.value)
-                                    }
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                            handleUpdateSignal();
-                                        }
-                                    }}
-                                />
-                            ) : (
-                                Symbol.keyFor(signal)
-                            )}
-                        </span>
-                        <span className="flex gap-2">
-                            {editIndex !== idx && (
-                                <Button
-                                    variant="secondary"
-                                    onClick={() =>
-                                        handleEditSignal(idx, signal)
-                                    }
-                                >
-                                    <MdEdit />
-                                </Button>
-                            )}
-                            <Button
-                                variant="secondary"
-                                onClick={() => onDeleteSignal(idx)}
-                            >
-                                <MdDelete />
-                            </Button>
-                        </span>
-                    </div>
-                ))}
-                <input
-                    type="text"
-                    className="w-full border border-gray-400 p-2"
-                    value={newSignalValue}
-                    onChange={(e) => setNewSignalValue(e.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                            handleAddSignal();
+                {signalsList.map((signal) => (
+                    <SignalComponent
+                        key={signal.description}
+                        signal={signal}
+                        color={colorMap.get(signal) ?? "#000000"}
+                        isVisible={!hiddenSignalsSet.has(signal)}
+                        setIsVisible={(value) => setIsVisible(signal, value)}
+                        replaceSignal={(value) =>
+                            replaceSignal(signal, Symbol.for(value))
                         }
-                    }}
-                    placeholder="Ajouter un nouveau signal"
-                />
+                        canDeleteSignal={!automaton.signals.has(signal)}
+                        deleteSignal={() => deleteExtraSignal(signal)}
+                        isSelectingColor={signal === colorPickingSignal}
+                        setIsSelectingColor={(value) => {
+                            if (value) {
+                                setColorPickingSignal(signal);
+                            } else {
+                                setColorPickingSignal(undefined);
+                            }
+                        }}
+                        setColor={(color) => setSignalColor(signal, color)}
+                    />
+                ))}
+                <span className="flex flex-row">
+                    <input
+                        type="text"
+                        className="w-full border border-gray-400 p-2"
+                        value={newSignalValue}
+                        onChange={(e) => setNewSignalValue(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                addExtraSignal();
+                            }
+                        }}
+                        placeholder="Ajouter un nouveau signal"
+                    />
+                    <Button onClick={addExtraSignal}>Ajouter</Button>
+                </span>
             </div>
         </div>
     );

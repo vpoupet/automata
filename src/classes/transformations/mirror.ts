@@ -1,12 +1,12 @@
 import { Signal } from "../../types";
 import { EvalContext } from "../Clause";
-import { Rule, RuleOutput } from "../Rule";
+import Rule, { RuleOutput } from "../Rule";
 import {
     TransformationOutput,
     TransformationParameter,
 } from "./Transformation";
 
-export function mirror(
+export default function mirror(
     rules: Rule[],
     context: EvalContext,
     parameters: TransformationParameter[]

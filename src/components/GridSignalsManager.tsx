@@ -1,9 +1,9 @@
-import { Cell } from "../classes/Cell";
-import { Signal } from "../types";
 import { ChangeEvent } from "react";
-import { Button } from "./Button";
 import { MdBackspace } from "react-icons/md";
-import { Heading } from "./Heading";
+import Cell from "../classes/Cell";
+import { Signal } from "../types";
+import Button from "./Button";
+import Heading from "./Heading";
 
 type GridSignalsManagerProps = {
     activeSignals: Set<Signal>;
@@ -34,13 +34,9 @@ export default function GridSignalsManager({
         e: ChangeEvent<HTMLInputElement>
     ) {
         if (e.target.checked) {
-            applyToActiveCells((c: Cell) =>
-                c.addNegatedSignal(signal)
-            );
+            applyToActiveCells((c: Cell) => c.addNegatedSignal(signal));
         } else {
-            applyToActiveCells((c: Cell) =>
-                c.removeNegatedSignal(signal)
-            );
+            applyToActiveCells((c: Cell) => c.removeNegatedSignal(signal));
         }
     }
 

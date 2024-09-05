@@ -1,13 +1,13 @@
 import { useRef } from "react";
-import { Button } from "./Button";
-import { Automaton } from "../classes/Automaton";
+import Button from "./Button";
+import Automaton from "../classes/Automaton";
 
-interface RuleImportAreaProps {
+interface RuleInputAreaProps {
     automaton: Automaton;
     setAutomaton: (automaton: Automaton) => void;
 }
 
-export function RuleImportArea(props: RuleImportAreaProps) {
+export default function RuleInputArea(props: RuleInputAreaProps) {
     const { automaton, setAutomaton } = props;
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
 

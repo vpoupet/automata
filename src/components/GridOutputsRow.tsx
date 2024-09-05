@@ -1,6 +1,6 @@
-import { Cell } from "../classes/Cell.ts";
-import { Coordinates, Signal } from "../types.ts";
-import { DiagramCell } from "./Diagram.tsx";
+import Cell from "../classes/Cell.ts";
+import type { Coordinates, Signal } from "../types.ts";
+import CellComponent from "./CellComponent.tsx";
 
 type GridOutputsRowProps = {
     outputs: Cell[];
@@ -8,7 +8,7 @@ type GridOutputsRowProps = {
     activeOutputCells: Coordinates[];
     setActiveInputCells: React.Dispatch<React.SetStateAction<number[]>>;
     setActiveOutputCells: React.Dispatch<React.SetStateAction<Coordinates[]>>;
-    signalsList: Signal[];
+    colorMap: Map<Signal, string>;
 };
 
 export default function GridOutputsRow({
@@ -17,7 +17,7 @@ export default function GridOutputsRow({
     activeOutputCells,
     setActiveInputCells,
     setActiveOutputCells,
-    signalsList,
+    colorMap,
 }: GridOutputsRowProps): JSX.Element {
     function onClickCell(cellIndex: number, event: React.MouseEvent) {
         if (event.ctrlKey || event.metaKey) {
@@ -48,7 +48,7 @@ export default function GridOutputsRow({
     return (
         <div className="grid-row">
             {outputs.map((cell, index) => (
-                <DiagramCell
+                <CellComponent
                     key={index}
                     cell={cell}
                     onClick={(event) => onClickCell(index, event)}
@@ -56,7 +56,7 @@ export default function GridOutputsRow({
                         (coords) =>
                             coords.row === rowIndex && coords.col === index
                     )}
-                    signalsList={signalsList}
+                    colorMap={colorMap}
                 />
             ))}
         </div>

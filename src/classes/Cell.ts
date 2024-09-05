@@ -1,6 +1,6 @@
 import { Signal } from "../types";
 
-export class Cell {
+export default class Cell {
     signals: Set<Signal>;
 
     constructor(signals: Set<Signal> = new Set()) {

@@ -1,13 +1,13 @@
 import { InputCell } from "../classes/Cell.ts";
 import { Coordinates, Signal } from "../types.ts";
-import { DiagramCell } from "./Diagram.tsx";
+import CellComponent from "./CellComponent.tsx";
 
 type InputsRowProps = {
     inputs: InputCell[];
     activeInputCells: number[];
     setActiveInputCells: React.Dispatch<React.SetStateAction<number[]>>;
     setActiveOutputCells: React.Dispatch<React.SetStateAction<Coordinates[]>>;
-    signalsList: Signal[];
+    colorMap: Map<Signal, string>;
 };
 
 export default function GridInputsRow({
@@ -15,7 +15,7 @@ export default function GridInputsRow({
     activeInputCells,
     setActiveInputCells,
     setActiveOutputCells,
-    signalsList,
+    colorMap,
 }: InputsRowProps): JSX.Element {
     function onClickCell(cellIndex: number, event: React.MouseEvent) {
         if (event.ctrlKey || event.metaKey) {
@@ -35,12 +35,12 @@ export default function GridInputsRow({
     return (
         <div className="grid-row">
             {inputs.map((cell, index) => (
-                <DiagramCell
+                <CellComponent
                     key={index}
                     cell={cell}
                     onClick={(event) => onClickCell(index, event)}
                     isActive={activeInputCells.includes(index)}
-                    signalsList={signalsList}
+                    colorMap={colorMap}
                 />
             ))}
         </div>

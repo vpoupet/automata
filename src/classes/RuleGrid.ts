@@ -1,11 +1,7 @@
-import { Cell, InputCell } from "./Cell.ts";
-import {
-    Conjunction,
-    ConjunctionOfLiterals,
-    Literal,
-} from "./Clause.ts";
-import { Configuration } from "./Configuration.ts";
-import { ConjunctionRule, Rule, RuleOutput } from "./Rule.ts";
+import Cell, { InputCell } from "./Cell.ts";
+import { Conjunction, ConjunctionOfLiterals, Literal } from "./Clause.ts";
+import Configuration from "./Configuration.ts";
+import Rule, { ConjunctionRule, RuleOutput } from "./Rule.ts";
 
 class RuleGrid {
     inputs: InputCell[];
@@ -169,11 +165,7 @@ class RuleGrid {
         return new Conjunction(literals) as ConjunctionOfLiterals;
     }
 
-    static makeGridFromRule(
-        rule: Rule,
-        radius: number,
-        futureStep: number
-    ) {
+    static makeGridFromRule(rule: Rule, radius: number, futureStep: number) {
         const grid = RuleGrid.withSize(2 * radius + 1, futureStep);
         const ruleOutputs = rule.outputs;
         ruleOutputs.forEach((ruleOutput) => {
@@ -205,11 +197,7 @@ class RuleGrid {
     ) {
         const tabRuleGrid: RuleGrid[] = [];
         for (const rule of rules) {
-            const grid = RuleGrid.makeGridFromRule(
-                rule,
-                radius,
-                futureStep
-            );
+            const grid = RuleGrid.makeGridFromRule(rule, radius, futureStep);
             tabRuleGrid.push(grid);
         }
         return tabRuleGrid;

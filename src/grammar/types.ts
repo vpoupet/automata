@@ -1,4 +1,4 @@
-import { Clause } from "../classes/Clause.ts";
+import Clause from "../classes/Clause.ts";
 import { RuleOutput } from "../classes/Rule.ts";
 import { Signal } from "../types.ts";
 
