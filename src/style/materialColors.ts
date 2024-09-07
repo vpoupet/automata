@@ -334,6 +334,7 @@ export const materialColors = {
 export function randomColor(): string {
     const colors = Object.values(materialColors);
     const color = colors[Math.floor(Math.random() * colors.length)];
-    const shades = Object.values(color);
+    // const shades = Object.values(color);
+    const shades = [color[200], color[400], color[600]];
     return shades[Math.floor(Math.random() * shades.length)];
 }

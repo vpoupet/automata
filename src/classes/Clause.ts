@@ -301,9 +301,7 @@ export class Conjunction extends Clause {
     }
 
     getLiterals(): Literal[] {
-        return this.subclauses.flatMap((subclause) =>
-            subclause.getLiterals()
-        );
+        return this.subclauses.flatMap((subclause) => subclause.getLiterals());
     }
 
     simplified(): Clause {
@@ -414,9 +412,7 @@ export class Disjunction extends Clause {
     }
 
     getLiterals(): Literal[] {
-        return this.subclauses.flatMap((subclause) =>
-            subclause.getLiterals()
-        );
+        return this.subclauses.flatMap((subclause) => subclause.getLiterals());
     }
 
     simplified(): Clause {

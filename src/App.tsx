@@ -160,7 +160,7 @@ export default function App() {
                     />
                 </div>
             </div>
-            <RulesList automaton={automaton} />
+            <RulesList automaton={automaton} colorMap={colorMap} />
             <div className="flex justify-between">
                 <div className="flex">
                     <RuleInputArea

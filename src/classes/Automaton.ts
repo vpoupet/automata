@@ -9,7 +9,7 @@ import { transformations } from "./transformations/Transformation.ts";
 
 export default class Automaton {
     signals: Set<Signal>;
-    multiSignals: Map<symbol, Set<Signal>>;
+    multiSignals: Map<Signal, Set<Signal>>;
     /**
      * List of rules of the automaton (the rules are executed on each cell in the order they appear in the list)
      */
@@ -26,7 +26,7 @@ export default class Automaton {
 
     constructor(
         rules: Rule[] = [],
-        multiSignals: Map<symbol, Set<Signal>> = new Map()
+        multiSignals: Map<Signal, Set<Signal>> = new Map()
     ) {
         this.rules = rules;
         this.multiSignals = multiSignals;

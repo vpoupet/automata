@@ -57,6 +57,7 @@ export default function GridSignalsManager({
                     </Button>
                 </label>
             </div>
+            <div className="columns-3">
             {allSignals.map((signal) => (
                 <div key={Symbol.keyFor(signal)}>
                     <label>
@@ -78,6 +79,7 @@ export default function GridSignalsManager({
                     </label>
                 </div>
             ))}
+            </div>
         </div>
     );
 }
