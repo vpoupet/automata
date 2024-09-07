@@ -32,6 +32,7 @@ class EditGrid {
 
 EditGrid *-- GridInputsRow
 EditGrid *-- GridOutputsRow
+EditGrid *-- GridSignalsManager
 
 class GridInputsRow {
     # inputs
@@ -62,6 +63,13 @@ class CellComponent {
     # colorMap
 }
 
+class GridSignalsManager {
+    # activeSignals
+    # negatedSignals
+    # allSignals
+    # applyToActiveCells
+}
+
 class SignalsList {
     # automaton
     # setAutomaton
@@ -77,11 +85,11 @@ class SignalsList {
     - newSignalValue
 }
 
-SignalsList *-- SignalComponent
+SignalsList *-- SignalsListItem
 
-class SignalComponent {
+class SignalsListItem {
     # signal
-    # color
+    # colorMap
     # isVisible
     # setIsVisible
     # replaceSignal
@@ -94,14 +102,25 @@ class SignalComponent {
     - editValue
 }
 
+SignalsListItem *-- SignalName
+
+class SignalName {
+    # signal
+    # colorMap
+    # onClickColor?
+    # className?
+}
+
 class RulesList {
     # automaton
+    # colorMap
 }
 
 RulesList *-- RuleComponent
 
 class RuleComponent {
     # rule
+    # colorMap
 }
 
 class RuleInputArea {
