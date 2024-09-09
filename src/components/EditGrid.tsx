@@ -46,11 +46,11 @@ export default function EditGrid({
     function applyToActiveCells(f: (cell: Cell) => void) {
         const newGrid = grid.clone();
         activeInputCells.forEach((col) => {
-            const cell = newGrid.inputs[col];
+            const cell = newGrid.inputCells[col];
             f(cell);
         });
         activeOutputCells.forEach(({ row, col }) => {
-            const cell = newGrid.outputs[row][col];
+            const cell = newGrid.outputCells[row][col];
             f(cell);
         });
         setGrid(newGrid);
@@ -63,7 +63,7 @@ export default function EditGrid({
 
     function saveGridAsRule() {
         function hasOutputs(): boolean {
-            for (const row of grid.outputs) {
+            for (const row of grid.outputCells) {
                 for (const cell of row) {
                     if (cell.signals.size > 0) {
                         return true;
@@ -83,7 +83,7 @@ export default function EditGrid({
 
     function modifyRule() {
         const context = automaton.getEvalContext();
-        const ruleFromGrid = RuleGrid.makeRule(grid.clone());
+        const ruleFromGrid = grid.clone().makeRule();
         const newRules: Rule[] = [];
         let setOutput: Set<RuleOutput> = new Set();
         for (const rule of automaton.getRules()) {
@@ -104,19 +104,20 @@ export default function EditGrid({
         if (ruleFromGrid.outputs.length > 0) {
             newRules.push(ruleFromGrid);
         }
+        // TODO: remove all this
         // setRulesGrid(newRules.map(getRuleGrid));
-        setRulesGrid(
-            newRules.map((rule) =>
-                RuleGrid.makeGridFromRule(rule, radius, nbFutureSteps)
-            )
-        );
+        // setRulesGrid(
+        //     newRules.map((rule) =>
+        //         RuleGrid.fromRule(rule, radius, nbFutureSteps)
+        //     )
+        // );
     }
 
     // Make list of active and negated signals on the active cells
     const activeSignals: Set<Signal> = new Set();
     const negatedSignals: Set<Signal> = new Set();
     activeInputCells.forEach((col) => {
-        const cell = grid.inputs[col];
+        const cell = grid.inputCells[col];
         if (cell) {
             cell.signals.forEach((signal) => {
                 activeSignals.add(signal);
@@ -127,7 +128,7 @@ export default function EditGrid({
         }
     });
     activeOutputCells.forEach((coordinates) => {
-        const cell = grid.outputs[coordinates.row]?.[coordinates.col] as Cell | undefined;
+        const cell = grid.outputCells[coordinates.row]?.[coordinates.col] as Cell | undefined;
         if (cell !== undefined) {
             cell.signals.forEach((signal) => {
                 activeSignals.add(signal);
@@ -139,13 +140,13 @@ export default function EditGrid({
         <div className="flex flex-col items-center gap-2">
             <div className="flex flex-col-reverse w-fit">
                 <GridInputsRow
-                    inputs={grid.inputs}
+                    inputs={grid.inputCells}
                     activeInputCells={activeInputCells}
                     setActiveInputCells={setActiveInputCells}
                     setActiveOutputCells={setActiveOutputCells}
                     colorMap={colorMap}
                 />
-                {grid.outputs.map((row, rowIndex) => (
+                {grid.outputCells.map((row, rowIndex) => (
                     <GridOutputsRow
                         key={rowIndex}
                         outputs={row}

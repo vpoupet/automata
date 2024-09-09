@@ -267,7 +267,7 @@ export default class Automaton {
                 for (const rule of this.rules) {
                     if (rule.condition.eval(neighborhood, evalContext)) {
                         rule.outputs.forEach((output) => {
-                            const targetCell = c + output.neighbor;
+                            const targetCell = c + output.position;
                             if (
                                 t + output.futureStep < diagram.length &&
                                 0 <= targetCell &&

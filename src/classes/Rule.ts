@@ -9,18 +9,18 @@ import Clause, {
 } from "./Clause";
 
 export class RuleOutput {
-    neighbor: number;
+    position: number;
     signal: Signal;
     futureStep: number;
 
-    constructor(neighbor: number, signal: Signal, futureStep = 1) {
-        this.neighbor = neighbor;
+    constructor(position: number, signal: Signal, futureStep = 1) {
+        this.position = position;
         this.signal = signal;
         this.futureStep = futureStep;
     }
 
     toString(): string {
-        const positionStr = this.neighbor === 0 ? "" : `${this.neighbor}`;
+        const positionStr = this.position === 0 ? "" : `${this.position}`;
         const futureStepStr =
             this.futureStep === 1 ? "" : `/${this.futureStep}`;
         const dotStr = positionStr !== "" || futureStepStr !== "" ? "." : "";
@@ -32,7 +32,7 @@ export class RuleOutput {
 
     equals(other: RuleOutput): boolean {
         return (
-            this.neighbor === other.neighbor &&
+            this.position === other.position &&
             this.signal === other.signal &&
             this.futureStep === other.futureStep
         );
@@ -40,7 +40,7 @@ export class RuleOutput {
 
     renameSignal(oldSymbol: Signal, newSymbol: Signal): RuleOutput {
         return new RuleOutput(
-            this.neighbor,
+            this.position,
             this.signal === oldSymbol ? newSymbol : this.signal,
             this.futureStep
         );
@@ -50,14 +50,14 @@ export class RuleOutput {
 /**
  * Representation of a cellular automaton rule.
  * A rule consists of two parts: a condition and a list of signal outputs. Outputs are a list of objects
- * {neighbor: {int}, signal: {int}, futureStep: {int}}
+ * {position: {int}, signal: {int}, futureStep: {int}}
  *
  * When executing the rule on a cell c at time t, the condition is evaluated (it depends on the set of signals
- * on the cell). If it is true, then for each output {neighbor, signal, futureStep}, the signal `signal` is added to
- * the cell (c + `neighbor`) at time (t + `futureStep`) in the space-time diagram.
+ * on the cell). If it is true, then for each output {position, signal, futureStep}, the signal `signal` is added to
+ * the cell (c + `position`) at time (t + `futureStep`) in the space-time diagram.
  *
  * In order to correspond to a cellular automaton, `futureStep` should be either strictly positive or can be 0 if
- * `neighbor` is also 0.
+ * `position` is also 0.
  */
 export default class Rule {
     condition: Clause;

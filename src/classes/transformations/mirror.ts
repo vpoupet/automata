@@ -48,7 +48,7 @@ export default function mirror(
                 rule.outputs.map(
                     (output) =>
                         new RuleOutput(
-                            -output.neighbor,
+                            -output.position,
                             switchTags(output.signal),
                             output.futureStep
                         )

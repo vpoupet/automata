@@ -1,15 +1,14 @@
 import Cell, { InputCell } from "./Cell.ts";
 import { Conjunction, ConjunctionOfLiterals, Literal } from "./Clause.ts";
-import Configuration from "./Configuration.ts";
 import Rule, { ConjunctionRule, RuleOutput } from "./Rule.ts";
 
 class RuleGrid {
-    inputs: InputCell[];
-    outputs: Cell[][];
+    inputCells: InputCell[];
+    outputCells: Cell[][];
 
-    constructor(inputs: InputCell[], outputs: Cell[][]) {
-        this.inputs = inputs;
-        this.outputs = outputs;
+    constructor(inputCells: InputCell[], outputCells: Cell[][]) {
+        this.inputCells = inputCells;
+        this.outputCells = outputCells;
     }
 
     static withSize(nbCells: number, nbFutureSteps: number): RuleGrid {
@@ -20,114 +19,75 @@ class RuleGrid {
         return new RuleGrid(inputs, outputs);
     }
 
+    getRadius(): number {
+        return (this.outputCells[0].length - 1) / 2;
+    }
+
     clone(): RuleGrid {
         return new RuleGrid(
-            this.inputs.map((cell) => cell.clone()),
-            this.outputs.map((row) => row.map((cell) => cell.clone()))
+            this.inputCells.map((cell) => cell.clone()),
+            this.outputCells.map((row) => row.map((cell) => cell.clone()))
         );
     }
 
-    getCaseInput(col: number): InputCell {
-        return this.inputs[col];
-    }
-
-    getCaseOutput(row: number, col: number): Cell {
-        return this.outputs[row][col];
-    }
-
-    equals(ruleGrid: RuleGrid): boolean {
-        return (
-            this.equalsInputs(ruleGrid.inputs) &&
-            this.equalsOutputs(ruleGrid.outputs)
-        );
-    }
-
-    equalsInputs(inputs: InputCell[]): boolean {
-        return (
-            this.inputs.length === inputs.length &&
-            this.inputs.every((v, i) => v.equals(inputs[i]))
-        );
-    }
-
-    equalsOutputs(outputs: Cell[][]): boolean {
-        for (let row = 0; row < this.outputs.length; row++) {
-            for (let col = 0; col < this.outputs[row].length; col++) {
-                if (!this.outputs[row][col].equals(outputs[row][col])) {
+    equals(other: RuleGrid): boolean {
+        // compare inputs
+        if (this.inputCells.length !== other.inputCells.length) {
+            return false;
+        }
+        for (let i = 0; i < this.inputCells.length; i++) {
+            if (!this.inputCells[i].equals(other.inputCells[i])) {
+                return false;
+            }
+        }
+        // compare outputs
+        if (this.outputCells.length !== other.outputCells.length) {
+            return false;
+        }
+        for (let row = 0; row < this.outputCells.length; row++) {
+            if (this.outputCells[row].length !== other.outputCells[row].length) {
+                return false;
+            }
+            for (let col = 0; col < this.outputCells[row].length; col++) {
+                if (!this.outputCells[row][col].equals(other.outputCells[row][col])) {
                     return false;
                 }
             }
         }
+
         return true;
     }
 
-    getConfigurationFromGrid(): Configuration {
-        const conf = Configuration.withSize(this.inputs.length);
-        for (let row = 0; row < this.outputs.length + 1; row++) {
-            for (let col = 0; col < this.inputs.length; col++) {
-                if (row === 0) {
-                    new Set(this.inputs[col].signals).forEach((signal) => {
-                        conf.cells[col].signals.add(signal);
-                    });
-                } else {
-                    new Set(this.outputs[row - 1][col].signals).forEach(
-                        (signal) => {
-                            conf.cells[
-                                (row - 1) * this.inputs.length + col
-                            ].signals.add(signal);
-                        }
-                    );
-                }
-            }
-        }
-        return conf;
+    makeRule(): ConjunctionRule {
+        return new Rule(
+            this.makeRuleCondition(),
+            this.makeRuleOutputs()
+        ) as ConjunctionRule;
     }
 
-    setGridFromConfiguration(conf: Configuration) {
-        for (let i = 0; i < conf.cells.length; i++) {
-            if (i < this.inputs.length) {
-                this.inputs[i].signals = conf.cells[i].signals;
-            } else {
-                const row = Math.trunc(
-                    (i - this.inputs.length) / this.inputs.length
-                );
-                const col = (i - this.inputs.length) % this.inputs.length;
-                this.outputs[row][col].signals = conf.cells[i].signals;
-            }
-        }
+    makeRuleCondition(): ConjunctionOfLiterals {
+        const radius = this.getRadius();
+        const literals: Literal[] = [];
+        this.inputCells.forEach((cellule, cellIndex) => {
+            cellule.signals.forEach((signal) => {
+                const literal = new Literal(signal, cellIndex - radius, true);
+                literals.push(literal);
+            });
+            cellule.negatedSignals.forEach((signal) => {
+                const literal = new Literal(signal, cellIndex - radius, false);
+                literals.push(literal);
+            });
+        });
+        return new Conjunction(literals) as ConjunctionOfLiterals;
     }
 
-    setGridFromConfigurations(configurations: Configuration[]) {
-        for (let i = 0; i < configurations.length; i++) {
-            if (i === 0) {
-                for (let j = 0; j < this.inputs.length; j++) {
-                    this.inputs[j].signals = configurations[0].cells[j].signals;
-                }
-            } else {
-                for (let row = 0; row < this.outputs.length; row++) {
-                    for (let col = 0; col < this.outputs[row].length; col++) {
-                        this.outputs[row][col].signals =
-                            configurations[i].cells[col].signals;
-                    }
-                }
-            }
-        }
-    }
-
-    static makeRule(grid: RuleGrid): ConjunctionRule {
-        const gridRadius = (grid.outputs[0].length - 1) / 2;
-        const outputs = RuleGrid.makeRuleOutputs(grid.outputs, gridRadius);
-        const condition = RuleGrid.makeRuleCondition(grid.inputs, gridRadius);
-        return new Rule(condition, outputs) as ConjunctionRule;
-    }
-
-    static makeRuleOutputs(gridOutputs: Cell[][], gridRadius: number) {
+    makeRuleOutputs(): RuleOutput[] {
         const outputs: RuleOutput[] = [];
-
-        gridOutputs.forEach((row, rowIndex) => {
+        this.outputCells.forEach((row, rowIndex) => {
             row.forEach((cellule, colIndex) => {
                 cellule.signals.forEach((signal) => {
                     const ruleOutput = new RuleOutput(
-                        colIndex - gridRadius,
+                        colIndex - this.getRadius(),
                         signal,
                         rowIndex + 1
                     );
@@ -135,72 +95,7 @@ class RuleGrid {
                 });
             });
         });
-
         return outputs;
-    }
-
-    static makeRuleCondition(
-        gridInputs: InputCell[],
-        gridRadius: number
-    ): ConjunctionOfLiterals {
-        const literals: Literal[] = [];
-        gridInputs.forEach((cellule, cellIndex) => {
-            cellule.signals.forEach((signal) => {
-                const literal = new Literal(
-                    signal,
-                    cellIndex - gridRadius,
-                    true
-                );
-                literals.push(literal);
-            });
-            cellule.negatedSignals.forEach((signal) => {
-                const literal = new Literal(
-                    signal,
-                    cellIndex - gridRadius,
-                    false
-                );
-                literals.push(literal);
-            });
-        });
-        return new Conjunction(literals) as ConjunctionOfLiterals;
-    }
-
-    static makeGridFromRule(rule: Rule, radius: number, futureStep: number) {
-        const grid = RuleGrid.withSize(2 * radius + 1, futureStep);
-        const ruleOutputs = rule.outputs;
-        ruleOutputs.forEach((ruleOutput) => {
-            const row = ruleOutput.futureStep - 1;
-            if (row < 0 || row >= futureStep) {
-                // ignore outputs out of the grid (not optimal)
-                // TODO: find better solution?
-                return;
-            }
-            const col = ruleOutput.neighbor + radius;
-            grid.outputs[row][col].signals.add(ruleOutput.signal);
-        });
-        const ruleCondition = rule.condition;
-        ruleCondition.getLiterals().forEach((literal) => {
-            const col = literal.position + radius;
-            if (literal.sign) {
-                grid.inputs[col].signals.add(literal.signal);
-            } else {
-                grid.inputs[col].negatedSignals.add(literal.signal);
-            }
-        });
-        return grid;
-    }
-
-    static makeGridsFromTabRules(
-        rules: Rule[],
-        radius: number,
-        futureStep: number
-    ) {
-        const tabRuleGrid: RuleGrid[] = [];
-        for (const rule of rules) {
-            const grid = RuleGrid.makeGridFromRule(rule, radius, futureStep);
-            tabRuleGrid.push(grid);
-        }
-        return tabRuleGrid;
     }
 }
 

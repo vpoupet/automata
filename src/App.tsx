@@ -68,7 +68,7 @@ export default function App() {
     }
 
     function setRulesGrids(rulesGrids: RuleGrid[]) {
-        const rules = rulesGrids.map((ruleGrid) => RuleGrid.makeRule(ruleGrid));
+        const rules = rulesGrids.map((ruleGrid) => ruleGrid.makeRule());
         const auto = new Automaton(rules);
         setAutomaton(auto);
     }
@@ -103,12 +103,6 @@ export default function App() {
     const initialConfiguration = Configuration.withSize(settings.nbCells);
     initialConfiguration.cells[0].addSignal(Symbol.for("Init"));
 
-    const rulesGrid = RuleGrid.makeGridsFromTabRules(
-        automaton.getRules(),
-        settings.gridRadius,
-        settings.gridNbFutureSteps
-    );
-
     return (
         <div className="flex flex-col p-2 bg-gradient-to-b from-slate-50 to-slate-100 text-gray-700">
             <Heading level={1}>
@@ -121,7 +115,7 @@ export default function App() {
                         setGrid={setGrid}
                         radius={settings.gridRadius}
                         nbFutureSteps={settings.gridNbFutureSteps}
-                        rulesGrid={rulesGrid}
+                        rulesGrid={[RuleGrid.withSize(2, 2)]} // TODO: remove
                         setRulesGrid={setRulesGrids}
                         automaton={automaton}
                         extraSignalsSet={extraSignalsSet}
@@ -160,8 +154,9 @@ export default function App() {
                     />
                 </div>
             </div>
+            <Heading level={2}>Règles</Heading>
             <RulesList automaton={automaton} colorMap={colorMap} />
-            <div className="flex justify-between">
+            <div className="flex justify-between m-2">
                 <div className="flex">
                     <RuleInputArea
                         automaton={automataHistory[automatonIndex]}
