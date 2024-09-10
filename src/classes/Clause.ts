@@ -60,7 +60,23 @@ export default abstract class Clause {
     abstract getLiterals(): Literal[];
 
     simplified(): Clause {
-        return this;
+        const normalized = this.normalized();
+        if (normalized.getComplexity() < this.getComplexity()) {
+            return normalized;
+        } else {
+            return this;
+        }
+    }
+
+    normalized(): Clause {
+        const dnf = simplifyDNF(this.toDNF());
+        if (dnf.subclauses.length === 1) {
+            if (dnf.subclauses[0].subclauses.length === 1) {
+                return dnf.subclauses[0].subclauses[0];
+            }
+            return dnf.subclauses[0];
+        }
+        return dnf;
     }
 
     isAlwaysTrue(): boolean {
@@ -81,6 +97,10 @@ export default abstract class Clause {
         transformation: LiteralTransformation,
         context: EvalContext
     ): Clause;
+
+    abstract getComplexity(): number;
+
+    abstract getDepth(): number;
 }
 
 /**
@@ -167,6 +187,14 @@ export class Literal extends Clause {
         return new Disjunction([new Conjunction([this.copy()])]) as DNFClause;
     }
 
+    getComplexity(): number {
+        return 1;
+    }
+
+    getDepth(): number {
+        return 1;
+    }
+
     transformLiterals(
         transformation: LiteralTransformation,
         _context: EvalContext
@@ -212,13 +240,17 @@ export class Negation extends Clause {
             );
     }
 
-    // simplify(): Clause {
+    // simplified(): Clause {
     //     if (this.subclause instanceof Negation) {
-    //         return this.subclause.subclause;
+    //         return this.subclause.subclause.simplified();
     //     } else if (this.subclause instanceof Literal) {
-    //         const literal = this.subclause.copy();
-    //         literal.sign = !literal.sign;
+    //         return new Literal(
+    //             this.subclause.signal,
+    //             this.subclause.position,
+    //             !this.subclause.sign
+    //         );
     //     }
+    //     return super.simplified();
     // }
 
     /**
@@ -253,6 +285,14 @@ export class Negation extends Clause {
 
     toDNF(): DNFClause {
         return this.reduce().toDNF();
+    }
+
+    getComplexity(): number {
+        return 1 + this.subclause.getComplexity();
+    }
+
+    getDepth(): number {
+        return 1 + this.subclause.getDepth();
     }
 
     transformLiterals(
@@ -304,26 +344,26 @@ export class Conjunction extends Clause {
         return this.subclauses.flatMap((subclause) => subclause.getLiterals());
     }
 
-    simplified(): Clause {
-        const newSubclauses = [];
-        for (const subclause of this.subclauses) {
-            if (subclause.isAlwaysTrue()) {
-                continue; // skip TRUE subclauses
-            } else if (subclause.isAlwaysFalse()) {
-                return new Disjunction([]); // FALSE
-            } else if (subclause instanceof Conjunction) {
-                newSubclauses.push(...subclause.subclauses);
-            } else {
-                newSubclauses.push(subclause);
-            }
-        }
+    // simplified(): Clause {
+    //     const newSubclauses = [];
+    //     for (const subclause of this.subclauses) {
+    //         if (subclause.isAlwaysTrue()) {
+    //             continue; // skip TRUE subclauses
+    //         } else if (subclause.isAlwaysFalse()) {
+    //             return new Disjunction([]); // FALSE
+    //         } else if (subclause instanceof Conjunction) {
+    //             newSubclauses.push(...subclause.subclauses);
+    //         } else {
+    //             newSubclauses.push(subclause);
+    //         }
+    //     }
 
-        if (newSubclauses.length === 1) {
-            return this.subclauses[0];
-        } else {
-            return new Conjunction(newSubclauses);
-        }
-    }
+    //     if (newSubclauses.length === 1) {
+    //         return this.subclauses[0];
+    //     } else {
+    //         return new Conjunction(newSubclauses);
+    //     }
+    // }
 
     isAlwaysTrue(): boolean {
         return this.subclauses.every((c) => c.isAlwaysTrue);
@@ -358,6 +398,26 @@ export class Conjunction extends Clause {
             }
             return new Disjunction(clauses) as DNFClause;
         }, new Disjunction([new Conjunction([])]) as DNFClause);
+    }
+
+    getComplexity(): number {
+        return (
+            1 +
+            this.subclauses.reduce(
+                (acc, subclause) => acc + subclause.getComplexity(),
+                0
+            )
+        );
+    }
+
+    getDepth(): number {
+        return (
+            1 +
+            this.subclauses.reduce(
+                (acc, subclause) => Math.max(acc, subclause.getDepth()),
+                0
+            )
+        );
     }
 
     transformLiterals(
@@ -415,26 +475,26 @@ export class Disjunction extends Clause {
         return this.subclauses.flatMap((subclause) => subclause.getLiterals());
     }
 
-    simplified(): Clause {
-        const newSubclauses = [];
-        for (const subclause of this.subclauses) {
-            if (subclause.isAlwaysTrue()) {
-                return new Conjunction([]); // TRUE
-            } else if (subclause.isAlwaysFalse()) {
-                continue; // skip FALSE subclauses
-            } else if (subclause instanceof Disjunction) {
-                newSubclauses.push(...subclause.subclauses);
-            } else {
-                newSubclauses.push(subclause);
-            }
-        }
+    // simplified(): Clause {
+    //     const newSubclauses = [];
+    //     for (const subclause of this.subclauses) {
+    //         if (subclause.isAlwaysTrue()) {
+    //             return new Conjunction([]); // TRUE
+    //         } else if (subclause.isAlwaysFalse()) {
+    //             continue; // skip FALSE subclauses
+    //         } else if (subclause instanceof Disjunction) {
+    //             newSubclauses.push(...subclause.subclauses);
+    //         } else {
+    //             newSubclauses.push(subclause);
+    //         }
+    //     }
 
-        if (newSubclauses.length === 1) {
-            return this.subclauses[0];
-        } else {
-            return new Disjunction(newSubclauses);
-        }
-    }
+    //     if (newSubclauses.length === 1) {
+    //         return this.subclauses[0];
+    //     } else {
+    //         return new Disjunction(newSubclauses);
+    //     }
+    // }
 
     isAlwaysTrue(): boolean {
         return this.subclauses.some((c) => c.isAlwaysTrue);
@@ -469,6 +529,26 @@ export class Disjunction extends Clause {
             }
             return new Conjunction(clauses) as CNFClause;
         }, new Conjunction([new Disjunction([])]) as CNFClause);
+    }
+
+    getComplexity(): number {
+        return (
+            1 +
+            this.subclauses.reduce(
+                (acc, subclause) => acc + subclause.getComplexity(),
+                0
+            )
+        );
+    }
+
+    getDepth(): number {
+        return (
+            1 +
+            this.subclauses.reduce(
+                (acc, subclause) => Math.max(acc, subclause.getDepth()),
+                0
+            )
+        );
     }
 
     transformLiterals(

@@ -4,8 +4,7 @@ import Clause, {
     Conjunction,
     ConjunctionOfLiterals,
     EvalContext,
-    Negation,
-    simplifyDNF,
+    Negation
 } from "./Clause";
 
 export class RuleOutput {
@@ -141,7 +140,7 @@ export default class Rule {
             const condition = new Conjunction([
                 this.condition,
                 new Negation(target.condition),
-            ]);
+            ]).simplified();
             newRules.push(new Rule(condition, invalidOutputs));
         }
         return { rules: newRules, matchedOutputs };
@@ -149,73 +148,3 @@ export default class Rule {
 }
 
 export type ConjunctionRule = Rule & { condition: ConjunctionOfLiterals };
-
-export function fitRule(
-    rule: ConjunctionRule,
-    target: ConjunctionRule,
-    context: EvalContext
-): {
-    rules: ConjunctionRule[];
-    outputs: Set<RuleOutput>;
-} {
-    const outputs = new Set<RuleOutput>();
-    // create the neighborhood to test if the rule matches the targetRule condition
-    const neighborhood: Neighborhood = {};
-    for (const literal of target.condition.subclauses) {
-        if (neighborhood[literal.position] === undefined) {
-            neighborhood[literal.position] = new Cell();
-        }
-        neighborhood[literal.position].addSignal(literal.signal);
-    }
-    for (const literal of rule.condition.subclauses) {
-        if (neighborhood[literal.position] === undefined) {
-            neighborhood[literal.position] = new Cell();
-        }
-    }
-
-    if (!rule.condition.eval(neighborhood, context)) {
-        // the rule does not match the targetRule condition, no change required
-        return { rules: [rule], outputs: outputs };
-    }
-
-    const newRules: ConjunctionRule[] = [];
-    const validOutputs: RuleOutput[] = [];
-    const invalidOutputs: RuleOutput[] = [];
-    for (const output of rule.outputs) {
-        let isValid = false;
-        for (const targetOutput of target.outputs) {
-            if (output.equals(targetOutput)) {
-                isValid = true;
-                outputs.add(targetOutput);
-                break;
-            }
-        }
-        if (isValid) {
-            validOutputs.push(output);
-        } else {
-            invalidOutputs.push(output);
-        }
-    }
-
-    if (validOutputs.length > 0) {
-        // keep the rule for outputs that remain valid
-        newRules.push(
-            new Rule(rule.condition, validOutputs) as ConjunctionRule
-        );
-    }
-    if (invalidOutputs.length > 0) {
-        // create new rules for the invalid outputs
-        const condition = simplifyDNF(
-            new Conjunction([
-                rule.condition,
-                new Negation(target.condition),
-            ]).toDNF()
-        );
-        for (const conjunction of condition.subclauses) {
-            newRules.push(
-                new Rule(conjunction, invalidOutputs) as ConjunctionRule
-            );
-        }
-    }
-    return { rules: newRules, outputs: outputs };
-}
