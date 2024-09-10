@@ -1,21 +1,24 @@
 import { useState } from "react";
-import { MdExpandCircleDown, MdExpandLess } from "react-icons/md";
+import { MdDelete, MdExpandCircleDown, MdExpandLess } from "react-icons/md";
 import Cell, { InputCell } from "../classes/Cell.ts";
+import { simplifyDNF } from "../classes/Clause.ts";
 import Rule, { ConjunctionRule } from "../classes/Rule";
 import { SettingsInterface, Signal } from "../types";
+import Button from "./Button.tsx";
 import RuleGridComponent from "./RuleGridComponent.tsx";
 
 interface RuleComponentProps {
     rule: Rule;
     settings: SettingsInterface;
+    deleteRule: (rule: Rule) => void;
     colorMap: Map<Signal, string>;
 }
 
 export default function RuleComponent(props: RuleComponentProps) {
-    const { rule, settings, colorMap } = props;
+    const { rule, settings, deleteRule, colorMap } = props;
     const [isOpen, setIsOpen] = useState(false);
 
-    const conditionAsDNF = rule.condition.toDNF();
+    const conditionAsDNF = simplifyDNF(rule.condition.toDNF());
     const conjuctionRules: ConjunctionRule[] = conditionAsDNF.subclauses.map(
         (condition) => {
             return new Rule(condition, rule.outputs) as ConjunctionRule;
@@ -25,27 +28,36 @@ export default function RuleComponent(props: RuleComponentProps) {
     return (
         <div className="bg-white shadow-md p-2">
             <div
-                className="flex flex-row cursor-pointer"
+                className="flex flex-row cursor-pointer justify-between"
                 onClick={() => setIsOpen(!isOpen)}
             >
-                {isOpen ? (
-                    <span className="p-1">
-                        <MdExpandLess />
-                    </span>
-                ) : (
-                    <span className="p-1">
-                        <MdExpandCircleDown />
-                    </span>
-                )}
-                <span className="font-mono">
-                    <span className="font-bold text-gray-400">
-                        {rule.condition.toString()}
-                    </span>
-                    &nbsp;→&nbsp;
-                    <span className="font-bold text-gray-800">
-                        {rule.outputs.map((o) => o.toString()).join(" ")}
+                <span className="flex flex-row">
+                    {isOpen ? (
+                        <span className="p-1">
+                            <MdExpandLess />
+                        </span>
+                    ) : (
+                        <span className="p-1">
+                            <MdExpandCircleDown />
+                        </span>
+                    )}
+                    <span className="font-mono">
+                        <span className="font-bold text-gray-400">
+                            {rule.condition.toString()}
+                        </span>
+                        &nbsp;→&nbsp;
+                        <span className="font-bold text-gray-800">
+                            {rule.outputs.map((o) => o.toString()).join(" ")}
+                        </span>
                     </span>
                 </span>
+                <Button
+                    className="relative -mt-1 "
+                    variant="secondary"
+                    onClick={() => deleteRule(rule)}
+                >
+                    <MdDelete />
+                </Button>
             </div>
             {isOpen && (
                 <div className="flex flex-row">

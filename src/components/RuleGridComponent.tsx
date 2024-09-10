@@ -8,10 +8,12 @@ interface RuleGridComponentProps {
     inputCells: InputCell[];
     outputCells: Cell[][];
     colorMap: Map<Signal, string>;
+    onDelete?: () => void;
+    onUpdate?: () => void;
 }
 
 export default function RuleGridComponent(props: RuleGridComponentProps) {
-    const { inputCells, outputCells, colorMap } = props;
+    const { inputCells, outputCells, colorMap, onDelete, onUpdate } = props;
     return (
         <div className="m-2 shadow-md p-2 flex flex-col items-center gap-2 bg-gray-100">
             <GridComponent
@@ -20,10 +22,10 @@ export default function RuleGridComponent(props: RuleGridComponentProps) {
                 colorMap={colorMap}
             />
             <div className="flex gap-2">
-                <Button variant="secondary">
+                <Button variant="secondary" onClick={onDelete}>
                     <MdDelete />
                 </Button>
-                <Button variant="secondary">
+                <Button variant="secondary" onClick={onUpdate}>
                     <MdChangeCircle />
                 </Button>
             </div>

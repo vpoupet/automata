@@ -26,8 +26,7 @@ export default function RuleInputArea(props: RuleInputAreaProps) {
     function addRules() {
         if (textAreaRef.current) {
             const rulesText = textAreaRef.current.value;
-            const newAutomaton = automaton.parseRules(rulesText);
-            setAutomaton(newAutomaton);
+            setAutomaton(automaton.addRulesFromString(rulesText));
         }
     }
 

@@ -179,6 +179,7 @@ export default function App() {
                         setGrid={setGrid}
                         settings={settings}
                         automaton={automaton}
+                        setAutomaton={setAutomaton}
                         extraSignalsSet={extraSignalsSet}
                         activeInputCells={activeInputCells}
                         setActiveInputCells={setActiveInputCells}
@@ -222,6 +223,7 @@ export default function App() {
             <Heading level={2}>Règles</Heading>
             <RulesList
                 automaton={automaton}
+                setAutomaton={setAutomaton}
                 settings={settings}
                 colorMap={colorMap}
             />

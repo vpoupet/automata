@@ -1,9 +1,7 @@
 import Automaton from "../classes/Automaton.ts";
 import Cell from "../classes/Cell.ts";
 import Rule, {
-    adaptRule,
-    ConjunctionRule,
-    RuleOutput,
+    RuleOutput
 } from "../classes/Rule.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
 import "../style/Cell.scss";
@@ -17,6 +15,7 @@ type EditGridProps = {
     setGrid: (grid: RuleGrid) => void;
     settings: SettingsInterface;
     automaton: Automaton;
+    setAutomaton: (automaton: Automaton) => void;
     extraSignalsSet: Set<Signal>;
     activeInputCells: number[];
     setActiveInputCells: (activeInputCells: number[]) => void;
@@ -25,18 +24,20 @@ type EditGridProps = {
     colorMap: Map<Signal, string>;
 };
 
-export default function EditGrid({
-    grid,
-    setGrid,
-    settings,
-    automaton,
-    extraSignalsSet,
-    activeInputCells,
-    setActiveInputCells,
-    activeOutputCells,
-    setActiveOutputCells,
-    colorMap,
-}: EditGridProps): JSX.Element {
+export default function EditGrid(props: EditGridProps): JSX.Element {
+    const {
+        grid,
+        setGrid,
+        settings,
+        automaton,
+        setAutomaton,
+        extraSignalsSet,
+        activeInputCells,
+        setActiveInputCells,
+        activeOutputCells,
+        setActiveOutputCells,
+        colorMap,
+    } = props;
     const signalsList = automaton.getSignalsList(extraSignalsSet);
 
     function applyToActiveCells(f: (cell: Cell) => void) {
@@ -53,7 +54,10 @@ export default function EditGrid({
     }
 
     function removeAllSignals() {
-        const newGrid = RuleGrid.withSize(2 * settings.gridRadius + 1, settings.gridNbFutureSteps);
+        const newGrid = RuleGrid.withSize(
+            2 * settings.gridRadius + 1,
+            settings.gridNbFutureSteps
+        );
         setGrid(newGrid);
     }
 
@@ -70,37 +74,33 @@ export default function EditGrid({
         }
 
         if (hasOutputs()) {
-            // const rule = grid.makeRule();
-            // automaton.addRule(rule);
+            setAutomaton(automaton.addRule(grid.makeRule()));
             removeAllSignals();
         } else {
             alert("La règle n'a pas d'outputs");
         }
     }
 
-    function modifyRule() {
+    function fitRules() {
         const context = automaton.getEvalContext();
-        const ruleFromGrid = grid.clone().makeRule();
+        const ruleFromGrid = grid.makeRule();
         const newRules: Rule[] = [];
-        let setOutput: Set<RuleOutput> = new Set();
-        for (const rule of automaton.getRules()) {
-            const ruleAndOutput = adaptRule(
-                rule as ConjunctionRule,
+        let totalMatchedOutputs: Set<RuleOutput> = new Set();
+        for (const rule of automaton.rules) {
+            const { rules, matchedOutputs } = rule.fitTarget(
                 ruleFromGrid,
-                context
+                context,
             );
-            setOutput = new Set([...setOutput, ...ruleAndOutput.outputs]);
-            newRules.push(...ruleAndOutput.rules);
+            newRules.push(...rules);
+            totalMatchedOutputs = totalMatchedOutputs.union(matchedOutputs);
         }
-        for (let i = 0; i < ruleFromGrid.outputs.length; i++) {
-            if (setOutput.has(ruleFromGrid.outputs[i])) {
-                ruleFromGrid.outputs.splice(i, 1);
-                i--;
-            }
+
+        const remainingOutputs = new Set(ruleFromGrid.outputs).difference(totalMatchedOutputs);
+        if (remainingOutputs.size > 0) {
+            newRules.push(new Rule(ruleFromGrid.condition, Array.from(remainingOutputs)));
         }
-        if (ruleFromGrid.outputs.length > 0) {
-            newRules.push(ruleFromGrid);
-        }
+
+        setAutomaton(new Automaton(newRules, automaton.multiSignals));
     }
 
     // Make list of active and negated signals on the active cells
@@ -150,7 +150,7 @@ export default function EditGrid({
                 <Button onClick={saveGridAsRule}>Ajouter règle</Button>
                 <Button
                     onClick={() => {
-                        modifyRule();
+                        fitRules();
                         removeAllSignals();
                     }}
                 >

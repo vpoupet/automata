@@ -26,16 +26,26 @@ export default class Automaton {
 
     constructor(
         rules: Rule[] = [],
-        multiSignals: Map<Signal, Set<Signal>> = new Map()
+        multiSignals: Map<Signal, Set<Signal>> = new Map(),
+        signals: Set<Signal> = new Set(),
+        minNeighbor: number = Infinity,
+        maxNeighbor: number = -Infinity,
+        maxFutureDepth: number = 1,
+        shouldUpdateParameters: boolean = true
     ) {
         this.rules = rules;
         this.multiSignals = multiSignals;
+        this.signals = signals;
+        this.minNeighbor = minNeighbor;
+        this.maxNeighbor = maxNeighbor;
+        this.maxFutureDepth = maxFutureDepth;
 
-        this.signals = new Set([]);
-        this.minNeighbor = Infinity;
-        this.maxNeighbor = -Infinity;
-        this.maxFutureDepth = 1;
+        if (shouldUpdateParameters) {
+            this.updateParameters();
+        }
+    }
 
+    private updateParameters() {
         for (const rule of this.rules) {
             for (const output of rule.outputs) {
                 this.maxFutureDepth = Math.max(
@@ -67,6 +77,18 @@ export default class Automaton {
 
         if (this.minNeighbor === Infinity) this.minNeighbor = 0;
         if (this.maxNeighbor === -Infinity) this.maxNeighbor = 0;
+    }
+
+    clone(): Automaton {
+        return new Automaton(
+            this.rules,
+            this.multiSignals,
+            this.signals,
+            this.minNeighbor,
+            this.maxNeighbor,
+            this.maxFutureDepth,
+            false
+        );
     }
 
     getEvalContext(): EvalContext {
@@ -89,51 +111,7 @@ export default class Automaton {
         });
     }
 
-    private updateParameters() {
-        this.minNeighbor = Infinity;
-        this.maxNeighbor = -Infinity;
-        this.maxFutureDepth = 1;
-
-        for (const rule of this.rules) {
-            for (const output of rule.outputs) {
-                this.maxFutureDepth = Math.max(
-                    this.maxFutureDepth,
-                    output.futureStep
-                );
-            }
-            for (const literal of rule.condition.getLiterals()) {
-                this.minNeighbor = Math.min(this.minNeighbor, literal.position);
-                this.maxNeighbor = Math.max(this.maxNeighbor, literal.position);
-            }
-
-            for (const literal of rule.condition.getLiterals()) {
-                this.minNeighbor = Math.min(this.minNeighbor, literal.position);
-                this.maxNeighbor = Math.max(this.maxNeighbor, literal.position);
-            }
-
-            for (const signal of rule.getSignals()) {
-                this.signals.add(signal);
-            }
-        }
-
-        for (const [signal, subSignals] of this.multiSignals.entries()) {
-            this.signals.add(signal);
-            for (const subSignal of subSignals) {
-                this.signals.add(subSignal);
-            }
-        }
-
-        if (this.minNeighbor === Infinity) this.minNeighbor = 0;
-        if (this.maxNeighbor === -Infinity) this.maxNeighbor = 0;
-    }
-
-    setRules(rules: Rule[]): Automaton {
-        this.rules = rules;
-        this.updateParameters();
-        return this;
-    }
-
-    parseRules(inputString: string): Automaton {
+    addRulesFromString(inputString: string): Automaton {
         let context = this.copyEvalContext();
         const parser = new nearley.Parser(
             nearley.Grammar.fromCompiled(grammar)
@@ -239,9 +217,35 @@ export default class Automaton {
         if (functionsStack.length > 1) {
             throw new Error("Function not closed");
         }
-        return new Automaton(rules, context.multiSignals);
+
+        const currentRulesAsString = this.rules.map((rule) => rule.toString());
+        return new Automaton(
+            [
+                ...this.rules,
+                ...rules.filter(
+                    (r) => !currentRulesAsString.includes(r.toString())
+                ),
+            ],
+            context.multiSignals
+        );
     }
 
+    addRule(rule: Rule): Automaton {
+        const ruleString = rule.toString();
+        if (this.rules.some((r) => r.toString() === ruleString)) {
+            return this;
+        }
+
+        return new Automaton([...this.rules, rule], this.multiSignals);
+    }
+
+    deleteRule(rule: Rule): Automaton {
+        return new Automaton(
+            this.rules.filter((r) => r !== rule),
+            this.multiSignals
+        );
+    }
+    
     /**
      * Returns a space-time diagram from a starting configuration
      */
@@ -285,14 +289,24 @@ export default class Automaton {
         return diagram;
     }
 
-    getRules(): Rule[] {
-        return this.rules;
-    }
-
     replaceSignal(oldSignal: Signal, newSignal: Signal): Automaton {
-        return new Automaton(
-            this.rules.map((rule) => rule.replaceSignal(oldSignal, newSignal))
+        const newRules = this.rules.map((rule) =>
+            rule.replaceSignal(oldSignal, newSignal)
         );
+        const newMultiSignals = new Map(this.multiSignals);
+        if (newMultiSignals.has(oldSignal)) {
+            const subSignals = newMultiSignals.get(oldSignal);
+            newMultiSignals.delete(oldSignal);
+            newMultiSignals.set(newSignal, subSignals!);
+        }
+        for (const subSignals of newMultiSignals.values()) {
+            if (subSignals.has(oldSignal)) {
+                subSignals.delete(oldSignal);
+                subSignals.add(newSignal);
+            }
+        }
+
+        return new Automaton(newRules, newMultiSignals);
     }
 
     toString(): string {

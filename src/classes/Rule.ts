@@ -93,11 +93,64 @@ export default class Rule {
             )
         );
     }
+
+    fitTarget(
+        target: ConjunctionRule,
+        context: EvalContext
+    ): { rules: Rule[]; matchedOutputs: Set<RuleOutput> } {
+        const matchedOutputs = new Set<RuleOutput>();
+        // create the neighborhood to test if the rule matches the targetRule condition
+        const neighborhood: Neighborhood = {};
+        for (const literal of target.condition.subclauses) {
+            if (neighborhood[literal.position] === undefined) {
+                neighborhood[literal.position] = new Cell();
+            }
+            neighborhood[literal.position].addSignal(literal.signal);
+        }
+
+        if (!this.condition.eval(neighborhood, context)) {
+            // the rule does not match the targetRule condition, no change required
+            return { rules: [this], matchedOutputs };
+        }
+
+        const validOutputs: RuleOutput[] = [];
+        const invalidOutputs: RuleOutput[] = [];
+        for (const output of this.outputs) {
+            let isValid = false;
+            for (const targetOutput of target.outputs) {
+                if (output.equals(targetOutput)) {
+                    isValid = true;
+                    matchedOutputs.add(targetOutput);
+                    break;
+                }
+            }
+            if (isValid) {
+                validOutputs.push(output);
+            } else {
+                invalidOutputs.push(output);
+            }
+        }
+
+        const newRules: Rule[] = [];
+        if (validOutputs.length > 0) {
+            // keep the rule for outputs that remain valid
+            newRules.push(new Rule(this.condition, validOutputs));
+        }
+        if (invalidOutputs.length > 0) {
+            // create a new rules for the invalid outputs
+            const condition = new Conjunction([
+                this.condition,
+                new Negation(target.condition),
+            ]);
+            newRules.push(new Rule(condition, invalidOutputs));
+        }
+        return { rules: newRules, matchedOutputs };
+    }
 }
 
 export type ConjunctionRule = Rule & { condition: ConjunctionOfLiterals };
 
-export function adaptRule(
+export function fitRule(
     rule: ConjunctionRule,
     target: ConjunctionRule,
     context: EvalContext
