@@ -1,6 +1,6 @@
 import { SubmitHandler, useForm } from "react-hook-form";
-import { SettingsInterface } from "../contexts/SettingsContext";
 import Button from "./Button";
+import { SettingsInterface } from "../types";
 
 interface SettingsComponentProps {
     settings: SettingsInterface;

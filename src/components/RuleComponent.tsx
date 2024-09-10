@@ -1,20 +1,19 @@
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { MdExpandCircleDown, MdExpandLess } from "react-icons/md";
 import Cell, { InputCell } from "../classes/Cell.ts";
 import Rule, { ConjunctionRule } from "../classes/Rule";
-import { SettingsContext } from "../contexts/SettingsContext.ts";
-import { Signal } from "../types";
+import { SettingsInterface, Signal } from "../types";
 import RuleGridComponent from "./RuleGridComponent.tsx";
 
 interface RuleComponentProps {
     rule: Rule;
+    settings: SettingsInterface;
     colorMap: Map<Signal, string>;
 }
 
 export default function RuleComponent(props: RuleComponentProps) {
-    const { rule, colorMap } = props;
+    const { rule, settings, colorMap } = props;
     const [isOpen, setIsOpen] = useState(false);
-    const settings = useContext(SettingsContext);
 
     const conditionAsDNF = rule.condition.toDNF();
     const conjuctionRules: ConjunctionRule[] = conditionAsDNF.subclauses.map(
@@ -25,7 +24,10 @@ export default function RuleComponent(props: RuleComponentProps) {
 
     return (
         <div className="bg-white shadow-md p-2">
-            <div className="flex flex-row" onClick={() => setIsOpen(!isOpen)}>
+            <div
+                className="flex flex-row cursor-pointer"
+                onClick={() => setIsOpen(!isOpen)}
+            >
                 {isOpen ? (
                     <span className="p-1">
                         <MdExpandLess />
@@ -72,8 +74,13 @@ export default function RuleComponent(props: RuleComponentProps) {
                                 ].negatedSignals.add(literal.signal);
                             }
                         }
-                        const outputCells = Array.from({ length: settings.gridNbFutureSteps }, () =>
-                            Array.from({ length: 2 * settings.gridRadius + 1 }, () => new Cell())
+                        const outputCells = Array.from(
+                            { length: settings.gridNbFutureSteps },
+                            () =>
+                                Array.from(
+                                    { length: 2 * settings.gridRadius + 1 },
+                                    () => new Cell()
+                                )
                         );
                         for (const output of rule.outputs) {
                             // ignore outputs that are outside the grid

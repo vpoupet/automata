@@ -9,14 +9,19 @@ import Heading from "./components/Heading.tsx";
 import RuleInputArea from "./components/RuleInputArea.tsx";
 import RulesList from "./components/RulesList.tsx";
 import SignalsList from "./components/SignalsList.tsx";
-import {
-    defaultSettings,
-    SettingsContext,
-} from "./contexts/SettingsContext.ts";
 import { randomColor } from "./style/materialColors.ts";
 import "./style/style.scss";
 import { Coordinates, Signal } from "./types.ts";
 import SettingsComponent from "./components/SettingsComponent.tsx";
+import { SettingsInterface } from "./types.ts";
+
+const defaultSettings: SettingsInterface = {
+    gridRadius: 2,
+    gridNbFutureSteps: 3,
+    nbCells: 40,
+    nbSteps: 60,
+    timeGoesUp: true
+};
 
 export default function App() {
     const [settings, setSettings] = useState(defaultSettings);
@@ -72,8 +77,7 @@ export default function App() {
         );
 
         for (let i = 0; i < minWidth; i++) {
-            newGrid.inputCells[i + shiftNew] =
-                grid.inputCells[i + shiftPrev];
+            newGrid.inputCells[i + shiftNew] = grid.inputCells[i + shiftPrev];
         }
         for (let j = 0; j < minNbSteps; j++) {
             for (let i = 0; i < minWidth; i++) {
@@ -85,7 +89,10 @@ export default function App() {
 
         const newActiveInputCells = [];
         for (const col of activeInputCells) {
-            if (col + deltaRadius >= 0 && col + deltaRadius < newGrid.inputCells.length) {
+            if (
+                col + deltaRadius >= 0 &&
+                col + deltaRadius < newGrid.inputCells.length
+            ) {
                 newActiveInputCells.push(col + deltaRadius);
             }
         }
@@ -160,86 +167,84 @@ export default function App() {
     initialConfiguration.cells[0].addSignal(Symbol.for("Init"));
 
     return (
-        <SettingsContext.Provider value={settings}>
-            <div className="flex flex-col p-2 bg-gradient-to-b from-slate-50 to-slate-100 text-gray-700">
-                <Heading level={1}>
-                    Outil de création d'automates cellulaires
-                </Heading>
-                <SettingsComponent
-                    settings={settings}
-                    setSettings={setSettings}
-                />
-                <div className="flex justify-between">
-                    <div className="flex">
-                        <EditGrid
-                            grid={grid}
-                            setGrid={setGrid}
-                            radius={settings.gridRadius}
-                            nbFutureSteps={settings.gridNbFutureSteps}
-                            automaton={automaton}
-                            extraSignalsSet={extraSignalsSet}
-                            activeInputCells={activeInputCells}
-                            setActiveInputCells={setActiveInputCells}
-                            activeOutputCells={activeOutputCells}
-                            setActiveOutputCells={setActiveOutputCells}
-                            colorMap={colorMap}
-                        />
-                        <div>
-                            <Button
-                                onClick={() => changeIndexAutomaton(-1)}
-                                disabled={automatonIndex === 0}
-                            >
-                                Précédent
-                            </Button>
-                            <Button
-                                onClick={() => changeIndexAutomaton(1)}
-                                disabled={
-                                    automatonIndex >= automataHistory.length - 1
-                                }
-                            >
-                                <span>Suivant</span>
-                            </Button>
-                        </div>
-                    </div>
-                    <div className="flex">
-                        <SignalsList
-                            automaton={automaton}
-                            setAutomaton={setAutomaton}
-                            extraSignalsSet={extraSignalsSet}
-                            setExtraSignalsSet={setExtraSignalsSet}
-                            hiddenSignalsSet={hiddenSignalsSet}
-                            setHiddenSignalsSet={setHiddenSignalsSet}
-                            colorMap={colorMap}
-                            setColorMap={setColorMap}
-                            colorPickingSignal={colorPickingSignal}
-                            setColorPickingSignal={setColorPickingSignal}
-                            setSignalColor={setSignalColor}
-                        />
-                    </div>
-                </div>
-                <Heading level={2}>Règles</Heading>
-                <RulesList automaton={automaton} colorMap={colorMap} />
-                <div className="flex justify-between m-2">
-                    <div className="flex">
-                        <RuleInputArea
-                            automaton={automataHistory[automatonIndex]}
-                            setAutomaton={setAutomaton}
-                        />
-                    </div>
-                </div>
-                <div className="self-center">
-                    <Diagram
-                        automaton={automataHistory[automatonIndex]}
-                        initialConfiguration={initialConfiguration}
-                        nbSteps={settings.nbSteps}
-                        gridRadius={settings.gridRadius}
-                        gridNbFutureSteps={settings.gridNbFutureSteps}
+        <div className="flex flex-col p-2 bg-gradient-to-b from-slate-50 to-slate-100 text-gray-700">
+            <Heading level={1}>
+                Outil de création d'automates cellulaires
+            </Heading>
+            <SettingsComponent settings={settings} setSettings={setSettings} />
+            <div className="flex justify-between">
+                <div className="flex">
+                    <EditGrid
+                        grid={grid}
                         setGrid={setGrid}
-                        hiddenSignalsSet={hiddenSignalsSet}
+                        settings={settings}
+                        automaton={automaton}
+                        extraSignalsSet={extraSignalsSet}
+                        activeInputCells={activeInputCells}
+                        setActiveInputCells={setActiveInputCells}
+                        activeOutputCells={activeOutputCells}
+                        setActiveOutputCells={setActiveOutputCells}
                         colorMap={colorMap}
+                    />
+                    <div>
+                        <Button
+                            onClick={() => changeIndexAutomaton(-1)}
+                            disabled={automatonIndex === 0}
+                        >
+                            Précédent
+                        </Button>
+                        <Button
+                            onClick={() => changeIndexAutomaton(1)}
+                            disabled={
+                                automatonIndex >= automataHistory.length - 1
+                            }
+                        >
+                            <span>Suivant</span>
+                        </Button>
+                    </div>
+                </div>
+                <div className="flex">
+                    <SignalsList
+                        automaton={automaton}
+                        setAutomaton={setAutomaton}
+                        extraSignalsSet={extraSignalsSet}
+                        setExtraSignalsSet={setExtraSignalsSet}
+                        hiddenSignalsSet={hiddenSignalsSet}
+                        setHiddenSignalsSet={setHiddenSignalsSet}
+                        colorMap={colorMap}
+                        setColorMap={setColorMap}
+                        colorPickingSignal={colorPickingSignal}
+                        setColorPickingSignal={setColorPickingSignal}
+                        setSignalColor={setSignalColor}
                     />
                 </div>
             </div>
-        </SettingsContext.Provider>
+            <Heading level={2}>Règles</Heading>
+            <RulesList
+                automaton={automaton}
+                settings={settings}
+                colorMap={colorMap}
+            />
+            <div className="flex justify-between m-2">
+                <div className="flex">
+                    <RuleInputArea
+                        automaton={automataHistory[automatonIndex]}
+                        setAutomaton={setAutomaton}
+                    />
+                </div>
+            </div>
+            <div className="self-center">
+                <Diagram
+                    automaton={automataHistory[automatonIndex]}
+                    initialConfiguration={initialConfiguration}
+                    nbSteps={settings.nbSteps}
+                    gridRadius={settings.gridRadius}
+                    gridNbFutureSteps={settings.gridNbFutureSteps}
+                    setGrid={setGrid}
+                    hiddenSignalsSet={hiddenSignalsSet}
+                    colorMap={colorMap}
+                />
+            </div>
+        </div>
     );
 }

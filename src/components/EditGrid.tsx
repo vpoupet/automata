@@ -7,7 +7,7 @@ import Rule, {
 } from "../classes/Rule.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
 import "../style/Cell.scss";
-import type { Coordinates, Signal } from "../types.ts";
+import type { Coordinates, SettingsInterface, Signal } from "../types.ts";
 import Button from "./Button.tsx";
 import GridComponent from "./GridComponent.tsx";
 import GridSignalsManager from "./GridSignalsManager.tsx";
@@ -15,8 +15,7 @@ import GridSignalsManager from "./GridSignalsManager.tsx";
 type EditGridProps = {
     grid: RuleGrid;
     setGrid: (grid: RuleGrid) => void;
-    nbFutureSteps: number;
-    radius: number;
+    settings: SettingsInterface;
     automaton: Automaton;
     extraSignalsSet: Set<Signal>;
     activeInputCells: number[];
@@ -29,8 +28,7 @@ type EditGridProps = {
 export default function EditGrid({
     grid,
     setGrid,
-    radius,
-    nbFutureSteps,
+    settings,
     automaton,
     extraSignalsSet,
     activeInputCells,
@@ -55,7 +53,7 @@ export default function EditGrid({
     }
 
     function removeAllSignals() {
-        const newGrid = RuleGrid.withSize(2 * radius + 1, nbFutureSteps);
+        const newGrid = RuleGrid.withSize(2 * settings.gridRadius + 1, settings.gridNbFutureSteps);
         setGrid(newGrid);
     }
 
@@ -72,7 +70,8 @@ export default function EditGrid({
         }
 
         if (hasOutputs()) {
-            
+            // const rule = grid.makeRule();
+            // automaton.addRule(rule);
             removeAllSignals();
         } else {
             alert("La règle n'a pas d'outputs");
