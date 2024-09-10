@@ -1,4 +1,3 @@
-import { useState } from "react";
 import Automaton from "../classes/Automaton.ts";
 import Cell from "../classes/Cell.ts";
 import Rule, {
@@ -10,8 +9,7 @@ import RuleGrid from "../classes/RuleGrid.ts";
 import "../style/Cell.scss";
 import type { Coordinates, Signal } from "../types.ts";
 import Button from "./Button.tsx";
-import GridInputsRow from "./GridInputsRow.tsx";
-import GridOutputsRow from "./GridOutputsRow.tsx";
+import GridComponent from "./GridComponent.tsx";
 import GridSignalsManager from "./GridSignalsManager.tsx";
 
 type EditGridProps = {
@@ -19,10 +17,12 @@ type EditGridProps = {
     setGrid: (grid: RuleGrid) => void;
     nbFutureSteps: number;
     radius: number;
-    rulesGrid: RuleGrid[];
-    setRulesGrid: (rulesGrid: RuleGrid[]) => void;
     automaton: Automaton;
     extraSignalsSet: Set<Signal>;
+    activeInputCells: number[];
+    setActiveInputCells: (activeInputCells: number[]) => void;
+    activeOutputCells: Coordinates[];
+    setActiveOutputCells: (activeOutputCells: Coordinates[]) => void;
     colorMap: Map<Signal, string>;
 };
 
@@ -31,16 +31,14 @@ export default function EditGrid({
     setGrid,
     radius,
     nbFutureSteps,
-    rulesGrid,
-    setRulesGrid,
     automaton,
     extraSignalsSet,
+    activeInputCells,
+    setActiveInputCells,
+    activeOutputCells,
+    setActiveOutputCells,
     colorMap,
 }: EditGridProps): JSX.Element {
-    const [activeInputCells, setActiveInputCells] = useState<number[]>([]);
-    const [activeOutputCells, setActiveOutputCells] = useState<Coordinates[]>(
-        []
-    );
     const signalsList = automaton.getSignalsList(extraSignalsSet);
 
     function applyToActiveCells(f: (cell: Cell) => void) {
@@ -74,7 +72,7 @@ export default function EditGrid({
         }
 
         if (hasOutputs()) {
-            setRulesGrid([...rulesGrid, grid.clone()]);
+            
             removeAllSignals();
         } else {
             alert("La règle n'a pas d'outputs");
@@ -104,13 +102,6 @@ export default function EditGrid({
         if (ruleFromGrid.outputs.length > 0) {
             newRules.push(ruleFromGrid);
         }
-        // TODO: remove all this
-        // setRulesGrid(newRules.map(getRuleGrid));
-        // setRulesGrid(
-        //     newRules.map((rule) =>
-        //         RuleGrid.fromRule(rule, radius, nbFutureSteps)
-        //     )
-        // );
     }
 
     // Make list of active and negated signals on the active cells
@@ -128,7 +119,9 @@ export default function EditGrid({
         }
     });
     activeOutputCells.forEach((coordinates) => {
-        const cell = grid.outputCells[coordinates.row]?.[coordinates.col] as Cell | undefined;
+        const cell = grid.outputCells[coordinates.row]?.[coordinates.col] as
+            | Cell
+            | undefined;
         if (cell !== undefined) {
             cell.signals.forEach((signal) => {
                 activeSignals.add(signal);
@@ -139,24 +132,17 @@ export default function EditGrid({
     return (
         <div className="flex flex-col items-center gap-2">
             <div className="flex flex-col-reverse w-fit">
-                <GridInputsRow
-                    inputs={grid.inputCells}
-                    activeInputCells={activeInputCells}
-                    setActiveInputCells={setActiveInputCells}
-                    setActiveOutputCells={setActiveOutputCells}
+                <GridComponent
+                    inputCells={grid.inputCells}
+                    outputCells={grid.outputCells}
                     colorMap={colorMap}
+                    activeCellsManager={{
+                        activeInputCells,
+                        setActiveInputCells,
+                        activeOutputCells,
+                        setActiveOutputCells,
+                    }}
                 />
-                {grid.outputCells.map((row, rowIndex) => (
-                    <GridOutputsRow
-                        key={rowIndex}
-                        outputs={row}
-                        rowIndex={rowIndex}
-                        activeOutputCells={activeOutputCells}
-                        setActiveInputCells={setActiveInputCells}
-                        setActiveOutputCells={setActiveOutputCells}
-                        colorMap={colorMap}
-                    />
-                ))}
             </div>
             <div className="flex gap-2">
                 <Button variant="secondary" onClick={removeAllSignals}>

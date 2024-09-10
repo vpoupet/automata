@@ -4,11 +4,18 @@ interface ButtonProps {
     variant?: ButtonVariant;
     disabled?: boolean;
     onClick?: () => void;
+    type?: "button" | "submit" | "reset";
     children: React.ReactNode;
 }
 
 export default function Button(props: ButtonProps) {
-    const { variant = "primary", disabled = false, onClick, children } = props;
+    const {
+        variant = "primary",
+        disabled = false,
+        onClick,
+        type = "button",
+        children,
+    } = props;
     let className;
     switch (variant) {
         case "primary":
@@ -30,7 +37,12 @@ export default function Button(props: ButtonProps) {
             break;
     }
     return (
-        <button className={className} onClick={onClick} disabled={disabled}>
+        <button
+            type={type}
+            className={className}
+            onClick={onClick}
+            disabled={disabled}
+        >
             {children}
         </button>
     );
