@@ -197,7 +197,7 @@ export default function App() {
                 />
             )}
             <Heading level={1}>Signal-based cellular automata</Heading>
-            <div className="flex justify-evenly">
+            <div className="flex justify-evenly gap-2">
                 <EditGrid
                     grid={grid}
                     setGrid={setGrid}

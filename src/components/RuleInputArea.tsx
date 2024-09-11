@@ -28,9 +28,9 @@ export default function RuleInputArea(props: RuleInputAreaProps) {
         <div>
             <textarea
                 id="rulesText"
-                className="font-mono p-2 border border-gray-400 shadow-md"
-                rows={12}
+                className="font-mono p-2 border border-gray-400 shadow-md w-full"
                 cols={60}
+                rows={12}
                 ref={textAreaRef}
                 placeholder="Enter rules here"
             />
