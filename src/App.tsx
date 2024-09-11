@@ -134,6 +134,11 @@ export default function App() {
     }
 
     function setAutomaton(automaton: Automaton) {
+        if (automaton === automataHistory[automatonIndex]) {
+            // automaton hasn't changed
+            return;
+        }
+
         if (automatonIndex < automataHistory.length - 1) {
             setAutomataHistory([
                 ...automataHistory.slice(0, automatonIndex + 1),
@@ -236,6 +241,8 @@ export default function App() {
                 changeIndexAutomaton={changeIndexAutomaton}
                 automataHistoryLength={automataHistory.length}
                 exportRules={exportRules}
+                grid={grid}
+                setGrid={setGrid}
                 settings={settings}
                 colorMap={colorMap}
             />

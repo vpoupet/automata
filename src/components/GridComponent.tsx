@@ -7,6 +7,7 @@ interface GridComponentProps {
     inputCells: InputCell[];
     outputCells: Cell[][];
     colorMap: Map<Signal, string>;
+    onClickGrid?: () => void;
     activeCellsManager?: {
         activeInputCells: number[];
         activeOutputCells: Coordinates[];
@@ -16,7 +17,13 @@ interface GridComponentProps {
 }
 
 export default function GridComponent(props: GridComponentProps) {
-    const { inputCells, outputCells, colorMap, activeCellsManager } = props;
+    const {
+        inputCells,
+        outputCells,
+        colorMap,
+        onClickGrid,
+        activeCellsManager,
+    } = props;
     const grid = new RuleGrid(inputCells, outputCells);
 
     function handleClickOutputCell(
@@ -72,37 +79,38 @@ export default function GridComponent(props: GridComponentProps) {
     }
 
     return (
-        <div className="flex flex-col items-center">
+        <div
+            className="flex flex-col items-center cursor-pointer"
+            onClick={onClickGrid}
+        >
             <div className="mb-1 flex flex-col-reverse">
-                {grid.outputCells
-                    .slice()
-                    .map((row, rowIndex) => (
-                        <div key={rowIndex} className="flex flex-row">
-                            {row.map((cell, colIndex) => (
-                                <CellComponent
-                                    key={`${rowIndex + 1}-${colIndex}`}
-                                    cell={cell}
-                                    isActive={
-                                        activeCellsManager &&
-                                        activeCellsManager.activeOutputCells.some(
-                                            (coordinates) =>
-                                                coordinates.row === rowIndex &&
-                                                coordinates.col === colIndex
-                                        )
-                                    }
-                                    hiddenSignalsSet={new Set()}
-                                    onClick={(event) =>
-                                        handleClickOutputCell(
-                                            rowIndex,
-                                            colIndex,
-                                            event
-                                        )
-                                    }
-                                    colorMap={colorMap}
-                                />
-                            ))}
-                        </div>
-                    ))}
+                {grid.outputCells.slice().map((row, rowIndex) => (
+                    <div key={rowIndex} className="flex flex-row">
+                        {row.map((cell, colIndex) => (
+                            <CellComponent
+                                key={`${rowIndex + 1}-${colIndex}`}
+                                cell={cell}
+                                isActive={
+                                    activeCellsManager &&
+                                    activeCellsManager.activeOutputCells.some(
+                                        (coordinates) =>
+                                            coordinates.row === rowIndex &&
+                                            coordinates.col === colIndex
+                                    )
+                                }
+                                hiddenSignalsSet={new Set()}
+                                onClick={(event) =>
+                                    handleClickOutputCell(
+                                        rowIndex,
+                                        colIndex,
+                                        event
+                                    )
+                                }
+                                colorMap={colorMap}
+                            />
+                        ))}
+                    </div>
+                ))}
             </div>
             <div className="flex flex-row">
                 {grid.inputCells

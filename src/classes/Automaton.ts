@@ -14,6 +14,7 @@ export default class Automaton {
      * List of rules of the automaton (the rules are executed on each cell in the order they appear in the list)
      */
     rules: Rule[];
+    ruleNames: Set<string>;
     minNeighbor: number;
     maxNeighbor: number;
     /**
@@ -33,7 +34,20 @@ export default class Automaton {
         maxFutureDepth: number = 1,
         shouldUpdateParameters: boolean = true
     ) {
-        this.rules = rules;
+        this.rules = [];
+        this.ruleNames = new Set();
+        // remove duplicate rules
+        for (const rule of rules) {
+            if (rule.condition.isAlwaysFalse()) {
+                continue;
+            }
+            
+            const ruleName = rule.toString();
+            if (!this.ruleNames.has(ruleName)) {
+                this.rules.push(rule);
+                this.ruleNames.add(ruleName);
+            }
+        }
         this.multiSignals = multiSignals;
         this.signals = signals;
         this.minNeighbor = minNeighbor;
@@ -218,25 +232,29 @@ export default class Automaton {
             throw new Error("Function not closed");
         }
 
-        const currentRulesAsString = this.rules.map((rule) => rule.toString());
-        return new Automaton(
-            [
-                ...this.rules,
-                ...rules.filter(
-                    (r) => !currentRulesAsString.includes(r.toString())
-                ),
-            ],
-            context.multiSignals
-        );
-    }
-
-    addRule(rule: Rule): Automaton {
-        const ruleString = rule.toString();
-        if (this.rules.some((r) => r.toString() === ruleString)) {
+        if (rules.length === 0) {
             return this;
         }
 
+        return new Automaton([...this.rules, ...rules], context.multiSignals);
+    }
+
+    hasRule(rule: Rule): boolean {
+        return this.ruleNames.has(rule.toString());
+    }
+
+    addRule(rule: Rule): Automaton {
+        if (this.hasRule(rule)) {
+            return this;
+        }
         return new Automaton([...this.rules, rule], this.multiSignals);
+    }
+
+    addRules(rules: Rule[]): Automaton {
+        if (rules.length === 0) {
+            return this;
+        }
+        return new Automaton([...this.rules, ...rules], this.multiSignals);
     }
 
     deleteRule(rule: Rule): Automaton {
@@ -245,7 +263,25 @@ export default class Automaton {
             this.multiSignals
         );
     }
-    
+
+    replaceRule(oldRule: Rule, newRules: Rule[]) {
+        const newRulesNames = new Set(newRules.map((r) => r.toString()));
+        if (newRulesNames.has(oldRule.toString())) {
+            // keep the old rule
+            return this.addRules(newRules.filter((r) => !this.hasRule(r)));
+        }
+
+        const resultingRules = [];
+        for (const rule of this.rules) {
+            if (rule !== oldRule) {
+                resultingRules.push(rule);
+            } else {
+                resultingRules.push(...newRules);
+            }
+        }
+        return new Automaton(resultingRules, this.multiSignals);
+    }
+
     /**
      * Returns a space-time diagram from a starting configuration
      */

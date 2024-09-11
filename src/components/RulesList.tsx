@@ -7,6 +7,8 @@ import RuleComponent from "./RuleComponent";
 import { IoMdClipboard } from "react-icons/io";
 import { useState } from "react";
 import { FaCircleDown, FaCircleUp } from "react-icons/fa6";
+import RuleGrid from "../classes/RuleGrid";
+import Rule from "../classes/Rule";
 
 interface RulesListProps {
     automaton: Automaton;
@@ -15,6 +17,8 @@ interface RulesListProps {
     setAutomaton: (automaton: Automaton) => void;
     changeIndexAutomaton: (index: number) => void;
     exportRules: () => void;
+    grid: RuleGrid;
+    setGrid: (grid: RuleGrid) => void;
     settings: SettingsInterface;
     colorMap: Map<Signal, string>;
 }
@@ -27,15 +31,35 @@ export default function RulesList(props: RulesListProps): JSX.Element {
         setAutomaton,
         changeIndexAutomaton,
         exportRules,
+        grid,
+        setGrid,
         settings,
         colorMap,
     } = props;
     const [isExpanded, setIsExpanded] = useState(true);
 
+    function deleteRule(rule: Rule) {
+        setAutomaton(automaton.deleteRule(rule));
+    }
+
+    function replaceRule(oldRule: Rule, newRules: Rule[]) {
+        setAutomaton(automaton.replaceRule(oldRule, newRules));
+    }
+
     return (
         <div className="my-4">
-            <span className="cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
-                <Heading className="flex flex-row gap-4 items-center" level={2}>Rules {isExpanded ? <FaCircleUp color="#AAA"/> : <FaCircleDown color="#AAA" />}</Heading>
+            <span
+                className="cursor-pointer"
+                onClick={() => setIsExpanded(!isExpanded)}
+            >
+                <Heading className="flex flex-row gap-4 items-center" level={2}>
+                    Rules{" "}
+                    {isExpanded ? (
+                        <FaCircleUp color="#AAA" />
+                    ) : (
+                        <FaCircleDown color="#AAA" />
+                    )}
+                </Heading>
             </span>
             <span className="flex flex-row gap-1">
                 <Button
@@ -66,9 +90,10 @@ export default function RulesList(props: RulesListProps): JSX.Element {
                             key={rule.toString()}
                             rule={rule}
                             settings={settings}
-                            deleteRule={(rule) =>
-                                setAutomaton(automaton.deleteRule(rule))
-                            }
+                            deleteRule={deleteRule}
+                            replaceRule={replaceRule}
+                            grid={grid}
+                            setGrid={setGrid}
                             colorMap={colorMap}
                         />
                     ))}
