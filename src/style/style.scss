@@ -16,9 +16,7 @@
     content: attr(data-tooltip);
     position: absolute;
     bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;
+    left: 0;
     padding: 5px;
     font-size: 14px;
     line-height: 1.2;

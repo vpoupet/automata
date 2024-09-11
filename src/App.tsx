@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { MdSettings } from "react-icons/md";
 import { toast, ToastContainer } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+import "react-toastify/dist/ReactToastify.css";
 import Automaton from "./classes/Automaton.ts";
 import Configuration from "./classes/Configuration.ts";
 import RuleGrid from "./classes/RuleGrid.ts";
@@ -51,8 +51,9 @@ export default function App() {
         new Automaton(),
     ]);
     const [automatonIndex, setAutomatonIndex] = useState(0);
-    const [initialConfiguration, setInialConfiguration] = useState<Configuration>(Configuration.withSize(settings.nbCells));
-    
+    const [initialConfiguration, setInialConfiguration] =
+        useState<Configuration>(Configuration.withSize(settings.nbCells));
+
     // Update edit grid when settings change
     useEffect(() => {
         const prevRadius = grid.getRadius();
@@ -180,7 +181,7 @@ export default function App() {
         <div className="flex flex-col p-2 bg-gradient-to-b from-slate-50 to-slate-100 text-gray-700 w-screen min-h-screen">
             <ToastContainer />
             <div
-                className="absolute top-4 right-4"
+                className="absolute top-4 right-4 cursor-pointer"
                 onClick={() => {
                     setIsSettingsOpen(!isSettingsOpen);
                 }}
@@ -196,38 +197,38 @@ export default function App() {
                 />
             )}
             <Heading level={1}>Signal-based cellular automata</Heading>
-            <div className="flex justify-between">
-                <div className="flex">
-                    <EditGrid
-                        grid={grid}
-                        setGrid={setGrid}
-                        settings={settings}
-                        automaton={automaton}
-                        setAutomaton={setAutomaton}
-                        extraSignalsSet={extraSignalsSet}
-                        activeInputCells={activeInputCells}
-                        setActiveInputCells={setActiveInputCells}
-                        activeOutputCells={activeOutputCells}
-                        setActiveOutputCells={setActiveOutputCells}
-                        colorMap={colorMap}
-                    />
-                </div>
-                <div className="flex">
-                    <SignalsList
-                        automaton={automaton}
-                        setAutomaton={setAutomaton}
-                        extraSignalsSet={extraSignalsSet}
-                        setExtraSignalsSet={setExtraSignalsSet}
-                        hiddenSignalsSet={hiddenSignalsSet}
-                        setHiddenSignalsSet={setHiddenSignalsSet}
-                        colorMap={colorMap}
-                        setColorMap={setColorMap}
-                        colorPickingSignal={colorPickingSignal}
-                        setColorPickingSignal={setColorPickingSignal}
-                        setSignalColor={setSignalColor}
-                    />
-                </div>
+            <div className="flex justify-evenly">
+                <EditGrid
+                    grid={grid}
+                    setGrid={setGrid}
+                    settings={settings}
+                    automaton={automaton}
+                    setAutomaton={setAutomaton}
+                    extraSignalsSet={extraSignalsSet}
+                    activeInputCells={activeInputCells}
+                    setActiveInputCells={setActiveInputCells}
+                    activeOutputCells={activeOutputCells}
+                    setActiveOutputCells={setActiveOutputCells}
+                    colorMap={colorMap}
+                />
+                <RuleInputArea
+                    automaton={automataHistory[automatonIndex]}
+                    setAutomaton={setAutomaton}
+                />
             </div>
+            <SignalsList
+                automaton={automaton}
+                setAutomaton={setAutomaton}
+                extraSignalsSet={extraSignalsSet}
+                setExtraSignalsSet={setExtraSignalsSet}
+                hiddenSignalsSet={hiddenSignalsSet}
+                setHiddenSignalsSet={setHiddenSignalsSet}
+                colorMap={colorMap}
+                setColorMap={setColorMap}
+                colorPickingSignal={colorPickingSignal}
+                setColorPickingSignal={setColorPickingSignal}
+                setSignalColor={setSignalColor}
+            />
             <RulesList
                 automaton={automaton}
                 setAutomaton={setAutomaton}
@@ -238,26 +239,17 @@ export default function App() {
                 settings={settings}
                 colorMap={colorMap}
             />
-            <div className="flex justify-between m-2">
-                <div className="flex">
-                    <RuleInputArea
-                        automaton={automataHistory[automatonIndex]}
-                        setAutomaton={setAutomaton}
-                    />
-                </div>
-            </div>
-            <div className="self-center">
-                <Diagram
-                    automaton={automataHistory[automatonIndex]}
-                    initialConfiguration={initialConfiguration!}
-                    nbSteps={settings.nbSteps}
-                    gridRadius={settings.gridRadius}
-                    gridNbFutureSteps={settings.gridNbFutureSteps}
-                    setGrid={setGrid}
-                    hiddenSignalsSet={hiddenSignalsSet}
-                    colorMap={colorMap}
-                />
-            </div>
+
+            <Diagram
+                automaton={automataHistory[automatonIndex]}
+                initialConfiguration={initialConfiguration!}
+                nbSteps={settings.nbSteps}
+                gridRadius={settings.gridRadius}
+                gridNbFutureSteps={settings.gridNbFutureSteps}
+                setGrid={setGrid}
+                hiddenSignalsSet={hiddenSignalsSet}
+                colorMap={colorMap}
+            />
         </div>
     );
 }

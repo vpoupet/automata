@@ -4,7 +4,6 @@ import { MdCancel, MdCheckCircle, MdDelete, MdEdit } from "react-icons/md";
 import Automaton from "../classes/Automaton";
 import type { Signal } from "../types";
 import Button from "./Common/Button";
-import Frame from "./Common/Frame";
 import Heading from "./Common/Heading";
 import MaterialColorPicker from "./MaterialColorPicker";
 import SignalName from "./SignalName";
@@ -36,7 +35,7 @@ export default function SignalsList({
     setColorPickingSignal,
     setSignalColor,
 }: SignalsListProps): JSX.Element {
-    const [isOpen, setIsOpen] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(true);
     const [newSignalValue, setNewSignalValue] = useState("");
     const signalsList = automaton.getSignalsList(extraSignalsSet);
 
@@ -114,13 +113,21 @@ export default function SignalsList({
     }
 
     return (
-        <Frame className="w-96 h-fit">
-            <span onClick={() => setIsOpen(!isOpen)}>
-                <Heading level={2} className="flex flex-row justify-between items-center">
-                    Signals list {isOpen ? <FaCircleUp /> : <FaCircleDown />}
+        <div className="my-4 w-full max-w-sm">
+            <span
+                className="cursor-pointer"
+                onClick={() => setIsExpanded(!isExpanded)}
+            >
+                <Heading level={2} className="flex flex-row gap-4 items-center">
+                    Signals list{" "}
+                    {isExpanded ? (
+                        <FaCircleUp color="#AAA" />
+                    ) : (
+                        <FaCircleDown color="#AAA" />
+                    )}
                 </Heading>
             </span>
-            {isOpen && (
+            {isExpanded && (
                 <div className="flex flex-col gap-1">
                     <Button onClick={toggleAllSignals} variant="secondary">
                         Toggle
@@ -167,7 +174,7 @@ export default function SignalsList({
                     </span>
                 </div>
             )}
-        </Frame>
+        </div>
     );
 }
 

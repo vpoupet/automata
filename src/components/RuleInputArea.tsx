@@ -32,7 +32,7 @@ export default function RuleInputArea(props: RuleInputAreaProps) {
                 rows={12}
                 cols={60}
                 ref={textAreaRef}
-                placeholder="Enter rule(s) here"
+                placeholder="Enter rules here"
             />
             <div className="flex gap-2">
                 <Button variant="secondary" onClick={clearTextArea}>Clear</Button>

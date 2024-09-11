@@ -6,6 +6,7 @@ import { InputCell } from "../classes/Cell.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
 import type { Signal } from "../types.ts";
 import CellComponent from "./CellComponent.tsx";
+import Heading from "./Common/Heading.tsx";
 
 interface DiagramProps {
     automaton: Automaton;
@@ -54,18 +55,21 @@ export default function Diagram({
     }
 
     return (
-        <div className="w-full flex flex-col justify-center align-middle">
-            {diagram.reverse().map((config, row) => (
-                <DiagramRow
-                    key={row}
-                    config={config}
-                    onClickCell={(col: number) => {
-                        onClickCell(row, col);
-                    }}
-                    hiddenSignalsSet={hiddenSignalsSet}
-                    colorMap={colorMap}
-                />
-            ))}
+        <div>
+            <Heading level={2}>Diagram</Heading>
+            <div className="w-full flex flex-col justify-center align-middle">
+                {diagram.reverse().map((config, row) => (
+                    <DiagramRow
+                        key={row}
+                        config={config}
+                        onClickCell={(col: number) => {
+                            onClickCell(row, col);
+                        }}
+                        hiddenSignalsSet={hiddenSignalsSet}
+                        colorMap={colorMap}
+                    />
+                ))}
+            </div>
         </div>
     );
 }
