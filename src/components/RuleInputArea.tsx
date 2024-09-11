@@ -34,7 +34,7 @@ export default function RuleInputArea(props: RuleInputAreaProps) {
                 ref={textAreaRef}
                 placeholder="Enter rules here"
             />
-            <div className="flex gap-2">
+            <div className="w-full flex flex-row gap-2 justify-center">
                 <Button variant="secondary" onClick={clearTextArea}>Clear</Button>
                 <Button onClick={addRules}>
                     Add rules
