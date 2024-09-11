@@ -4,47 +4,46 @@ import "../style/Cell.scss";
 
 import { InputCell } from "../classes/Cell.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
-import type { Signal } from "../types.ts";
+import type { SettingsInterface, Signal } from "../types.ts";
 import CellComponent from "./CellComponent.tsx";
 import Heading from "./Common/Heading.tsx";
 
 interface DiagramProps {
     automaton: Automaton;
     initialConfiguration: Configuration;
-    nbSteps: number;
-    gridRadius?: number;
-    gridNbFutureSteps?: number;
     setGrid?: React.Dispatch<React.SetStateAction<RuleGrid>>;
     hiddenSignalsSet?: Set<Signal>;
+    settings: SettingsInterface;
     colorMap: Map<Signal, string>;
 }
 
 export default function Diagram({
     automaton,
     initialConfiguration,
-    nbSteps,
-    gridRadius,
-    gridNbFutureSteps,
     setGrid,
     hiddenSignalsSet,
+    settings,
     colorMap,
 }: DiagramProps) {
-    const diagram = automaton.makeDiagram(initialConfiguration, nbSteps);
+    const diagram = automaton.makeDiagram(initialConfiguration, settings.nbSteps);
+    if (settings.timeGoesUp) {
+        diagram.reverse();
+    }
 
     function onClickCell(row: number, col: number): void {
-        if (!setGrid || !gridRadius || !gridNbFutureSteps) {
+        if (!setGrid || !settings.gridRadius || !settings.gridNbFutureSteps) {
             return;
         }
 
         const diagramRow = diagram[row].cells;
         const inputs = [];
-        for (let i = col - gridRadius; i <= col + gridRadius; i++) {
+        for (let i = col - settings.gridRadius; i <= col + settings.gridRadius; i++) {
             const cell = diagramRow[i];
             inputs.push(cell ? new InputCell(cell.signals) : new InputCell());
         }
         const gridDiagram = automaton.makeDiagram(
             new Configuration(inputs),
-            gridNbFutureSteps
+            settings.gridNbFutureSteps
         );
         setGrid(
             new RuleGrid(
@@ -58,7 +57,7 @@ export default function Diagram({
         <div>
             <Heading level={2}>Diagram</Heading>
             <div className="w-full flex flex-col justify-center align-middle">
-                {diagram.reverse().map((config, row) => (
+                {diagram.map((config, row) => (
                     <DiagramRow
                         key={row}
                         config={config}

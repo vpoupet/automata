@@ -121,7 +121,7 @@ export default function App() {
         const initialConfiguration = Configuration.withSize(settings.nbCells);
         initialConfiguration.cells[0].addSignal(Symbol.for("Init"));
         setInialConfiguration(initialConfiguration);
-    }, [settings.gridRadius, settings.gridNbFutureSteps]);
+    }, [settings.gridRadius, settings.gridNbFutureSteps, settings.nbCells]);
 
     function changeIndexAutomaton(deltaIndex: number) {
         if (
@@ -243,11 +243,9 @@ export default function App() {
             <Diagram
                 automaton={automataHistory[automatonIndex]}
                 initialConfiguration={initialConfiguration!}
-                nbSteps={settings.nbSteps}
-                gridRadius={settings.gridRadius}
-                gridNbFutureSteps={settings.gridNbFutureSteps}
                 setGrid={setGrid}
                 hiddenSignalsSet={hiddenSignalsSet}
+                settings={settings}
                 colorMap={colorMap}
             />
         </div>
