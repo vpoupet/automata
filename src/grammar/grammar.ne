@@ -102,7 +102,13 @@ NEGATION -> "!" CLAUSE {%
 }
 %}
 SIGNAL_NAME -> IDENTIFIER {% id %}
-LITERAL -> INT "." SIGNAL_NAME {% ([pos, , signalName]) => new Literal(Symbol.for(signalName), pos) %}
+LITERAL -> INT "." "!":? SIGNAL_NAME {% ([pos, , bang, signalName]) => {
+    if (bang) {
+        return new Literal(Symbol.for(signalName), pos, false);
+    } else {
+        return new Literal(Symbol.for(signalName), pos);
+    }
+} %}
 LITERAL -> SIGNAL_NAME {% ([signalName]) => new Literal(Symbol.for(signalName)) %}
 
 OUTPUT -> SIGNAL_NAME {% ([signalName]) => new RuleOutput(0, Symbol.for(signalName)) %}

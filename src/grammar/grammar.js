@@ -125,7 +125,15 @@ let ParserRules = [
         }
         },
     {"name": "SIGNAL_NAME", "symbols": ["IDENTIFIER"], "postprocess": id},
-    {"name": "LITERAL", "symbols": ["INT", {"literal":"."}, "SIGNAL_NAME"], "postprocess": ([pos, , signalName]) => new Literal(Symbol.for(signalName), pos)},
+    {"name": "LITERAL$ebnf$1", "symbols": [{"literal":"!"}], "postprocess": id},
+    {"name": "LITERAL$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "LITERAL", "symbols": ["INT", {"literal":"."}, "LITERAL$ebnf$1", "SIGNAL_NAME"], "postprocess":  ([pos, , bang, signalName]) => {
+            if (bang) {
+                return new Literal(Symbol.for(signalName), pos, false);
+            } else {
+                return new Literal(Symbol.for(signalName), pos);
+            }
+        } },
     {"name": "LITERAL", "symbols": ["SIGNAL_NAME"], "postprocess": ([signalName]) => new Literal(Symbol.for(signalName))},
     {"name": "OUTPUT", "symbols": ["SIGNAL_NAME"], "postprocess": ([signalName]) => new RuleOutput(0, Symbol.for(signalName))},
     {"name": "OUTPUT", "symbols": ["INT", {"literal":"."}, "SIGNAL_NAME"], "postprocess": ([pos, , signalName]) => new RuleOutput(pos, Symbol.for(signalName))},

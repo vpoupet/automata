@@ -8,10 +8,10 @@ Init_g: 0/0.Gen_g 0/0.Diag_g Border_g
 Border_g: Border_g
 Gen_g: 1.Tick_g 1.Slope_g 0.Wall 0.Even_g 1.Odd_g
 
-(!BORDER_g !1.BORDER_g):
+(!BORDER_g 1.!BORDER_g):
     Even_g: Even_g
     Odd_g: Odd_g
-    !2.BORDER_g:
+    2.!BORDER_g:
         Even_g: 1.Odd_g
         Odd_g: 1.Even_g
 
@@ -40,11 +40,11 @@ OddSegStart_g: 1.OddSeg_g
     1.OddSeg_d:
         Gen_d Diag_d Gen_g Diag_g
         1.Odd_d: OddSegStart_d OddSegStart_g
-    !1.OddSeg_d:
+    1.!OddSeg_d:
         Gen_d Diag_d 1.Gen_g 1.Diag_g
         1.Even_d: OddSegStart_d 1.OddSegStart_g
 
-(-1.Slope_g -1.Tick_g !-1.Diag_g 1.Diag_d):
+(-1.Slope_g -1.Tick_g -1.!Diag_g 1.Diag_d):
     Gen_d Diag_d Gen_g Diag_g
     1.Odd_d: OddSegStart_d OddSegStart_g
 
