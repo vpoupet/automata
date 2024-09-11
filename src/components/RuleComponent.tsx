@@ -91,7 +91,7 @@ export default function RuleComponent(props: RuleComponentProps) {
                         <span className="font-bold text-gray-400">
                             {rule.condition.toString()}
                         </span>
-                        &nbsp;→&nbsp;
+                        &nbsp;:&nbsp;
                         <span className="font-bold text-gray-800">
                             {rule.outputs.map((o) => o.toString()).join(" ")}
                         </span>
