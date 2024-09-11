@@ -38,7 +38,6 @@ OddSegStart_g: 1.OddSeg_g
 # Collisions entre une diagonale et une pente
 (Slope_g 1.Diag_d):
     1.OddSeg_d:
-        # toto
         Gen_d Diag_d Gen_g Diag_g
         1.Odd_d: OddSegStart_d OddSegStart_g
     !1.OddSeg_d:
@@ -52,4 +51,4 @@ OddSegStart_g: 1.OddSeg_g
 (Border_g 1.FIRE_CONDITION): Fire
 @end
 
-([-1.FIRE_CONDITION] [0.FIRE_CONDITION] [1.FIRE_CONDITION]): Fire
+(-1.FIRE_CONDITION 0.FIRE_CONDITION 1.FIRE_CONDITION): Fire
