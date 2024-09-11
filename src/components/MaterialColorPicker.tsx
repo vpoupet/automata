@@ -10,7 +10,7 @@ export default function MaterialColorPicker(props: MaterialColorPickerProps) {
     const { chooseColor, closeColorPicker } = props;
 
     return (
-        <div className="absolute right-full p-1 bg-white border rounded-sm shadow-sm mr-2">
+        <div className="absolute left-full p-1 bg-white border rounded-sm shadow-sm mr-2">
             <div className="flex flex-row">
                 {Object.entries(materialColors).map(
                     ([colorName, colorShades]) => (
