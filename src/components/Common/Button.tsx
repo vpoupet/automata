@@ -15,33 +15,34 @@ export default function Button(props: ButtonProps) {
         disabled = false,
         onClick,
         type = "button",
-        className,
+        className = "",
         children,
     } = props;
-    let className_ = className || "";
+    
+    let buttonClassName;
     switch (variant) {
         case "primary":
             if (disabled) {
-                className_ +=
+                buttonClassName =
                     " bg-blue-500 text-white font-bold py-2 px-4 rounded opacity-50 cursor-not-allowed";
             } else {
-                className_ +=
+                buttonClassName =
                     "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow";
             }
             break;
         case "secondary":
-            className_ +=
+            buttonClassName =
                 "bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow";
             break;
         case "pill":
-            className_ +=
+            buttonClassName =
                 "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full shadow";
             break;
     }
     return (
         <button
             type={type}
-            className={className_}
+            className={buttonClassName + " " + className}
             onClick={onClick}
             disabled={disabled}
         >

@@ -1,8 +1,9 @@
 import { MdChangeCircle, MdDelete } from "react-icons/md";
 import Cell, { InputCell } from "../classes/Cell";
 import { Signal } from "../types";
-import Button from "./Button";
+import Button from "./Common/Button";
 import GridComponent from "./GridComponent";
+import Frame from "./Common/Frame";
 
 interface RuleGridComponentProps {
     inputCells: InputCell[];
@@ -15,7 +16,7 @@ interface RuleGridComponentProps {
 export default function RuleGridComponent(props: RuleGridComponentProps) {
     const { inputCells, outputCells, colorMap, onDelete, onUpdate } = props;
     return (
-        <div className="m-2 shadow-md p-2 flex flex-col items-center gap-2 bg-gray-100">
+        <Frame variant="gray" className="m-2 flex flex-col items-center gap-2">
             <GridComponent
                 inputCells={inputCells}
                 outputCells={outputCells}
@@ -29,6 +30,6 @@ export default function RuleGridComponent(props: RuleGridComponentProps) {
                     <MdChangeCircle />
                 </Button>
             </div>
-        </div>
+        </Frame>
     );
 }

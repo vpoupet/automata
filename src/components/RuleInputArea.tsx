@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import Button from "./Button";
+import Button from "./Common/Button";
 import Automaton from "../classes/Automaton";
 
 interface RuleInputAreaProps {
@@ -11,18 +11,6 @@ export default function RuleInputArea(props: RuleInputAreaProps) {
     const { automaton, setAutomaton } = props;
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-    function printRules() {
-        let stringRule = "";
-        for (const [signal, subSignals] of automaton.multiSignals.entries()) {
-            stringRule += `${signal.description} = ${Array.from(subSignals).map(s => s.description).join(" ")}\n`;
-        }
-        for (const rule of automaton.rules) {
-            stringRule += rule.toString();
-            stringRule += "\n";
-        }
-        console.log(stringRule);
-    }
-
     function addRules() {
         if (textAreaRef.current) {
             const rulesText = textAreaRef.current.value;
@@ -30,8 +18,10 @@ export default function RuleInputArea(props: RuleInputAreaProps) {
         }
     }
 
-    function clearRules() {
-        setAutomaton(new Automaton());
+    function clearTextArea() {
+        if (textAreaRef.current) {
+            textAreaRef.current.value = "";
+        }
     }
 
     return (
@@ -42,16 +32,13 @@ export default function RuleInputArea(props: RuleInputAreaProps) {
                 rows={12}
                 cols={60}
                 ref={textAreaRef}
-                placeholder="Mettez votre règle ici"
+                placeholder="Enter rule(s) here"
             />
             <div className="flex gap-2">
-                <Button onClick={printRules}>
-                    Sortir règles en texte
-                </Button>
+                <Button variant="secondary" onClick={clearTextArea}>Clear</Button>
                 <Button onClick={addRules}>
-                    Ajouter règle depuis texte
+                    Add rules
                 </Button>
-                <Button onClick={clearRules}>Effacer les règles</Button>
             </div>
         </div>
     );

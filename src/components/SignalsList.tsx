@@ -1,9 +1,11 @@
 import React, { useState } from "react";
+import { FaCircleDown, FaCircleUp } from "react-icons/fa6";
 import { MdCancel, MdCheckCircle, MdDelete, MdEdit } from "react-icons/md";
 import Automaton from "../classes/Automaton";
 import type { Signal } from "../types";
-import Button from "./Button";
-import Heading from "./Heading";
+import Button from "./Common/Button";
+import Frame from "./Common/Frame";
+import Heading from "./Common/Heading";
 import MaterialColorPicker from "./MaterialColorPicker";
 import SignalName from "./SignalName";
 
@@ -34,6 +36,7 @@ export default function SignalsList({
     setColorPickingSignal,
     setSignalColor,
 }: SignalsListProps): JSX.Element {
+    const [isOpen, setIsOpen] = useState(false);
     const [newSignalValue, setNewSignalValue] = useState("");
     const signalsList = automaton.getSignalsList(extraSignalsSet);
 
@@ -111,52 +114,60 @@ export default function SignalsList({
     }
 
     return (
-        <div>
-            <Heading level={2}>Liste des signaux</Heading>
-            <div className="flex flex-col gap-1">
-                <Button onClick={toggleAllSignals} variant="secondary">
-                    Toggle
-                </Button>
-                {signalsList.map((signal) => (
-                    <SignalsListItem
-                        key={signal.description}
-                        signal={signal}
-                        colorMap={colorMap}
-                        isVisible={!hiddenSignalsSet.has(signal)}
-                        setIsVisible={(value) => setIsVisible(signal, value)}
-                        replaceSignal={(value) =>
-                            replaceSignal(signal, Symbol.for(value))
-                        }
-                        canDeleteSignal={!automaton.signals.has(signal)}
-                        deleteSignal={() => deleteExtraSignal(signal)}
-                        isSelectingColor={signal === colorPickingSignal}
-                        setIsSelectingColor={(value) => {
-                            if (value) {
-                                setColorPickingSignal(signal);
-                            } else {
-                                setColorPickingSignal(undefined);
+        <Frame className="w-96 h-fit">
+            <span onClick={() => setIsOpen(!isOpen)}>
+                <Heading level={2} className="flex flex-row justify-between items-center">
+                    Signals list {isOpen ? <FaCircleUp /> : <FaCircleDown />}
+                </Heading>
+            </span>
+            {isOpen && (
+                <div className="flex flex-col gap-1">
+                    <Button onClick={toggleAllSignals} variant="secondary">
+                        Toggle
+                    </Button>
+                    {signalsList.map((signal) => (
+                        <SignalsListItem
+                            key={signal.description}
+                            signal={signal}
+                            colorMap={colorMap}
+                            isVisible={!hiddenSignalsSet.has(signal)}
+                            setIsVisible={(value) =>
+                                setIsVisible(signal, value)
                             }
-                        }}
-                        setColor={(color) => setSignalColor(signal, color)}
-                    />
-                ))}
-                <span className="flex flex-row">
-                    <input
-                        type="text"
-                        className="w-full border border-gray-400 p-2"
-                        value={newSignalValue}
-                        onChange={(e) => setNewSignalValue(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                                addExtraSignal();
+                            replaceSignal={(value) =>
+                                replaceSignal(signal, Symbol.for(value))
                             }
-                        }}
-                        placeholder="Ajouter un nouveau signal"
-                    />
-                    <Button onClick={addExtraSignal}>Ajouter</Button>
-                </span>
-            </div>
-        </div>
+                            canDeleteSignal={!automaton.signals.has(signal)}
+                            deleteSignal={() => deleteExtraSignal(signal)}
+                            isSelectingColor={signal === colorPickingSignal}
+                            setIsSelectingColor={(value) => {
+                                if (value) {
+                                    setColorPickingSignal(signal);
+                                } else {
+                                    setColorPickingSignal(undefined);
+                                }
+                            }}
+                            setColor={(color) => setSignalColor(signal, color)}
+                        />
+                    ))}
+                    <span className="flex flex-row gap-1">
+                        <input
+                            type="text"
+                            className="w-full border border-gray-400 p-2"
+                            value={newSignalValue}
+                            onChange={(e) => setNewSignalValue(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    addExtraSignal();
+                                }
+                            }}
+                            placeholder="Add new signal"
+                        />
+                        <Button onClick={addExtraSignal}>Add</Button>
+                    </span>
+                </div>
+            )}
+        </Frame>
     );
 }
 
@@ -222,7 +233,11 @@ function SignalsListItem(props: SignalsListItemProps) {
                         onChange={(e) => setEditValue(e.target.value)}
                     />
                 ) : (
-                    <SignalName signal={signal} colorMap={colorMap} onClickColor={() => setIsSelectingColor(true)} />
+                    <SignalName
+                        signal={signal}
+                        colorMap={colorMap}
+                        onClickColor={() => setIsSelectingColor(true)}
+                    />
                 )}
             </span>
             <span className="flex gap-2">

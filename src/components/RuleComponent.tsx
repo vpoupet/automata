@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { MdDelete, MdExpandCircleDown, MdExpandLess } from "react-icons/md";
+import { FaCircleDown, FaCircleUp } from "react-icons/fa6";
+import { MdDelete } from "react-icons/md";
 import Cell, { InputCell } from "../classes/Cell.ts";
 import { simplifyDNF } from "../classes/Clause.ts";
 import Rule, { ConjunctionRule } from "../classes/Rule";
 import { SettingsInterface, Signal } from "../types";
-import Button from "./Button.tsx";
+import Button from "./Common/Button.tsx";
+import Frame from "./Common/Frame.tsx";
 import RuleGridComponent from "./RuleGridComponent.tsx";
 
 interface RuleComponentProps {
@@ -26,19 +28,19 @@ export default function RuleComponent(props: RuleComponentProps) {
     );
 
     return (
-        <div className="bg-white shadow-md p-2">
+        <Frame>
             <div
                 className="flex flex-row cursor-pointer justify-between"
                 onClick={() => setIsOpen(!isOpen)}
             >
                 <span className="flex flex-row">
                     {isOpen ? (
-                        <span className="p-1">
-                            <MdExpandLess />
+                        <span className="p-1 mr-2">
+                            <FaCircleUp />
                         </span>
                     ) : (
-                        <span className="p-1">
-                            <MdExpandCircleDown />
+                        <span className="p-1 mr-2">
+                            <FaCircleDown />
                         </span>
                     )}
                     <span className="font-mono">
@@ -122,6 +124,6 @@ export default function RuleComponent(props: RuleComponentProps) {
                     })}
                 </div>
             )}
-        </div>
+        </Frame>
     );
 }

@@ -1,26 +1,27 @@
 import { useEffect, useState } from "react";
+import { MdSettings } from "react-icons/md";
+import { toast, ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 import Automaton from "./classes/Automaton.ts";
 import Configuration from "./classes/Configuration.ts";
 import RuleGrid from "./classes/RuleGrid.ts";
-import Button from "./components/Button.tsx";
+import Heading from "./components/Common/Heading.tsx";
 import Diagram from "./components/Diagram.tsx";
 import EditGrid from "./components/EditGrid.tsx";
-import Heading from "./components/Heading.tsx";
 import RuleInputArea from "./components/RuleInputArea.tsx";
 import RulesList from "./components/RulesList.tsx";
+import SettingsComponent from "./components/SettingsComponent.tsx";
 import SignalsList from "./components/SignalsList.tsx";
 import { randomColor } from "./style/materialColors.ts";
 import "./style/style.scss";
-import { Coordinates, Signal } from "./types.ts";
-import SettingsComponent from "./components/SettingsComponent.tsx";
-import { SettingsInterface } from "./types.ts";
+import { Coordinates, SettingsInterface, Signal } from "./types.ts";
 
 const defaultSettings: SettingsInterface = {
     gridRadius: 2,
     gridNbFutureSteps: 3,
     nbCells: 40,
     nbSteps: 60,
-    timeGoesUp: true
+    timeGoesUp: true,
 };
 
 export default function App() {
@@ -28,6 +29,7 @@ export default function App() {
     const [colorPickingSignal, setColorPickingSignal] = useState<
         Signal | undefined
     >(undefined);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [colorMap, setColorMap] = useState(new Map<Signal, string>());
     const [grid, setGrid] = useState<RuleGrid>(
         RuleGrid.withSize(
@@ -49,7 +51,8 @@ export default function App() {
         new Automaton(),
     ]);
     const [automatonIndex, setAutomatonIndex] = useState(0);
-
+    const [initialConfiguration, setInialConfiguration] = useState<Configuration>(Configuration.withSize(settings.nbCells));
+    
     // Update edit grid when settings change
     useEffect(() => {
         const prevRadius = grid.getRadius();
@@ -112,6 +115,11 @@ export default function App() {
             }
         }
         setActiveOutputCells(newActiveOutputCells);
+
+        // Set initial configuration
+        const initialConfiguration = Configuration.withSize(settings.nbCells);
+        initialConfiguration.cells[0].addSignal(Symbol.for("Init"));
+        setInialConfiguration(initialConfiguration);
     }, [settings.gridRadius, settings.gridNbFutureSteps]);
 
     function changeIndexAutomaton(deltaIndex: number) {
@@ -162,16 +170,32 @@ export default function App() {
         setColorMap(newColorMap);
     }
 
-    // Set initial configuration
-    const initialConfiguration = Configuration.withSize(settings.nbCells);
-    initialConfiguration.cells[0].addSignal(Symbol.for("Init"));
+    function exportRules() {
+        const rules = automaton.rules.map((rule) => rule.toString()).join("\n");
+        navigator.clipboard.writeText(rules);
+        toast.success("Rules copied to clipboard");
+    }
 
     return (
-        <div className="flex flex-col p-2 bg-gradient-to-b from-slate-50 to-slate-100 text-gray-700">
-            <Heading level={1}>
-                Outil de création d'automates cellulaires
-            </Heading>
-            <SettingsComponent settings={settings} setSettings={setSettings} />
+        <div className="flex flex-col p-2 bg-gradient-to-b from-slate-50 to-slate-100 text-gray-700 w-screen min-h-screen">
+            <ToastContainer />
+            <div
+                className="absolute top-4 right-4"
+                onClick={() => {
+                    setIsSettingsOpen(!isSettingsOpen);
+                }}
+            >
+                <span className="text-4xl">
+                    <MdSettings />
+                </span>
+            </div>
+            {isSettingsOpen && (
+                <SettingsComponent
+                    settings={settings}
+                    setSettings={setSettings}
+                />
+            )}
+            <Heading level={1}>Signal-based cellular automata</Heading>
             <div className="flex justify-between">
                 <div className="flex">
                     <EditGrid
@@ -187,22 +211,6 @@ export default function App() {
                         setActiveOutputCells={setActiveOutputCells}
                         colorMap={colorMap}
                     />
-                    <div>
-                        <Button
-                            onClick={() => changeIndexAutomaton(-1)}
-                            disabled={automatonIndex === 0}
-                        >
-                            Précédent
-                        </Button>
-                        <Button
-                            onClick={() => changeIndexAutomaton(1)}
-                            disabled={
-                                automatonIndex >= automataHistory.length - 1
-                            }
-                        >
-                            <span>Suivant</span>
-                        </Button>
-                    </div>
                 </div>
                 <div className="flex">
                     <SignalsList
@@ -220,10 +228,13 @@ export default function App() {
                     />
                 </div>
             </div>
-            <Heading level={2}>Règles</Heading>
             <RulesList
                 automaton={automaton}
                 setAutomaton={setAutomaton}
+                automatonIndex={automatonIndex}
+                changeIndexAutomaton={changeIndexAutomaton}
+                automataHistoryLength={automataHistory.length}
+                exportRules={exportRules}
                 settings={settings}
                 colorMap={colorMap}
             />
@@ -238,7 +249,7 @@ export default function App() {
             <div className="self-center">
                 <Diagram
                     automaton={automataHistory[automatonIndex]}
-                    initialConfiguration={initialConfiguration}
+                    initialConfiguration={initialConfiguration!}
                     nbSteps={settings.nbSteps}
                     gridRadius={settings.gridRadius}
                     gridNbFutureSteps={settings.gridNbFutureSteps}

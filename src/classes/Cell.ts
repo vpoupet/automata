@@ -69,6 +69,11 @@ export class InputCell extends Cell {
         return this.negatedSignals.delete(signal);
     }
 
+    removeAllSignals(): void {
+        super.removeAllSignals();
+        this.negatedSignals.clear();
+    }
+    
     isInput(): boolean {
         return true;
     }

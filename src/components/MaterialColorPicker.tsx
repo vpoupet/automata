@@ -1,5 +1,5 @@
 import { materialColors } from "../style/materialColors.ts";
-import Button from "./Button.tsx";
+import Button from "./Common/Button.tsx";
 
 interface MaterialColorPickerProps {
     chooseColor: (color: string) => void;
