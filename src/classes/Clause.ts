@@ -366,11 +366,11 @@ export class Conjunction extends Clause {
     // }
 
     isAlwaysTrue(): boolean {
-        return this.subclauses.every((c) => c.isAlwaysTrue);
+        return this.subclauses.every((c) => c.isAlwaysTrue());
     }
 
     isAlwaysFalse(): boolean {
-        return this.subclauses.some((c) => c.isAlwaysFalse);
+        return this.subclauses.some((c) => c.isAlwaysFalse());
     }
 
     toCNF(): CNFClause {
@@ -497,11 +497,11 @@ export class Disjunction extends Clause {
     // }
 
     isAlwaysTrue(): boolean {
-        return this.subclauses.some((c) => c.isAlwaysTrue);
+        return this.subclauses.some((c) => c.isAlwaysTrue());
     }
 
     isAlwaysFalse(): boolean {
-        return this.subclauses.every((c) => c.isAlwaysFalse);
+        return this.subclauses.every((c) => c.isAlwaysFalse());
     }
 
     toDNF(): DNFClause {
