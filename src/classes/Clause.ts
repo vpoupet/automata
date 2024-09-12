@@ -87,15 +87,20 @@ export default abstract class Clause {
         return false;
     }
 
+    shifted(n: number): Clause {
+        return this.transformLiterals({
+            signal: (signal) => signal,
+            position: (position) => position + n,
+        });
+    }
+
     abstract toCNF(): CNFClause;
 
     abstract toDNF(): DNFClause;
 
     abstract renameSignal(oldSignal: Signal, newSignal: Signal): Clause;
 
-    abstract transformLiterals(
-        transformation: LiteralTransformation,
-    ): Clause;
+    abstract transformLiterals(transformation: LiteralTransformation): Clause;
 
     abstract getComplexity(): number;
 
@@ -194,9 +199,7 @@ export class Literal extends Clause {
         return 1;
     }
 
-    transformLiterals(
-        transformation: LiteralTransformation,
-    ): Clause {
+    transformLiterals(transformation: LiteralTransformation): Clause {
         return new Literal(
             transformation.signal(this.signal),
             transformation.position(this.position),
@@ -293,12 +296,8 @@ export class Negation extends Clause {
         return 1 + this.subclause.getDepth();
     }
 
-    transformLiterals(
-        transformation: LiteralTransformation,
-    ): Clause {
-        return new Negation(
-            this.subclause.transformLiterals(transformation)
-        );
+    transformLiterals(transformation: LiteralTransformation): Clause {
+        return new Negation(this.subclause.transformLiterals(transformation));
     }
 
     renameSignal(oldSignal: Signal, newSignal: Signal): Clause {
@@ -417,9 +416,7 @@ export class Conjunction extends Clause {
         );
     }
 
-    transformLiterals(
-        transformation: LiteralTransformation,
-    ): Clause {
+    transformLiterals(transformation: LiteralTransformation): Clause {
         return new Conjunction(
             this.subclauses.map((subclause) =>
                 subclause.transformLiterals(transformation)
@@ -547,9 +544,7 @@ export class Disjunction extends Clause {
         );
     }
 
-    transformLiterals(
-        transformation: LiteralTransformation,
-    ): Clause {
+    transformLiterals(transformation: LiteralTransformation): Clause {
         return new Disjunction(
             this.subclauses.map((subclause) =>
                 subclause.transformLiterals(transformation)
