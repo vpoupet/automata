@@ -1,5 +1,4 @@
-import type { Neighborhood, Signal } from "../types";
-import Cell from "./Cell";
+import type { Signal } from "../types";
 import Clause, {
     Conjunction,
     ConjunctionOfLiterals,
