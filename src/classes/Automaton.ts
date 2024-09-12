@@ -303,7 +303,7 @@ export default class Automaton {
                 this.minNeighbor,
                 this.maxNeighbor
             );
-            for (const rule of this.rules) {
+            for (const rule of rules) {
                 if (rule.condition.eval(neighborhood, evalContext)) {
                     rule.outputs.forEach((output) => {
                         const targetCell = c + output.position;
