@@ -137,7 +137,7 @@ let ParserRules = [
     {"name": "LITERAL", "symbols": ["SIGNAL_NAME"], "postprocess": ([signalName]) => new Literal(Symbol.for(signalName))},
     {"name": "OUTPUT", "symbols": ["SIGNAL_NAME"], "postprocess": ([signalName]) => new RuleOutput(0, Symbol.for(signalName))},
     {"name": "OUTPUT", "symbols": ["INT", {"literal":"."}, "SIGNAL_NAME"], "postprocess": ([pos, , signalName]) => new RuleOutput(pos, Symbol.for(signalName))},
-    {"name": "OUTPUT", "symbols": [{"literal":"/"}, "INT", {"literal":"."}, "SIGNAL_NAME"], "postprocess": ([ , step, , signalName]) => new RuleOutput(0, Symbol.for(signalName, step))},
+    {"name": "OUTPUT", "symbols": [{"literal":"/"}, "INT", {"literal":"."}, "SIGNAL_NAME"], "postprocess": ([ , step, , signalName]) => new RuleOutput(0, Symbol.for(signalName), step)},
     {"name": "OUTPUT", "symbols": ["INT", {"literal":"/"}, "INT", {"literal":"."}, "SIGNAL_NAME"], "postprocess": ([pos, , step, , signalName]) => new RuleOutput(pos, Symbol.for(signalName), step)},
     {"name": "OUTPUTS_LIST", "symbols": ["OUTPUT"]},
     {"name": "OUTPUTS_LIST", "symbols": ["OUTPUTS_LIST", "OUTPUT"], "postprocess": ([list, o]) => [...list, o]},

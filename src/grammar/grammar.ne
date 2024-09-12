@@ -113,7 +113,7 @@ LITERAL -> SIGNAL_NAME {% ([signalName]) => new Literal(Symbol.for(signalName)) 
 
 OUTPUT -> SIGNAL_NAME {% ([signalName]) => new RuleOutput(0, Symbol.for(signalName)) %}
 OUTPUT -> INT "." SIGNAL_NAME {% ([pos, , signalName]) => new RuleOutput(pos, Symbol.for(signalName)) %}
-OUTPUT -> "/" INT "." SIGNAL_NAME {% ([ , step, , signalName]) => new RuleOutput(0, Symbol.for(signalName, step)) %}
+OUTPUT -> "/" INT "." SIGNAL_NAME {% ([ , step, , signalName]) => new RuleOutput(0, Symbol.for(signalName), step) %}
 OUTPUT -> INT "/" INT "." SIGNAL_NAME {% ([pos, , step, , signalName]) => new RuleOutput(pos, Symbol.for(signalName), step) %}
 OUTPUTS_LIST -> OUTPUT | OUTPUTS_LIST OUTPUT {% ([list, o]) => [...list, o] %}
 
