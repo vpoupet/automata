@@ -2,7 +2,6 @@ import Automaton from "../classes/Automaton";
 import Configuration from "../classes/Configuration";
 import "../style/Cell.scss";
 
-import { InputCell } from "../classes/Cell.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
 import type { SettingsInterface, Signal } from "../types.ts";
 import CellComponent from "./CellComponent.tsx";
@@ -31,26 +30,20 @@ export default function Diagram({
     }
 
     function onClickCell(row: number, col: number): void {
-        if (!setGrid || !settings.gridRadius || !settings.gridNbFutureSteps) {
+        if (!setGrid) {
             return;
         }
 
         const diagramRow = diagram[row].cells;
-        const inputs = [];
-        for (let i = col - settings.gridRadius; i <= col + settings.gridRadius; i++) {
-            const cell = diagramRow[i];
-            inputs.push(cell ? new InputCell(cell.signals) : new InputCell());
+        const gridWidth = 2 * settings.gridRadius + 1;
+        const grid = RuleGrid.withSize(gridWidth, settings.gridNbFutureSteps);
+        for (let i = 0; i < gridWidth; i++) {
+            const cell = diagramRow[col - settings.gridRadius + i];
+            if (cell) {
+                grid.inputCells[i].signals = cell.signals;
+            }
         }
-        const gridDiagram = automaton.makeDiagram(
-            new Configuration(inputs),
-            settings.gridNbFutureSteps
-        );
-        setGrid(
-            new RuleGrid(
-                inputs,
-                gridDiagram.slice(1).map((c) => c.cells)
-            )
-        );
+        setGrid(grid);
     }
 
     return (
