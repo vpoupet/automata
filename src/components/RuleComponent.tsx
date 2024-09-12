@@ -116,7 +116,7 @@ export default function RuleComponent(props: RuleComponentProps) {
                             // ignore literals that are outside the grid
                             // TODO: find better solution ?
                             if (
-                                literal.position < -origin ||
+                                literal.position < -settings.gridRadius ||
                                 literal.position > settings.gridRadius
                             ) {
                                 continue;
