@@ -3,9 +3,12 @@ import Cell from "./Cell";
 import Clause, {
     Conjunction,
     ConjunctionOfLiterals,
+    Disjunction,
     EvalContext,
-    Negation
+    Negation,
 } from "./Clause";
+import Configuration from "./Configuration";
+import RuleGrid from "./RuleGrid";
 
 export class RuleOutput {
     position: number;
@@ -93,57 +96,75 @@ export default class Rule {
         );
     }
 
-    fitTarget(
-        target: ConjunctionRule,
-        context: EvalContext
-    ): { rules: Rule[]; matchedOutputs: Set<RuleOutput> } {
-        const matchedOutputs = new Set<RuleOutput>();
-        // create the neighborhood to test if the rule matches the targetRule condition
-        const neighborhood: Neighborhood = {};
-        for (const literal of target.condition.subclauses) {
-            if (neighborhood[literal.position] === undefined) {
-                neighborhood[literal.position] = new Cell();
-            }
-            neighborhood[literal.position].addSignal(literal.signal);
-        }
+    fitTarget(targetGrid: RuleGrid, context: EvalContext): Rule[] {
+        const targetRule = targetGrid.makeRule();
+        const minPosition = targetRule.condition.getMinPosition();
+        const maxPosition = targetRule.condition.getMaxPosition();
+        const configuration = new Configuration(targetGrid.inputCells);
+        const gridWidth = targetGrid.inputCells.length;
 
-        if (!this.condition.eval(neighborhood, context)) {
-            // the rule does not match the targetRule condition, no change required
-            return { rules: [this], matchedOutputs };
-        }
+        const validOutputs = new Set(this.outputs);
+        const invalidOutputs = new Map<RuleOutput, number[]>();
 
-        const validOutputs: RuleOutput[] = [];
-        const invalidOutputs: RuleOutput[] = [];
-        for (const output of this.outputs) {
-            let isValid = false;
-            for (const targetOutput of target.outputs) {
-                if (output.equals(targetOutput)) {
-                    isValid = true;
-                    matchedOutputs.add(targetOutput);
-                    break;
+        for (let c = -minPosition; c < gridWidth - minPosition; c++) {
+            const neighborhood = configuration.getNeighborhood(
+                c,
+                minPosition,
+                maxPosition
+            );
+            if (this.condition.eval(neighborhood, context)) {
+                for (const output of this.outputs) {
+                    if (
+                        0 <= c + output.position &&
+                        c + output.position < gridWidth &&
+                        0 < output.futureStep &&
+                        output.futureStep <= targetGrid.outputCells.length
+                    ) {
+                        if (
+                            !targetGrid.outputCells[output.futureStep - 1][
+                                c + output.position
+                            ].has(output.signal)
+                        ) {
+                            validOutputs.delete(output);
+                            if (!invalidOutputs.has(output)) {
+                                invalidOutputs.set(output, []);
+                            }
+                            invalidOutputs.get(output)!.push(c);
+                        }
+                    }
                 }
             }
-            if (isValid) {
-                validOutputs.push(output);
-            } else {
-                invalidOutputs.push(output);
+        }
+        if (validOutputs.size === this.outputs.length) {
+            // no need to change the rule
+            return [this];
+        } else {
+            const resultingRules = [];
+            if (validOutputs.size > 0) {
+                resultingRules.push(
+                    new Rule(this.condition, Array.from(validOutputs))
+                );
             }
+            const gridInputsConjunction = targetGrid.makeRuleCondition(false);
+            for (const [output, positions] of invalidOutputs) {
+                resultingRules.push(
+                    new Rule(
+                        new Conjunction([
+                            this.condition,
+                            new Negation(
+                                new Disjunction(
+                                    positions.map((p) =>
+                                        gridInputsConjunction.shifted(-p)
+                                    )
+                                )
+                            ),
+                        ]).simplified(),
+                        [output]
+                    )
+                );
+            }
+            return resultingRules;
         }
-
-        const newRules: Rule[] = [];
-        if (validOutputs.length > 0) {
-            // keep the rule for outputs that remain valid
-            newRules.push(new Rule(this.condition, validOutputs));
-        }
-        if (invalidOutputs.length > 0) {
-            // create new rules for the invalid outputs
-            const condition = new Conjunction([
-                this.condition,
-                new Negation(target.condition),
-            ]).simplified();
-            newRules.push(new Rule(condition, invalidOutputs));
-        }
-        return { rules: newRules, matchedOutputs };
     }
 }
 

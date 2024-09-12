@@ -59,6 +59,10 @@ export default abstract class Clause {
 
     abstract getLiterals(): Literal[];
 
+    abstract getMaxPosition(): number;
+
+    abstract getMinPosition(): number;
+
     simplified(): Clause {
         const normalized = this.normalized();
         if (normalized.getComplexity() < this.getComplexity()) {
@@ -152,6 +156,14 @@ export class Literal extends Clause {
         return [this];
     }
 
+    getMaxPosition(): number {
+        return this.position;
+    }
+
+    getMinPosition(): number {
+        return this.position;
+    }
+
     copy(): Literal {
         return new Literal(this.signal, this.position, this.sign);
     }
@@ -239,6 +251,14 @@ export class Negation extends Clause {
                 (literal) =>
                     new Literal(literal.signal, literal.position, !literal.sign)
             );
+    }
+
+    getMaxPosition(): number {
+        return this.subclause.getMaxPosition();
+    }
+
+    getMinPosition(): number {
+        return this.subclause.getMinPosition();
     }
 
     // simplified(): Clause {
@@ -338,6 +358,20 @@ export class Conjunction extends Clause {
 
     getLiterals(): Literal[] {
         return this.subclauses.flatMap((subclause) => subclause.getLiterals());
+    }
+
+    getMaxPosition(): number {
+        return this.subclauses.reduce(
+            (acc, subclause) => Math.max(acc, subclause.getMaxPosition()),
+            0
+        );
+    }
+
+    getMinPosition(): number {
+        return this.subclauses.reduce(
+            (acc, subclause) => Math.min(acc, subclause.getMinPosition()),
+            0
+        );
     }
 
     // simplified(): Clause {
@@ -466,6 +500,20 @@ export class Disjunction extends Clause {
 
     getLiterals(): Literal[] {
         return this.subclauses.flatMap((subclause) => subclause.getLiterals());
+    }
+
+    getMaxPosition(): number {
+        return this.subclauses.reduce(
+            (acc, subclause) => Math.max(acc, subclause.getMaxPosition()),
+            0
+        );
+    }
+
+    getMinPosition(): number {
+        return this.subclauses.reduce(
+            (acc, subclause) => Math.min(acc, subclause.getMinPosition()),
+            0
+        );
     }
 
     // simplified(): Clause {

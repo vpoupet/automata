@@ -105,7 +105,7 @@ export default function EditGrid(props: EditGridProps): JSX.Element {
         }
     }
 
-    function applyRules() {
+    function applyRules(): RuleGrid {
         const configuration = new Configuration(
             grid.inputCells.map((c) => new Cell(c.signals))
         );
@@ -113,7 +113,10 @@ export default function EditGrid(props: EditGridProps): JSX.Element {
         while (nextConfigurations.length < settings.gridNbFutureSteps) {
             nextConfigurations.push(
                 new Configuration(
-                    Array.from({ length: 2 * settings.gridRadius + 1 }, () => new Cell())
+                    Array.from(
+                        { length: 2 * settings.gridRadius + 1 },
+                        () => new Cell()
+                    )
                 )
             );
         }
@@ -124,32 +127,33 @@ export default function EditGrid(props: EditGridProps): JSX.Element {
                 .slice(0, settings.gridNbFutureSteps)
                 .map((config) => config.cells)
         );
-        setGrid(newGrid);
+        return newGrid;
     }
 
     function fitRules() {
         const context = automaton.getEvalContext();
-        const ruleFromGrid = grid.makeRule();
         const newRules: Rule[] = [];
-        let totalMatchedOutputs: Set<RuleOutput> = new Set();
         for (const rule of automaton.rules) {
-            const { rules, matchedOutputs } = rule.fitTarget(
-                ruleFromGrid,
-                context
-            );
-            newRules.push(...rules);
-            totalMatchedOutputs = totalMatchedOutputs.union(matchedOutputs);
+            newRules.push(...rule.fitTarget(grid, context));
         }
 
-        const remainingOutputs = new Set(ruleFromGrid.outputs).difference(
-            totalMatchedOutputs
-        );
-        if (remainingOutputs.size > 0) {
-            newRules.push(
-                new Rule(ruleFromGrid.condition, Array.from(remainingOutputs))
-            );
+        const currentGrid = applyRules();
+        const gridRadius = grid.getRadius();
+        const addedOutputs: RuleOutput[] = [];
+        for (let t = 0; t < grid.outputCells.length; t++) {
+            for (let c = 0; c < grid.outputCells[t].length; c++) {
+                for (const s of grid.outputCells[t][c].signals) {
+                    if (!currentGrid.outputCells[t][c].signals.has(s)) {
+                        addedOutputs.push(
+                            new RuleOutput(c - gridRadius, s, t + 1)
+                        );
+                    }
+                }
+            }
         }
-
+        if (addedOutputs.length > 0) {
+            newRules.push(new Rule(grid.makeRuleCondition(true), addedOutputs));
+        }
         setAutomaton(new Automaton(newRules, automaton.multiSignals));
         clearGrid();
     }
@@ -196,7 +200,9 @@ export default function EditGrid(props: EditGridProps): JSX.Element {
                 <div className="flex flex-col gap-2 items-center">
                     <div className="flex gap-2">
                         <Button onClick={saveGridAsRule}>Add rule</Button>
-                        <Button onClick={applyRules}>Apply rules</Button>
+                        <Button onClick={() => setGrid(applyRules())}>
+                            Apply rules
+                        </Button>
                         <Button onClick={fitRules}>Fit rules</Button>
                     </div>
                     <div className="flex gap-2 items-center">

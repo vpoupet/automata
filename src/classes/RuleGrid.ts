@@ -60,21 +60,25 @@ class RuleGrid {
 
     makeRule(): ConjunctionRule {
         return new Rule(
-            this.makeRuleCondition(),
+            this.makeRuleCondition(true),
             this.makeRuleOutputs()
         ) as ConjunctionRule;
     }
 
-    makeRuleCondition(): ConjunctionOfLiterals {
-        const radius = this.getRadius();
+    makeRuleCondition(centerOrigin: boolean = true): ConjunctionOfLiterals {
+        let shift = 0;
+        if (centerOrigin) {
+            shift = -this.getRadius();
+        }
+
         const literals: Literal[] = [];
-        this.inputCells.forEach((cellule, cellIndex) => {
-            cellule.signals.forEach((signal) => {
-                const literal = new Literal(signal, cellIndex - radius, true);
+        this.inputCells.forEach((cell, cellIndex) => {
+            cell.signals.forEach((signal) => {
+                const literal = new Literal(signal, cellIndex + shift, true);
                 literals.push(literal);
             });
-            cellule.negatedSignals.forEach((signal) => {
-                const literal = new Literal(signal, cellIndex - radius, false);
+            cell.negatedSignals.forEach((signal) => {
+                const literal = new Literal(signal, cellIndex + shift, false);
                 literals.push(literal);
             });
         });
