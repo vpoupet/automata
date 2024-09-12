@@ -110,9 +110,19 @@ export default function EditGrid(props: EditGridProps): JSX.Element {
             grid.inputCells.map((c) => new Cell(c.signals))
         );
         const nextConfigurations = automaton.applyRules(configuration);
+        while (nextConfigurations.length < settings.gridNbFutureSteps) {
+            nextConfigurations.push(
+                new Configuration(
+                    Array.from({ length: 2 * settings.gridRadius + 1 }, () => new Cell())
+                )
+            );
+        }
+
         const newGrid = new RuleGrid(
             grid.inputCells,
-            nextConfigurations.map((config) => config.cells)
+            nextConfigurations
+                .slice(0, settings.gridNbFutureSteps)
+                .map((config) => config.cells)
         );
         setGrid(newGrid);
     }

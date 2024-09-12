@@ -38,13 +38,10 @@ export default function mirror(
     const newRules = rules.map(
         (rule) =>
             new Rule(
-                rule.condition.transformLiterals(
-                    {
-                        signal: switchTags,
-                        position: (p) => -p,
-                    },
-                    context
-                ),
+                rule.condition.transformLiterals({
+                    signal: switchTags,
+                    position: (p) => -p,
+                }),
                 rule.outputs.map(
                     (output) =>
                         new RuleOutput(

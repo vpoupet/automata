@@ -297,7 +297,7 @@ export default class Automaton {
         );
         const evalContext = this.getEvalContext();
 
-        for (let c = 0; c < nbCells; c++) {
+        for (let c = -this.maxNeighbor; c < nbCells - this.minNeighbor; c++) {
             const neighborhood = configuration.getNeighborhood(
                 c,
                 this.minNeighbor,
