@@ -331,15 +331,17 @@ export default class Automaton {
         nbSteps: number
     ): Configuration[] {
         const nbCells = initialConfiguration.getSize();
-        const diagram = [initialConfiguration];
+        const diagram = [
+            initialConfiguration,
+            ...Array.from({ length: nbSteps }, () =>
+                Configuration.withSize(nbCells)
+            ),
+        ];
         const evalContext = this.getEvalContext();
 
-        for (let i = 0; i < nbSteps; i++) {
-            diagram.push(Configuration.withSize(nbCells));
-        }
         for (let t = 0; t < nbSteps; t++) {
             const config = diagram[t];
-            for (let c = 0; c < nbCells; c++) {
+            for (let c = -this.maxNeighbor; c < nbCells - this.minNeighbor; c++) {
                 const neighborhood = config.getNeighborhood(
                     c,
                     this.minNeighbor,
