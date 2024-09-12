@@ -95,7 +95,6 @@ export default abstract class Clause {
 
     abstract transformLiterals(
         transformation: LiteralTransformation,
-        context: EvalContext
     ): Clause;
 
     abstract getComplexity(): number;
@@ -197,7 +196,6 @@ export class Literal extends Clause {
 
     transformLiterals(
         transformation: LiteralTransformation,
-        _context: EvalContext
     ): Clause {
         return new Literal(
             transformation.signal(this.signal),
@@ -297,10 +295,9 @@ export class Negation extends Clause {
 
     transformLiterals(
         transformation: LiteralTransformation,
-        context: EvalContext
     ): Clause {
         return new Negation(
-            this.subclause.transformLiterals(transformation, context)
+            this.subclause.transformLiterals(transformation)
         );
     }
 
@@ -422,11 +419,10 @@ export class Conjunction extends Clause {
 
     transformLiterals(
         transformation: LiteralTransformation,
-        context: EvalContext
     ): Clause {
         return new Conjunction(
             this.subclauses.map((subclause) =>
-                subclause.transformLiterals(transformation, context)
+                subclause.transformLiterals(transformation)
             )
         );
     }
@@ -553,11 +549,10 @@ export class Disjunction extends Clause {
 
     transformLiterals(
         transformation: LiteralTransformation,
-        context: EvalContext
     ): Clause {
         return new Disjunction(
             this.subclauses.map((subclause) =>
-                subclause.transformLiterals(transformation, context)
+                subclause.transformLiterals(transformation)
             )
         );
     }
