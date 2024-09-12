@@ -136,7 +136,7 @@ export default class Rule {
             newRules.push(new Rule(this.condition, validOutputs));
         }
         if (invalidOutputs.length > 0) {
-            // create a new rules for the invalid outputs
+            // create new rules for the invalid outputs
             const condition = new Conjunction([
                 this.condition,
                 new Negation(target.condition),

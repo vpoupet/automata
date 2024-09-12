@@ -41,7 +41,7 @@ export default class Automaton {
             if (rule.condition.isAlwaysFalse()) {
                 continue;
             }
-            
+
             const ruleName = rule.toString();
             if (!this.ruleNames.has(ruleName)) {
                 this.rules.push(rule);
@@ -280,6 +280,47 @@ export default class Automaton {
             }
         }
         return new Automaton(resultingRules, this.multiSignals);
+    }
+
+    applyRules(
+        configuration: Configuration,
+        rules: Rule[] | undefined = undefined
+    ): Configuration[] {
+        if (rules === undefined) {
+            rules = this.rules;
+        }
+
+        const nbCells = configuration.getSize();
+        const nextConfigurations = Array.from(
+            { length: this.maxFutureDepth },
+            () => Configuration.withSize(nbCells)
+        );
+        const evalContext = this.getEvalContext();
+
+        for (let c = 0; c < nbCells; c++) {
+            const neighborhood = configuration.getNeighborhood(
+                c,
+                this.minNeighbor,
+                this.maxNeighbor
+            );
+            for (const rule of this.rules) {
+                if (rule.condition.eval(neighborhood, evalContext)) {
+                    rule.outputs.forEach((output) => {
+                        const targetCell = c + output.position;
+                        if (
+                            output.futureStep - 1 < nextConfigurations.length &&
+                            0 <= targetCell &&
+                            targetCell < nbCells
+                        ) {
+                            nextConfigurations[output.futureStep - 1].cells[
+                                targetCell
+                            ].addSignal(output.signal);
+                        }
+                    });
+                }
+            }
+        }
+        return nextConfigurations;
     }
 
     /**

@@ -1,5 +1,6 @@
 import Automaton from "../classes/Automaton.ts";
 import Cell from "../classes/Cell.ts";
+import Configuration from "../classes/Configuration.ts";
 import Rule, { RuleOutput } from "../classes/Rule.ts";
 import RuleGrid from "../classes/RuleGrid.ts";
 import "../style/Cell.scss";
@@ -60,7 +61,25 @@ export default function EditGrid(props: EditGridProps): JSX.Element {
         setGrid(newGrid);
     }
 
-    function clearCell() {
+    function clearInputs() {
+        const newGrid = RuleGrid.withSize(
+            2 * settings.gridRadius + 1,
+            settings.gridNbFutureSteps
+        );
+        newGrid.outputCells = grid.outputCells;
+        setGrid(newGrid);
+    }
+
+    function clearOutputs() {
+        const newGrid = RuleGrid.withSize(
+            2 * settings.gridRadius + 1,
+            settings.gridNbFutureSteps
+        );
+        newGrid.inputCells = grid.inputCells;
+        setGrid(newGrid);
+    }
+
+    function clearSelected() {
         applyToActiveCells((cell) => {
             cell.removeAllSignals();
         });
@@ -84,6 +103,18 @@ export default function EditGrid(props: EditGridProps): JSX.Element {
         } else {
             alert("Rule has no outputs");
         }
+    }
+
+    function applyRules() {
+        const configuration = new Configuration(
+            grid.inputCells.map((c) => new Cell(c.signals))
+        );
+        const nextConfigurations = automaton.applyRules(configuration);
+        const newGrid = new RuleGrid(
+            grid.inputCells,
+            nextConfigurations.map((config) => config.cells)
+        );
+        setGrid(newGrid);
     }
 
     function fitRules() {
@@ -110,6 +141,7 @@ export default function EditGrid(props: EditGridProps): JSX.Element {
         }
 
         setAutomaton(new Automaton(newRules, automaton.multiSignals));
+        clearGrid();
     }
 
     // Make list of active and negated signals on the active cells
@@ -138,7 +170,7 @@ export default function EditGrid(props: EditGridProps): JSX.Element {
     });
 
     return (
-        <Frame className="flex flex-col items-center gap-2">
+        <Frame className="flex flex-col gap-2">
             <Frame variant="gray" className="flex flex-col gap-4">
                 <GridComponent
                     inputCells={grid.inputCells}
@@ -151,22 +183,35 @@ export default function EditGrid(props: EditGridProps): JSX.Element {
                         setActiveOutputCells,
                     }}
                 />
-                <div className="flex gap-2">
-                    <Button variant="secondary" onClick={clearCell}>
-                        Clear cell
-                    </Button>
-                    <Button variant="secondary" onClick={clearGrid}>
-                        Clear grid
-                    </Button>
-                    <Button onClick={saveGridAsRule}>Add rule</Button>
-                    <Button
-                        onClick={() => {
-                            fitRules();
-                            clearGrid();
-                        }}
-                    >
-                        Fit rules
-                    </Button>
+                <div className="flex flex-col gap-2 items-center">
+                    <div className="flex gap-2">
+                        <Button onClick={saveGridAsRule}>Add rule</Button>
+                        <Button onClick={applyRules}>Apply rules</Button>
+                        <Button onClick={fitRules}>Fit rules</Button>
+                    </div>
+                    <div className="flex gap-2 items-center">
+                        <span className="font-bold">Clear: </span>
+                        <Button variant="secondary" onClick={clearSelected}>
+                            <span className="flex items-center gap-1">
+                                selected
+                            </span>
+                        </Button>
+                        <Button variant="secondary" onClick={clearInputs}>
+                            <span className="flex items-center gap-1">
+                                inputs
+                            </span>
+                        </Button>
+                        <Button variant="secondary" onClick={clearOutputs}>
+                            <span className="flex items-center gap-1">
+                                outputs
+                            </span>
+                        </Button>
+                        <Button variant="secondary" onClick={clearGrid}>
+                            <span className="flex items-center gap-1">
+                                grid
+                            </span>
+                        </Button>
+                    </div>
                 </div>
             </Frame>
             <GridSignalsManager
