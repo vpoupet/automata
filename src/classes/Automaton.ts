@@ -10,7 +10,6 @@ import { transformations } from "./transformations/Transformation.ts";
 export default class Automaton {
     /**
      * List of signals used by the automaton
-     * (automatically updated when parsing rules)
      */
     signals: Set<Signal>;
     /**
@@ -24,35 +23,26 @@ export default class Automaton {
     rules: Rule[];
     /**
      * List of strings representing the rules. Used to avoid duplicate rules.
-     * (automatically updated when parsing rules)
      */
     ruleNames: Set<string>;
     /**
      * Position of the leftmost neighbor used in the rules
-     * (automatically updated when parsing rules)
      */
     minNeighbor: number;
     /**
      * Position of the rightmost neighbor used in the rules
-     * (automatically updated when parsing rules)
      */
     maxNeighbor: number;
     /**
      * Number of steps that are computed ahead of time. This is 1 by default but if some rules affect times further down
      * (e.g. a 0/2 rule will add a signal to the cell two steps ahead) it is necessary to start preparing the
      * configuration at time (t + maxFutureSteps) when applying the rules to the configuration at time t.
-     * (automatically updated when parsing rules)
      */
     maxFutureDepth: number;
 
     constructor(
         rules: Rule[] = [],
-        multiSignals: Map<Signal, Set<Signal>> = new Map(),
-        signals: Set<Signal> = new Set(),
-        minNeighbor: number = Infinity,
-        maxNeighbor: number = -Infinity,
-        maxFutureDepth: number = 1,
-        shouldUpdateParameters: boolean = true // set to false if parameters are already known (e.g. when cloning)
+        multiSignals: Map<Signal, Set<Signal>> = new Map()
     ) {
         this.rules = [];
         this.ruleNames = new Set();
@@ -96,20 +86,12 @@ export default class Automaton {
         }
 
         this.multiSignals = multiSignals;
-        this.signals = signals;
-        this.minNeighbor = minNeighbor;
-        this.maxNeighbor = maxNeighbor;
-        this.maxFutureDepth = maxFutureDepth;
+        this.signals = new Set();
+        this.minNeighbor = 0;
+        this.maxNeighbor = 0;
+        this.maxFutureDepth = 1;
 
-        if (shouldUpdateParameters) {
-            this.updateParameters();
-        }
-    }
-
-    /**
-     * Update the parameters signals, minNeighbor, maxNeighbor and maxFutureDepth by parsing the rules
-     */
-    private updateParameters() {
+        // parse rules to update signals, minNeighbor, maxNeighbor and maxFutureDepth
         for (const rule of this.rules) {
             for (const output of rule.outputs) {
                 this.maxFutureDepth = Math.max(
@@ -138,9 +120,6 @@ export default class Automaton {
                 this.signals.add(subSignal);
             }
         }
-
-        if (this.minNeighbor === Infinity) this.minNeighbor = 0;
-        if (this.maxNeighbor === -Infinity) this.maxNeighbor = 0;
     }
 
     /**
@@ -152,7 +131,7 @@ export default class Automaton {
 
     /**
      * Returns the list of signals used by the automaton in alphabetical order
-     * 
+     *
      * @param extraSignals an optional set of signals to add to the list (for signals that are not used in the rules)
      * @returns an ordered list of signals
      */
@@ -171,7 +150,7 @@ export default class Automaton {
     /**
      * Adds rules to the automaton from a string describing the rules.
      * The string is parsed with the grammar defined in grammar.ne
-     * 
+     *
      * @param inputString a string describing the rules to add to the automaton
      * @returns a new Automaton with the added rules
      */
@@ -291,7 +270,7 @@ export default class Automaton {
 
     /**
      * Tests whether the Automaton already has a rule with the same description as the given rule
-     * 
+     *
      * @param rule the rule to check
      * @returns true if the rule is already in the automaton, false otherwise
      */
@@ -301,7 +280,7 @@ export default class Automaton {
 
     /**
      * Adds a list of rules to the automaton
-     * 
+     *
      * @param rules list of rules to add
      * @returns a new Automaton with the added rules
      */
@@ -314,7 +293,7 @@ export default class Automaton {
 
     /**
      * Deletes a rule from the automaton
-     * 
+     *
      * @param rule the rule to delete
      * @returns a new Automaton without the rule
      */
@@ -327,7 +306,7 @@ export default class Automaton {
 
     /**
      * Replaces a rule with a list of rules
-     * 
+     *
      * @param oldRule the rule to replace
      * @param newRules the list of rules to replace it with
      * @returns a new Automaton with the rule replaced
@@ -354,7 +333,7 @@ export default class Automaton {
      * Returns a list of configurations resulting from applying rules once to the given configuration.
      * The number of configurations returns is equal to the maxFutureDepth of the automaton (so that all possible
      * rule outputs can be represented).
-     * 
+     *
      * @param configuration the configuration to which the rules should be applied
      * @param rules the rules to apply (defaults to the automaton's rules)
      * @returns a list of configurations (one for each successive time step) resulting from applying the rules
@@ -402,7 +381,7 @@ export default class Automaton {
 
     /**
      * Generates a space-time diagram of the automaton starting from the given configuration
-     * 
+     *
      * @param initialConfiguration the initial configuration
      * @param nbSteps the number of steps to compute
      * @returns a list of configurations representing the space-time diagram
