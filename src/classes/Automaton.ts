@@ -36,18 +36,45 @@ export default class Automaton {
     ) {
         this.rules = [];
         this.ruleNames = new Set();
-        // remove duplicate rules
         for (const rule of rules) {
             if (rule.condition.isAlwaysFalse()) {
+                // skip rules that never apply
                 continue;
             }
 
+            const conditionName = rule.condition.toString();
             const ruleName = rule.toString();
-            if (!this.ruleNames.has(ruleName)) {
+            if (this.ruleNames.has(ruleName)) {
+                // skip duplicate rules
+                continue;
+            }
+
+            // check if the rule should be merged with an existing rule having same condition
+            let didMerge = false;
+            for (const [i, otherRule] of this.rules.entries()) {
+                if (otherRule.condition.toString() === conditionName) {
+                    // add outputs to existing rule
+                    const newOutputs = [...otherRule.outputs];
+                    for (const output of rule.outputs) {
+                        if (!newOutputs.some((o) => o.equals(output))) {
+                            newOutputs.push(output);
+                        }
+                    }
+                    const mergedRule = new Rule(rule.condition, newOutputs);
+                    this.rules.splice(i, 1, mergedRule);
+                    this.ruleNames.delete(otherRule.toString());
+                    this.ruleNames.add(mergedRule.toString());
+                    didMerge = true;
+                    break;
+                }
+            }
+            // if the rule was not merged, add it to the list
+            if (!didMerge) {
                 this.rules.push(rule);
                 this.ruleNames.add(ruleName);
             }
         }
+
         this.multiSignals = multiSignals;
         this.signals = signals;
         this.minNeighbor = minNeighbor;

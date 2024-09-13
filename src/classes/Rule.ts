@@ -39,6 +39,18 @@ export class RuleOutput {
         );
     }
 
+    compare(other: RuleOutput): number {
+        if (this.futureStep !== other.futureStep) {
+            return this.futureStep - other.futureStep;
+        }
+        if (this.position !== other.position) {
+            return this.position - other.position;
+        }
+        const s1 = Symbol.keyFor(this.signal) || "";
+        const s2 = Symbol.keyFor(other.signal) || "";
+        return s1.localeCompare(s2);
+    }
+
     renameSignal(oldSymbol: Signal, newSymbol: Signal): RuleOutput {
         return new RuleOutput(
             this.position,
