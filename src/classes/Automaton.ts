@@ -392,11 +392,15 @@ export default class Automaton {
     ): Configuration[] {
         const nbCells = initialConfiguration.getSize();
         const diagram = [
-            initialConfiguration,
-            ...Array.from({ length: nbSteps }, () =>
+            ...Array.from({ length: nbSteps + 1 }, () =>
                 Configuration.withSize(nbCells)
             ),
         ];
+        for (const [i, c] of initialConfiguration.cells.entries()) {
+            for (const signal of c.signals) {
+                diagram[0].cells[i].addSignal(signal);
+            }
+        }
         const evalContext = this.getEvalContext();
 
         for (let t = 0; t < nbSteps; t++) {
