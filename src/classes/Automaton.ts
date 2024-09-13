@@ -6,6 +6,7 @@ import Clause, { Conjunction, EvalContext } from "./Clause.ts";
 import Configuration from "./Configuration.ts";
 import Rule from "./Rule.ts";
 import { transformations } from "./transformations/Transformation.ts";
+import DirectedGraph from "./Graph.ts";
 
 export default class Automaton {
     /**
@@ -454,6 +455,25 @@ export default class Automaton {
         }
 
         return new Automaton(newRules, newMultiSignals);
+    }
+
+    makeDependencyGraph(): DirectedGraph<Signal> {
+        const graph = new DirectedGraph<Signal>();
+        const evalContext = this.getEvalContext();
+
+        for (const signal of this.signals) {
+            graph.addVertex(signal);
+        }
+        for (const rule of this.rules) {
+            for (const inputLiteral of rule.condition.getLiterals()) {
+                for (const inputSignal of evalContext.getSignalsFor(inputLiteral.signal)) {
+                    for (const output of rule.outputs) {
+                        graph.addEdge(inputSignal, output.signal);
+                    }
+                }
+            }
+        }
+        return graph;
     }
 
     toString(): string {
