@@ -8,20 +8,40 @@ import Rule from "./Rule.ts";
 import { transformations } from "./transformations/Transformation.ts";
 
 export default class Automaton {
+    /**
+     * List of signals used by the automaton
+     * (automatically updated when parsing rules)
+     */
     signals: Set<Signal>;
+    /**
+     * Map of multi-signals (a multi-signal is a single name that can represent multiple signals)
+     */
     multiSignals: Map<Signal, Set<Signal>>;
     /**
-     * List of rules of the automaton (the rules are executed on each cell in the order they appear in the list)
+     * List of rules of the automaton
+     * (the rules are executed on each cell in the order they appear in the list)
      */
     rules: Rule[];
+    /**
+     * List of strings representing the rules. Used to avoid duplicate rules.
+     * (automatically updated when parsing rules)
+     */
     ruleNames: Set<string>;
+    /**
+     * Position of the leftmost neighbor used in the rules
+     * (automatically updated when parsing rules)
+     */
     minNeighbor: number;
+    /**
+     * Position of the rightmost neighbor used in the rules
+     * (automatically updated when parsing rules)
+     */
     maxNeighbor: number;
     /**
      * Number of steps that are computed ahead of time. This is 1 by default but if some rules affect times further down
      * (e.g. a 0/2 rule will add a signal to the cell two steps ahead) it is necessary to start preparing the
      * configuration at time (t + maxFutureSteps) when applying the rules to the configuration at time t.
-     * This value is automatically updated when parsing the rules.
+     * (automatically updated when parsing rules)
      */
     maxFutureDepth: number;
 
@@ -32,7 +52,7 @@ export default class Automaton {
         minNeighbor: number = Infinity,
         maxNeighbor: number = -Infinity,
         maxFutureDepth: number = 1,
-        shouldUpdateParameters: boolean = true
+        shouldUpdateParameters: boolean = true // set to false if parameters are already known (e.g. when cloning)
     ) {
         this.rules = [];
         this.ruleNames = new Set();
@@ -86,6 +106,9 @@ export default class Automaton {
         }
     }
 
+    /**
+     * Update the parameters signals, minNeighbor, maxNeighbor and maxFutureDepth by parsing the rules
+     */
     private updateParameters() {
         for (const rule of this.rules) {
             for (const output of rule.outputs) {
@@ -120,26 +143,19 @@ export default class Automaton {
         if (this.maxNeighbor === -Infinity) this.maxNeighbor = 0;
     }
 
-    clone(): Automaton {
-        return new Automaton(
-            this.rules,
-            this.multiSignals,
-            this.signals,
-            this.minNeighbor,
-            this.maxNeighbor,
-            this.maxFutureDepth,
-            false
-        );
-    }
-
+    /**
+     * @returns the automaton's context needed to evaluate rules
+     */
     getEvalContext(): EvalContext {
         return new EvalContext(this.multiSignals);
     }
 
-    copyEvalContext(): EvalContext {
-        return new EvalContext(new Map(this.multiSignals));
-    }
-
+    /**
+     * Returns the list of signals used by the automaton in alphabetical order
+     * 
+     * @param extraSignals an optional set of signals to add to the list (for signals that are not used in the rules)
+     * @returns an ordered list of signals
+     */
     getSignalsList(extraSignals?: Set<Signal>): Signal[] {
         if (extraSignals === undefined) {
             extraSignals = new Set();
@@ -152,8 +168,15 @@ export default class Automaton {
         });
     }
 
+    /**
+     * Adds rules to the automaton from a string describing the rules.
+     * The string is parsed with the grammar defined in grammar.ne
+     * 
+     * @param inputString a string describing the rules to add to the automaton
+     * @returns a new Automaton with the added rules
+     */
     addRulesFromString(inputString: string): Automaton {
-        let context = this.copyEvalContext();
+        let context = new EvalContext(new Map(this.multiSignals));
         const parser = new nearley.Parser(
             nearley.Grammar.fromCompiled(grammar)
         );
@@ -266,17 +289,22 @@ export default class Automaton {
         return new Automaton([...this.rules, ...rules], context.multiSignals);
     }
 
+    /**
+     * Tests whether the Automaton already has a rule with the same description as the given rule
+     * 
+     * @param rule the rule to check
+     * @returns true if the rule is already in the automaton, false otherwise
+     */
     hasRule(rule: Rule): boolean {
         return this.ruleNames.has(rule.toString());
     }
 
-    addRule(rule: Rule): Automaton {
-        if (this.hasRule(rule)) {
-            return this;
-        }
-        return new Automaton([...this.rules, rule], this.multiSignals);
-    }
-
+    /**
+     * Adds a list of rules to the automaton
+     * 
+     * @param rules list of rules to add
+     * @returns a new Automaton with the added rules
+     */
     addRules(rules: Rule[]): Automaton {
         if (rules.length === 0) {
             return this;
@@ -284,6 +312,12 @@ export default class Automaton {
         return new Automaton([...this.rules, ...rules], this.multiSignals);
     }
 
+    /**
+     * Deletes a rule from the automaton
+     * 
+     * @param rule the rule to delete
+     * @returns a new Automaton without the rule
+     */
     deleteRule(rule: Rule): Automaton {
         return new Automaton(
             this.rules.filter((r) => r !== rule),
@@ -291,6 +325,13 @@ export default class Automaton {
         );
     }
 
+    /**
+     * Replaces a rule with a list of rules
+     * 
+     * @param oldRule the rule to replace
+     * @param newRules the list of rules to replace it with
+     * @returns a new Automaton with the rule replaced
+     */
     replaceRule(oldRule: Rule, newRules: Rule[]) {
         const newRulesNames = new Set(newRules.map((r) => r.toString()));
         if (newRulesNames.has(oldRule.toString())) {
@@ -309,6 +350,15 @@ export default class Automaton {
         return new Automaton(resultingRules, this.multiSignals);
     }
 
+    /**
+     * Returns a list of configurations resulting from applying rules once to the given configuration.
+     * The number of configurations returns is equal to the maxFutureDepth of the automaton (so that all possible
+     * rule outputs can be represented).
+     * 
+     * @param configuration the configuration to which the rules should be applied
+     * @param rules the rules to apply (defaults to the automaton's rules)
+     * @returns a list of configurations (one for each successive time step) resulting from applying the rules
+     */
     applyRules(
         configuration: Configuration,
         rules: Rule[] | undefined = undefined
@@ -351,7 +401,11 @@ export default class Automaton {
     }
 
     /**
-     * Returns a space-time diagram from a starting configuration
+     * Generates a space-time diagram of the automaton starting from the given configuration
+     * 
+     * @param initialConfiguration the initial configuration
+     * @param nbSteps the number of steps to compute
+     * @returns a list of configurations representing the space-time diagram
      */
     makeDiagram(
         initialConfiguration: Configuration,
@@ -368,7 +422,11 @@ export default class Automaton {
 
         for (let t = 0; t < nbSteps; t++) {
             const config = diagram[t];
-            for (let c = -this.maxNeighbor; c < nbCells - this.minNeighbor; c++) {
+            for (
+                let c = -this.maxNeighbor;
+                c < nbCells - this.minNeighbor;
+                c++
+            ) {
                 const neighborhood = config.getNeighborhood(
                     c,
                     this.minNeighbor,

@@ -98,7 +98,7 @@ export default function EditGrid(props: EditGridProps): JSX.Element {
         }
 
         if (hasOutputs()) {
-            setAutomaton(automaton.addRule(grid.makeRule()));
+            setAutomaton(automaton.addRules([grid.makeRule()]));
             clearGrid();
         } else {
             alert("Rule has no outputs");
