@@ -1,4 +1,5 @@
-import { Signal, Neighborhood } from "../types.ts";
+import { Signal } from "../types.ts";
+import Configuration from "./Configuration.ts";
 
 export interface ConjunctionOfLiterals extends Conjunction {
     subclauses: Literal[];
@@ -53,7 +54,7 @@ export type LiteralTransformation = {
 };
 
 export default abstract class Clause {
-    abstract eval(neighborhood: Neighborhood, context: EvalContext): boolean;
+    abstract eval(configuration: Configuration, cell: number, context: EvalContext): boolean;
 
     abstract toString(): string;
 
@@ -131,8 +132,8 @@ export class Literal extends Clause {
         this.sign = sign;
     }
 
-    eval(neighborhood: Neighborhood, context: EvalContext): boolean {
-        const cellSignals = neighborhood[this.position].signals;
+    eval(configuration: Configuration, cell: number, context: EvalContext): boolean {
+        const cellSignals = configuration.cells[cell + this.position].signals;
         for (const signal of context.getSignalsFor(this.signal)) {
             if (cellSignals.has(signal)) {
                 return this.sign;
@@ -236,8 +237,8 @@ export class Negation extends Clause {
         this.subclause = subclause;
     }
 
-    eval(neighborhood: Neighborhood, context: EvalContext): boolean {
-        return !this.subclause.eval(neighborhood, context);
+    eval(configuration: Configuration, cell: number, context: EvalContext): boolean {
+        return !this.subclause.eval(configuration, cell, context);
     }
 
     toString(): string {
@@ -344,9 +345,9 @@ export class Conjunction extends Clause {
         }
     }
 
-    eval(neighborhood: Neighborhood, context: EvalContext): boolean {
+    eval(configuration: Configuration, cell: number, context: EvalContext): boolean {
         return this.subclauses.every((subclause) =>
-            subclause.eval(neighborhood, context)
+            subclause.eval(configuration, cell, context)
         );
     }
 
@@ -486,9 +487,9 @@ export class Disjunction extends Clause {
         }
     }
 
-    eval(neighborhood: Neighborhood, context: EvalContext): boolean {
+    eval(configuration: Configuration, cell: number, context: EvalContext): boolean {
         return this.subclauses.some((subclause) =>
-            subclause.eval(neighborhood, context)
+            subclause.eval(configuration, cell, context)
         );
     }
 

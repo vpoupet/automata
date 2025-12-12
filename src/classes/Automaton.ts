@@ -355,13 +355,8 @@ export default class Automaton {
         const evalContext = this.getEvalContext();
 
         for (let c = -this.maxNeighbor; c < nbCells - this.minNeighbor; c++) {
-            const neighborhood = configuration.getNeighborhood(
-                c,
-                this.minNeighbor,
-                this.maxNeighbor
-            );
             for (const rule of rules) {
-                if (rule.condition.eval(neighborhood, evalContext)) {
+                if (rule.condition.eval(configuration, c, evalContext)) {
                     rule.outputs.forEach((output) => {
                         const targetCell = c + output.position;
                         if (
@@ -411,13 +406,8 @@ export default class Automaton {
                 c < nbCells - this.minNeighbor;
                 c++
             ) {
-                const neighborhood = config.getNeighborhood(
-                    c,
-                    this.minNeighbor,
-                    this.maxNeighbor
-                );
                 for (const rule of this.rules) {
-                    if (rule.condition.eval(neighborhood, evalContext)) {
+                    if (rule.condition.eval(config, c, evalContext)) {
                         rule.outputs.forEach((output) => {
                             const targetCell = c + output.position;
                             if (

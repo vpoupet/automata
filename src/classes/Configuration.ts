@@ -1,4 +1,3 @@
-import type { Neighborhood } from "../types.ts";
 import Cell from "./Cell.ts";
 
 export default class Configuration {
@@ -18,17 +17,5 @@ export default class Configuration {
 
     getSize(): number {
         return this.cells.length;
-    }
-
-    getNeighborhood(
-        c: number,
-        minNeighbor: number,
-        maxNeighbor: number
-    ): Neighborhood {
-        const neighborhood: Neighborhood = {};
-        for (let i = minNeighbor; i <= maxNeighbor; i++) {
-            neighborhood[i] = this.cells[c + i] ?? new Cell();
-        }
-        return neighborhood;
     }
 }
