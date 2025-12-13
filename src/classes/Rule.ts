@@ -6,22 +6,24 @@ import Clause, {
     EvalContext,
     Negation,
 } from "./Clause";
-import Configuration from "./Configuration";
 import RuleGrid from "./RuleGrid";
+import Vector from "./Vector";
 
 export class RuleOutput {
-    position: number;
+    position: Vector;
     signal: Signal;
     futureStep: number;
 
-    constructor(position: number, signal: Signal, futureStep = 1) {
+    constructor(position: Vector, signal: Signal, futureStep = 1) {
         this.position = position;
         this.signal = signal;
         this.futureStep = futureStep;
     }
 
     toString(): string {
-        const positionStr = this.position === 0 ? "" : `${this.position}`;
+        const positionStr = this.position.isZero()
+            ? ""
+            : `${this.position.toString()}`;
         const futureStepStr =
             this.futureStep === 1 ? "" : `/${this.futureStep}`;
         const dotStr = positionStr !== "" || futureStepStr !== "" ? "." : "";
@@ -33,18 +35,19 @@ export class RuleOutput {
 
     equals(other: RuleOutput): boolean {
         return (
-            this.position === other.position &&
+            this.position.equals(other.position) &&
             this.signal === other.signal &&
             this.futureStep === other.futureStep
         );
     }
 
-    compare(other: RuleOutput): number {
+    compareTo(other: RuleOutput): number {
         if (this.futureStep !== other.futureStep) {
             return this.futureStep - other.futureStep;
         }
-        if (this.position !== other.position) {
-            return this.position - other.position;
+        const posComp = this.position.compareTo(other.position);
+        if (posComp !== 0) {
+            return posComp;
         }
         const s1 = Symbol.keyFor(this.signal) || "";
         const s2 = Symbol.keyFor(other.signal) || "";
@@ -107,35 +110,30 @@ export default class Rule {
         );
     }
 
+    // TODO check that fitting still works (and check 2D case)
     fitTarget(targetGrid: RuleGrid, context: EvalContext): Rule[] {
         const targetRule = targetGrid.makeRule();
         const minPosition = targetRule.condition.getMinPosition();
         const maxPosition = targetRule.condition.getMaxPosition();
-        const configuration = new Configuration(targetGrid.inputCells);
-        const gridWidth = targetGrid.inputCells.length;
 
         const validOutputs = new Set(this.outputs);
-        const invalidOutputs = new Map<RuleOutput, number[]>();
+        const invalidOutputs = new Map<RuleOutput, Vector[]>();
 
-        for (let c = -minPosition; c < gridWidth - minPosition; c++) {
-            const neighborhood = configuration.getNeighborhood(
-                c,
-                minPosition,
-                maxPosition
-            );
-            if (this.condition.eval(neighborhood, context)) {
+        for (const c of targetGrid.inputCells.iterNeighborhood(
+            minPosition,
+            maxPosition
+        )) {
+            if (this.condition.eval(targetGrid.inputCells, c, context)) {
                 for (const output of this.outputs) {
                     if (
-                        0 <= c + output.position &&
-                        c + output.position < gridWidth &&
                         0 < output.futureStep &&
                         output.futureStep <= targetGrid.outputCells.length
                     ) {
-                        if (
-                            !targetGrid.outputCells[output.futureStep - 1][
-                                c + output.position
-                            ].has(output.signal)
-                        ) {
+                        const cell = targetGrid.outputCells[
+                            output.futureStep - 1
+                        ].getCellAt(Vector.add(c, output.position));
+                        if (cell && !cell.has(output.signal)) {
+                            // this output should be removed when in the exact conditions of the input
                             validOutputs.delete(output);
                             if (!invalidOutputs.has(output)) {
                                 invalidOutputs.set(output, []);
@@ -165,7 +163,9 @@ export default class Rule {
                             new Negation(
                                 new Disjunction(
                                     positions.map((p) =>
-                                        gridInputsConjunction.shifted(-p)
+                                        gridInputsConjunction.shifted(
+                                            p.negated()
+                                        )
                                     )
                                 )
                             ),

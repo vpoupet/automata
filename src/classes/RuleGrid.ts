@@ -1,66 +1,60 @@
 import Cell, { InputCell } from "./Cell.ts";
 import Clause, { Conjunction, Literal } from "./Clause.ts";
+import { Configuration, Configuration1D } from "./Configuration.ts";
 import Rule, { RuleOutput } from "./Rule.ts";
+import Vector from "./Vector.ts";
 
 class RuleGrid {
-    inputCells: InputCell[];
-    outputCells: Cell[][];
+    inputCells: Configuration<InputCell>;
+    outputCells: Configuration<Cell>[];
 
-    constructor(inputCells: InputCell[], outputCells: Cell[][]) {
+    constructor(
+        inputCells: Configuration<InputCell>,
+        outputCells: Configuration<Cell>[]
+    ) {
         this.inputCells = inputCells;
         this.outputCells = outputCells;
     }
 
-    static withSize(nbCells: number, nbFutureSteps: number): RuleGrid {
-        const inputs = Array.from({ length: nbCells }, () => new InputCell());
-        const outputs = Array.from({ length: nbFutureSteps }, () =>
-            Array.from({ length: nbCells }, () => new Cell())
+    static withSize(radius: number, nbFutureSteps: number): RuleGrid {
+        const nbCells = radius * 2 + 1;
+        const inputs = new Configuration1D(
+            Array.from({ length: nbCells }, () => new InputCell())
+        );
+        const outputs = Array.from(
+            { length: nbFutureSteps },
+            () =>
+                new Configuration1D(
+                    Array.from({ length: nbCells }, () => new Cell())
+                )
         );
         return new RuleGrid(inputs, outputs);
     }
 
     getRadius(): number {
-        return (this.outputCells[0].length - 1) / 2;
+        return (this.inputCells.getSize().at(0) - 1) / 2;
     }
 
-    clone(): RuleGrid {
-        return new RuleGrid(
-            this.inputCells.map((cell) => cell.clone()),
-            this.outputCells.map((row) => row.map((cell) => cell.clone()))
+    clone(): this {
+        return new (this.constructor as any)(
+            this.inputCells.clone(),
+            this.outputCells.map((row) => row.clone())
         );
     }
 
     equals(other: RuleGrid): boolean {
         // compare inputs
-        if (this.inputCells.length !== other.inputCells.length) {
+        if (!this.inputCells.equals(other.inputCells)) {
             return false;
         }
-        for (let i = 0; i < this.inputCells.length; i++) {
-            if (!this.inputCells[i].equals(other.inputCells[i])) {
-                return false;
-            }
-        }
-        // compare outputs
         if (this.outputCells.length !== other.outputCells.length) {
             return false;
         }
-        for (let row = 0; row < this.outputCells.length; row++) {
-            if (
-                this.outputCells[row].length !== other.outputCells[row].length
-            ) {
+        for (let i = 0; i < this.outputCells.length; i++) {
+            if (!this.outputCells[i].equals(other.outputCells[i])) {
                 return false;
             }
-            for (let col = 0; col < this.outputCells[row].length; col++) {
-                if (
-                    !this.outputCells[row][col].equals(
-                        other.outputCells[row][col]
-                    )
-                ) {
-                    return false;
-                }
-            }
         }
-
         return true;
     }
 
@@ -72,18 +66,23 @@ class RuleGrid {
     }
 
     makeRuleCondition(centerOrigin: boolean = true): Clause {
-        const shift = centerOrigin ? -this.getRadius() : 0;
+        const shift = new Vector([centerOrigin ? -this.getRadius() : 0]);
         const literals: Literal[] = [];
-        this.inputCells.forEach((cell, cellIndex) => {
+        for (const c of this.inputCells.iterNeighborhood()) {
+            const cell = this.inputCells.getCellAt(c);
+            if (cell === null) {
+                continue;
+            }
+            const position = Vector.add(c, shift);
             cell.signals.forEach((signal) => {
-                const literal = new Literal(signal, cellIndex + shift, true);
+                const literal = new Literal(signal, position, true);
                 literals.push(literal);
             });
             cell.negatedSignals.forEach((signal) => {
-                const literal = new Literal(signal, cellIndex + shift, false);
+                const literal = new Literal(signal, position, false);
                 literals.push(literal);
             });
-        });
+        }
         if (literals.length === 1) {
             return literals[0];
         }
@@ -91,19 +90,24 @@ class RuleGrid {
     }
 
     makeRuleOutputs(centerOrigin: boolean = true): RuleOutput[] {
-        const shift = centerOrigin ? -this.getRadius() : 0;
+        const shift = new Vector([centerOrigin ? -this.getRadius() : 0]);
         const outputs: RuleOutput[] = [];
         this.outputCells.forEach((row, rowIndex) => {
-            row.forEach((cellule, colIndex) => {
-                cellule.signals.forEach((signal) => {
+            for (const c of row.iterNeighborhood()) {
+                const cell = row.getCellAt(c);
+                if (cell === null) {
+                    continue;
+                }
+                const position = Vector.add(c, shift);
+                cell.signals.forEach((signal) => {
                     const ruleOutput = new RuleOutput(
-                        colIndex + shift,
+                        position,
                         signal,
                         rowIndex + 1
                     );
                     outputs.push(ruleOutput);
                 });
-            });
+            }
         });
         return outputs;
     }

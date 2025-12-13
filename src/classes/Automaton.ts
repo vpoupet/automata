@@ -3,10 +3,12 @@ import grammar from "../grammar/grammar.js";
 import type { ParsedLine } from "../grammar/types.ts";
 import type { Signal } from "../types.ts";
 import Clause, { Conjunction, EvalContext } from "./Clause.ts";
-import Configuration from "./Configuration.ts";
+import { Configuration } from "./Configuration.ts";
 import Rule from "./Rule.ts";
 import { transformations } from "./transformations/Transformation.ts";
 import DirectedGraph from "./Graph.ts";
+import Vector from "./Vector.ts";
+import Cell from "./Cell.ts";
 
 export default class Automaton {
     /**
@@ -29,14 +31,14 @@ export default class Automaton {
     /**
      * Position of the leftmost neighbor used in the rules
      */
-    minNeighbor: number;
+    minNeighbor: Vector;
     /**
      * Position of the rightmost neighbor used in the rules
      */
-    maxNeighbor: number;
+    maxNeighbor: Vector;
     /**
-     * Number of steps that are computed ahead of time. This is 1 by default but if some rules affect times further down
-     * (e.g. a 0/2 rule will add a signal to the cell two steps ahead) it is necessary to start preparing the
+     * Number of steps that are computed ahead of time. This is 1 by default but if some rules affect times further
+     * down (e.g. a 0/2 rule will add a signal to the cell two steps ahead) it is necessary to start preparing the
      * configuration at time (t + maxFutureSteps) when applying the rules to the configuration at time t.
      */
     maxFutureDepth: number;
@@ -88,8 +90,8 @@ export default class Automaton {
 
         this.multiSignals = multiSignals;
         this.signals = new Set();
-        this.minNeighbor = 0;
-        this.maxNeighbor = 0;
+        this.minNeighbor = new Vector();
+        this.maxNeighbor = new Vector();
         this.maxFutureDepth = 1;
 
         // parse rules to update signals, minNeighbor, maxNeighbor and maxFutureDepth
@@ -101,13 +103,14 @@ export default class Automaton {
                 );
             }
             for (const literal of rule.condition.getLiterals()) {
-                this.minNeighbor = Math.min(this.minNeighbor, literal.position);
-                this.maxNeighbor = Math.max(this.maxNeighbor, literal.position);
-            }
-
-            for (const literal of rule.condition.getLiterals()) {
-                this.minNeighbor = Math.min(this.minNeighbor, literal.position);
-                this.maxNeighbor = Math.max(this.maxNeighbor, literal.position);
+                this.minNeighbor = Vector.min(
+                    this.minNeighbor,
+                    literal.position
+                );
+                this.maxNeighbor = Vector.max(
+                    this.maxNeighbor,
+                    literal.position
+                );
             }
 
             for (const signal of rule.getSignals()) {
@@ -331,48 +334,38 @@ export default class Automaton {
     }
 
     /**
-     * Returns a list of configurations resulting from applying rules once to the given configuration.
-     * The number of configurations returns is equal to the maxFutureDepth of the automaton (so that all possible
-     * rule outputs can be represented).
+     * Applies the rules of the automaton on a given configuration in a portion of a space-time diagram.
+     * The rules are executed on each cell of the diagram's configuration referenced by the `time` parameter.
      *
-     * @param configuration the configuration to which the rules should be applied
-     * @param rules the rules to apply (defaults to the automaton's rules)
-     * @returns a list of configurations (one for each successive time step) resulting from applying the rules
+     * All resulting outputs that fit inside the diagram are added to the corresponding future configurations.
+     * Outputs that would go beyond the provided diagram are ignored.
+     *
+     * @param diagram an array of configurations representing a portion of a space-time diagramto which the rules
+     * should be applied (the rule is applied to the first configuration, but the other configurations might contain
+     * already pre-computed future steps)
+     * @param time the time index of the configuration in the diagram on which to apply the rules
      */
-    applyRules(
-        configuration: Configuration,
-        rules: Rule[] | undefined = undefined
-    ): Configuration[] {
-        if (rules === undefined) {
-            rules = this.rules;
-        }
 
-        const nbCells = configuration.getSize();
-        const nextConfigurations = Array.from(
-            { length: this.maxFutureDepth },
-            () => Configuration.withSize(nbCells)
-        );
+    applyRulesOnDiagram<TCell extends Cell>(diagram: Configuration<TCell>[], time: number = 0) {
+        const configuration = diagram[time];
         const evalContext = this.getEvalContext();
-
-        for (let c = -this.maxNeighbor; c < nbCells - this.minNeighbor; c++) {
-            for (const rule of rules) {
+        for (let c of configuration.iterNeighborhood(
+            this.minNeighbor,
+            this.maxNeighbor
+        )) {
+            for (const rule of this.rules) {
                 if (rule.condition.eval(configuration, c, evalContext)) {
                     rule.outputs.forEach((output) => {
-                        const targetCell = c + output.position;
-                        if (
-                            output.futureStep - 1 < nextConfigurations.length &&
-                            0 <= targetCell &&
-                            targetCell < nbCells
-                        ) {
-                            nextConfigurations[output.futureStep - 1].cells[
-                                targetCell
-                            ].addSignal(output.signal);
+                        if (time + output.futureStep < diagram.length) {
+                            diagram[time + output.futureStep].addSignalAt(
+                                Vector.add(c, output.position),
+                                output.signal
+                            );
                         }
                     });
                 }
             }
         }
-        return nextConfigurations;
     }
 
     /**
@@ -382,47 +375,18 @@ export default class Automaton {
      * @param nbSteps the number of steps to compute
      * @returns a list of configurations representing the space-time diagram
      */
-    makeDiagram(
-        initialConfiguration: Configuration,
+    makeDiagram<TCell extends Cell>(
+        initialConfiguration: Configuration<TCell>,
         nbSteps: number
-    ): Configuration[] {
-        const nbCells = initialConfiguration.getSize();
+    ): Configuration<Cell>[] {
         const diagram = [
-            ...Array.from({ length: nbSteps + 1 }, () =>
-                Configuration.withSize(nbCells)
+            initialConfiguration.clone(),
+            ...Array.from({ length: nbSteps }, () =>
+                Configuration.withSize(initialConfiguration.getSize())
             ),
         ];
-        for (const [i, c] of initialConfiguration.cells.entries()) {
-            for (const signal of c.signals) {
-                diagram[0].cells[i].addSignal(signal);
-            }
-        }
-        const evalContext = this.getEvalContext();
-
         for (let t = 0; t < nbSteps; t++) {
-            const config = diagram[t];
-            for (
-                let c = -this.maxNeighbor;
-                c < nbCells - this.minNeighbor;
-                c++
-            ) {
-                for (const rule of this.rules) {
-                    if (rule.condition.eval(config, c, evalContext)) {
-                        rule.outputs.forEach((output) => {
-                            const targetCell = c + output.position;
-                            if (
-                                t + output.futureStep < diagram.length &&
-                                0 <= targetCell &&
-                                targetCell < nbCells
-                            ) {
-                                diagram[t + output.futureStep].cells[
-                                    targetCell
-                                ].addSignal(output.signal);
-                            }
-                        });
-                    }
-                }
-            }
+            this.applyRulesOnDiagram(diagram, t);
         }
         return diagram;
     }
@@ -456,7 +420,9 @@ export default class Automaton {
         }
         for (const rule of this.rules) {
             for (const inputLiteral of rule.condition.getLiterals()) {
-                for (const inputSignal of evalContext.getSignalsFor(inputLiteral.signal)) {
+                for (const inputSignal of evalContext.getSignalsFor(
+                    inputLiteral.signal
+                )) {
                     for (const output of rule.outputs) {
                         graph.addEdge(inputSignal, output.signal);
                     }

@@ -11,8 +11,9 @@ export default class Cell {
         return this.signals.has(signal);
     }
 
-    clone(): Cell {
-        return new Cell(this.signals);
+    clone(): this {
+        // Specific syntax to ensure correct typing when cloning subclasses
+        return new (this.constructor as any)(this.signals);
     }
 
     addSignal(signal: Signal) {
@@ -73,12 +74,30 @@ export class InputCell extends Cell {
         super.removeAllSignals();
         this.negatedSignals.clear();
     }
-    
+
+    equals(other: Cell): boolean {
+        if (!(other instanceof InputCell)) {
+            return false;
+        }
+        if (!super.equals(other)) {
+            return false;
+        }
+        if (this.negatedSignals.size !== other.negatedSignals.size) {
+            return false;
+        }
+        for (const signal of this.negatedSignals) {
+            if (!other.negatedSignals.has(signal)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     isInput(): boolean {
         return true;
     }
 
-    clone(): InputCell {
-        return new InputCell(this.signals, this.negatedSignals);
+    clone(): this {
+        return new (this.constructor as any)(this.signals, this.negatedSignals);
     }
 }

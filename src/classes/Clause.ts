@@ -1,5 +1,7 @@
 import { Signal } from "../types.ts";
-import Configuration from "./Configuration.ts";
+import Cell from "./Cell.ts";
+import { Configuration } from "./Configuration.ts";
+import Vector from "./Vector.ts";
 
 export interface ConjunctionOfLiterals extends Conjunction {
     subclauses: Literal[];
@@ -50,19 +52,23 @@ export class EvalContext {
 
 export type LiteralTransformation = {
     signal: (Signal: Signal) => Signal;
-    position: (position: number) => number;
+    position: (position: Vector) => Vector;
 };
 
 export default abstract class Clause {
-    abstract eval(configuration: Configuration, cell: number, context: EvalContext): boolean;
+    abstract eval<TCell extends Cell>(
+        configuration: Configuration<TCell>,
+        cell: Vector,
+        context: EvalContext
+    ): boolean;
 
     abstract toString(): string;
 
     abstract getLiterals(): Literal[];
 
-    abstract getMaxPosition(): number;
+    abstract getMaxPosition(): Vector;
 
-    abstract getMinPosition(): number;
+    abstract getMinPosition(): Vector;
 
     simplified(): Clause {
         const normalized = this.normalized();
@@ -92,10 +98,10 @@ export default abstract class Clause {
         return false;
     }
 
-    shifted(n: number): Clause {
+    shifted(v: Vector): Clause {
         return this.transformLiterals({
             signal: (signal) => signal,
-            position: (position) => position + n,
+            position: (position) => position.add(v),
         });
     }
 
@@ -122,18 +128,22 @@ export default abstract class Clause {
  */
 export class Literal extends Clause {
     signal: Signal;
-    position: number;
+    position: Vector;
     sign: boolean;
 
-    constructor(signal: Signal, position = 0, sign = true) {
+    constructor(signal: Signal, position = new Vector(), sign = true) {
         super();
         this.signal = signal;
         this.position = position;
         this.sign = sign;
     }
 
-    eval(configuration: Configuration, cell: number, context: EvalContext): boolean {
-        const cellSignals = configuration.cells[cell + this.position].signals;
+    eval<TCell extends Cell>(
+        configuration: Configuration<TCell>,
+        cell: Vector,
+        context: EvalContext
+    ): boolean {
+        const cellSignals = configuration.getSignalsAt(cell.add(this.position));
         for (const signal of context.getSignalsFor(this.signal)) {
             if (cellSignals.has(signal)) {
                 return this.sign;
@@ -144,10 +154,10 @@ export class Literal extends Clause {
 
     toString(): string {
         const signString = this.sign ? "" : "!";
-        if (this.position === 0) {
+        if (this.position.isZero()) {
             return `${signString}${Symbol.keyFor(this.signal)}`;
         } else {
-            return `${this.position}.${signString}${Symbol.keyFor(
+            return `${this.position.toString()}.${signString}${Symbol.keyFor(
                 this.signal
             )}`;
         }
@@ -157,11 +167,11 @@ export class Literal extends Clause {
         return [this];
     }
 
-    getMaxPosition(): number {
+    getMaxPosition(): Vector {
         return this.position;
     }
 
-    getMinPosition(): number {
+    getMinPosition(): Vector {
         return this.position;
     }
 
@@ -176,14 +186,15 @@ export class Literal extends Clause {
     equals(other: Literal): boolean {
         return (
             this.signal === other.signal &&
-            this.position === other.position &&
+            this.position.equals(other.position) &&
             this.sign === other.sign
         );
     }
 
     compareTo(other: Literal): number {
-        if (this.position !== other.position) {
-            return this.position - other.position;
+        const posComp = this.position.compareTo(other.position);
+        if (posComp !== 0) {
+            return posComp;
         }
         if (this.sign !== other.sign) {
             return this.sign ? 1 : -1;
@@ -237,7 +248,11 @@ export class Negation extends Clause {
         this.subclause = subclause;
     }
 
-    eval(configuration: Configuration, cell: number, context: EvalContext): boolean {
+    eval<TCell extends Cell>(
+        configuration: Configuration<TCell>,
+        cell: Vector,
+        context: EvalContext
+    ): boolean {
         return !this.subclause.eval(configuration, cell, context);
     }
 
@@ -254,11 +269,11 @@ export class Negation extends Clause {
             );
     }
 
-    getMaxPosition(): number {
+    getMaxPosition(): Vector {
         return this.subclause.getMaxPosition();
     }
 
-    getMinPosition(): number {
+    getMinPosition(): Vector {
         return this.subclause.getMinPosition();
     }
 
@@ -345,7 +360,11 @@ export class Conjunction extends Clause {
         }
     }
 
-    eval(configuration: Configuration, cell: number, context: EvalContext): boolean {
+    eval<TCell extends Cell>(
+        configuration: Configuration<TCell>,
+        cell: Vector,
+        context: EvalContext
+    ): boolean {
         return this.subclauses.every((subclause) =>
             subclause.eval(configuration, cell, context)
         );
@@ -361,17 +380,17 @@ export class Conjunction extends Clause {
         return this.subclauses.flatMap((subclause) => subclause.getLiterals());
     }
 
-    getMaxPosition(): number {
+    getMaxPosition(): Vector {
         return this.subclauses.reduce(
-            (acc, subclause) => Math.max(acc, subclause.getMaxPosition()),
-            0
+            (acc, subclause) => Vector.max(acc, subclause.getMaxPosition()),
+            new Vector()
         );
     }
 
-    getMinPosition(): number {
+    getMinPosition(): Vector {
         return this.subclauses.reduce(
-            (acc, subclause) => Math.min(acc, subclause.getMinPosition()),
-            0
+            (acc, subclause) => Vector.min(acc, subclause.getMinPosition()),
+            new Vector()
         );
     }
 
@@ -487,7 +506,11 @@ export class Disjunction extends Clause {
         }
     }
 
-    eval(configuration: Configuration, cell: number, context: EvalContext): boolean {
+    eval<TCell extends Cell>(
+        configuration: Configuration<TCell>,
+        cell: Vector,
+        context: EvalContext
+    ): boolean {
         return this.subclauses.some((subclause) =>
             subclause.eval(configuration, cell, context)
         );
@@ -503,17 +526,17 @@ export class Disjunction extends Clause {
         return this.subclauses.flatMap((subclause) => subclause.getLiterals());
     }
 
-    getMaxPosition(): number {
+    getMaxPosition(): Vector {
         return this.subclauses.reduce(
-            (acc, subclause) => Math.max(acc, subclause.getMaxPosition()),
-            0
+            (acc, subclause) => Vector.max(acc, subclause.getMaxPosition()),
+            new Vector()
         );
     }
 
-    getMinPosition(): number {
+    getMinPosition(): Vector {
         return this.subclauses.reduce(
-            (acc, subclause) => Math.min(acc, subclause.getMinPosition()),
-            0
+            (acc, subclause) => Vector.min(acc, subclause.getMinPosition()),
+            new Vector()
         );
     }
 
