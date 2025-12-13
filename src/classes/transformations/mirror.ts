@@ -40,12 +40,12 @@ export default function mirror(
             new Rule(
                 rule.condition.transformLiterals({
                     signal: switchTags,
-                    position: (p) => -p,
+                    position: (p) => p.negated(),
                 }),
                 rule.outputs.map(
                     (output) =>
                         new RuleOutput(
-                            -output.position,
+                            output.position.negated(),
                             switchTags(output.signal),
                             output.futureStep
                         )
