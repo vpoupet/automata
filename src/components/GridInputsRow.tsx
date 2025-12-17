@@ -1,12 +1,12 @@
 import { InputCell } from "../classes/Cell.ts";
-import { Coordinates, Signal } from "../types.ts";
+import { Site, Signal } from "../types.ts";
 import CellComponent from "./CellComponent.tsx";
 
 type InputsRowProps = {
     inputs: InputCell[];
     activeInputCells: number[];
     setActiveInputCells: React.Dispatch<React.SetStateAction<number[]>>;
-    setActiveOutputCells: React.Dispatch<React.SetStateAction<Coordinates[]>>;
+    setActiveOutputCells: React.Dispatch<React.SetStateAction<Site[]>>;
     colorMap: Map<Signal, string>;
 };
 

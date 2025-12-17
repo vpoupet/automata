@@ -119,7 +119,7 @@ export default class Rule {
         const validOutputs = new Set(this.outputs);
         const invalidOutputs = new Map<RuleOutput, Vector[]>();
 
-        for (const c of targetGrid.inputCells.iterNeighborhood(
+        for (const c of targetGrid.inputCells.iterWithNeighborhood(
             minPosition,
             maxPosition
         )) {
@@ -176,6 +176,17 @@ export default class Rule {
             }
             return resultingRules;
         }
+    }
+
+    getDimension(): number {
+        let dim = 0;
+        for (const literal of this.condition.getLiterals()) {
+            dim = Math.max(dim, literal.position.dimension());
+        }
+        for (const output of this.outputs) {
+            dim = Math.max(dim, output.position.dimension());
+        }
+        return dim;
     }
 }
 

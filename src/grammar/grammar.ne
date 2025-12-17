@@ -4,6 +4,7 @@
 @{%
 import { Literal, Conjunction, Disjunction, Negation } from "../classes/Clause.ts";
 import { RuleOutput } from "../classes/Rule.ts";
+import Vector from "../classes/Vector.ts";
 import moo from "moo";
 
 function getValue(x) {
@@ -101,20 +102,32 @@ NEGATION -> "!" CLAUSE {%
     }
 }
 %}
-SIGNAL_NAME -> IDENTIFIER {% id %}
-LITERAL -> INT "." "!":? SIGNAL_NAME {% ([pos, , bang, signalName]) => {
-    if (bang) {
-        return new Literal(Symbol.for(signalName), pos, false);
-    } else {
-        return new Literal(Symbol.for(signalName), pos);
-    }
-} %}
-LITERAL -> SIGNAL_NAME {% ([signalName]) => new Literal(Symbol.for(signalName)) %}
 
-OUTPUT -> SIGNAL_NAME {% ([signalName]) => new RuleOutput(0, Symbol.for(signalName)) %}
-OUTPUT -> INT "." SIGNAL_NAME {% ([pos, , signalName]) => new RuleOutput(pos, Symbol.for(signalName)) %}
-OUTPUT -> "/" INT "." SIGNAL_NAME {% ([ , step, , signalName]) => new RuleOutput(0, Symbol.for(signalName), step) %}
-OUTPUT -> INT "/" INT "." SIGNAL_NAME {% ([pos, , step, , signalName]) => new RuleOutput(pos, Symbol.for(signalName), step) %}
+POSITION_LIST -> null {% () => [] %}
+POSITION_LIST -> INT {% ([n]) => [n] %}
+POSITION_LIST -> INT "," POSITION_LIST {% ([n, , rest]) => [n, ...rest] %}
+
+SIGNAL_NAME -> IDENTIFIER {% id %}
+
+LITERAL -> POSITION_LIST "." "!":? SIGNAL_NAME
+   {% ([coords, , bang, s]) =>
+        new Literal(Symbol.for(s), new Vector(coords), bang ? false : true) %}
+LITERAL -> "!" SIGNAL_NAME
+   {% ([, s]) =>
+        new Literal(Symbol.for(s), new Vector(), false) %}
+LITERAL -> SIGNAL_NAME
+   {% ([s]) =>
+        new Literal(Symbol.for(s), new Vector(), true) %}
+
+OUTPUT -> SIGNAL_NAME
+   {% ([s]) => new RuleOutput(new Vector([]), Symbol.for(s), 1) %}
+OUTPUT -> POSITION_LIST "." SIGNAL_NAME
+   {% ([pos, , s]) => new RuleOutput(new Vector(pos), Symbol.for(s), 1) %}
+OUTPUT -> "/" INT "." SIGNAL_NAME
+   {% ([, step, , s]) => new RuleOutput(new Vector([]), Symbol.for(s), step) %}
+OUTPUT -> POSITION_LIST "/" INT "." SIGNAL_NAME
+   {% ([pos, , step, , s]) =>
+        new RuleOutput(new Vector(pos), Symbol.for(s), step) %}
 OUTPUTS_LIST -> OUTPUT | OUTPUTS_LIST OUTPUT {% ([list, o]) => [...list, o] %}
 
 MULTISIGNAL_LINE -> INDENT SIGNAL_NAME "=" SIGNAL_VALUES {% ([indent, multiSignalName, , values]) => ({

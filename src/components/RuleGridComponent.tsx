@@ -5,10 +5,11 @@ import Button from "./Common/Button";
 import GridComponent from "./GridComponent";
 import Frame from "./Common/Frame";
 import RuleGrid from "../classes/RuleGrid";
+import { Configuration } from "../classes/Configuration";
 
 interface RuleGridComponentProps {
-    inputCells: InputCell[];
-    outputCells: Cell[][];
+    inputCells: Configuration<InputCell>;
+    outputCells: Configuration<Cell>[];
     colorMap: Map<Signal, string>;
     setGrid: (grid: RuleGrid) => void;
     onDelete: () => void;
@@ -18,7 +19,7 @@ interface RuleGridComponentProps {
 export default function RuleGridComponent(props: RuleGridComponentProps) {
     const { inputCells, outputCells, colorMap, setGrid, onDelete, onReplace } = props;
     return (
-        <Frame variant="gray" className="m-2 flex flex-col items-center gap-2">
+        <Frame variant="gray" className="flex flex-col items-center gap-2 m-2">
             <GridComponent
                 inputCells={inputCells}
                 outputCells={outputCells}

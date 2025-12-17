@@ -9,6 +9,8 @@ export abstract class Configuration<TCell extends Cell> {
 
     abstract getCellAt(c: Vector): TCell | null;
 
+    abstract setCellAt(c: Vector, cell: TCell): void;
+
     getSignalsAt(c: Vector): Set<Signal> {
         const cell = this.getCellAt(c);
         if (cell === null) {
@@ -24,9 +26,9 @@ export abstract class Configuration<TCell extends Cell> {
         }
     }
 
-    abstract iterNeighborhood(): Iterable<Vector>;
+    abstract iter(): Iterable<Vector>;
 
-    abstract iterNeighborhood(
+    abstract iterWithNeighborhood(
         minPosition: Vector,
         maxPosition: Vector
     ): Iterable<Vector>;
@@ -44,7 +46,7 @@ export abstract class Configuration<TCell extends Cell> {
         if (!this.getSize().equals(other.getSize())) {
             return false;
         }
-        for (const c of this.iterNeighborhood()) {
+        for (const c of this.iter()) {
             const thisCell = this.getCellAt(c);
             const otherCell = other.getCellAt(c);
             if (thisCell === null || otherCell === null) {
@@ -93,9 +95,22 @@ export class Configuration1D<TCell extends Cell> extends Configuration<TCell> {
         return this.cells[index];
     }
 
-    *iterNeighborhood(
-        minPosition: Vector = new Vector(),
-        maxPosition: Vector = new Vector()
+    setCellAt(c: Vector, cell: TCell): void {
+        const index = c.coords[0];
+        if (index >= 0 && index < this.cells.length) {
+            this.cells[index] = cell;
+        }
+    }
+
+    *iter(): Generator<Vector> {
+        for (let i = 0; i < this.cells.length; ++i) {
+            yield new Vector([i]);
+        }
+    }
+
+    *iterWithNeighborhood(
+        minPosition: Vector,
+        maxPosition: Vector
     ): Generator<Vector> {
         for (
             let i = -maxPosition.at(0);
@@ -150,9 +165,26 @@ export class Configuration2D<TCell extends Cell> extends Configuration<TCell> {
         return this.cells[index];
     }
 
-    *iterNeighborhood(
-        minPosition: Vector = new Vector(),
-        maxPosition: Vector = new Vector()
+    setCellAt(c: Vector, cell: TCell): void {
+        const [x, y] = c.coords;
+        if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
+            return;
+        }
+        const index = y * this.width + x;
+        this.cells[index] = cell;
+    }
+
+    *iter(): Generator<Vector> {
+        for (let y = 0; y < this.height; ++y) {
+            for (let x = 0; x < this.width; ++x) {
+                yield new Vector([x, y]);
+            }
+        }
+    }
+
+    *iterWithNeighborhood(
+        minPosition: Vector,
+        maxPosition: Vector
     ): Generator<Vector> {
         const minPosX = minPosition.at(0);
         const minPosY = minPosition.at(1);

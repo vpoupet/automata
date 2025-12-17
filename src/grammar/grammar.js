@@ -4,6 +4,7 @@ function id(x) { return x[0]; }
 
 import { Literal, Conjunction, Disjunction, Negation } from "../classes/Clause.ts";
 import { RuleOutput } from "../classes/Rule.ts";
+import Vector from "../classes/Vector.ts";
 import moo from "moo";
 
 function getValue(x) {
@@ -124,21 +125,23 @@ let ParserRules = [
             }
         }
         },
+    {"name": "POSITION_LIST", "symbols": [], "postprocess": () => []},
+    {"name": "POSITION_LIST", "symbols": ["INT"], "postprocess": ([n]) => [n]},
+    {"name": "POSITION_LIST", "symbols": ["INT", {"literal":","}, "POSITION_LIST"], "postprocess": ([n, , rest]) => [n, ...rest]},
     {"name": "SIGNAL_NAME", "symbols": ["IDENTIFIER"], "postprocess": id},
     {"name": "LITERAL$ebnf$1", "symbols": [{"literal":"!"}], "postprocess": id},
     {"name": "LITERAL$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "LITERAL", "symbols": ["INT", {"literal":"."}, "LITERAL$ebnf$1", "SIGNAL_NAME"], "postprocess":  ([pos, , bang, signalName]) => {
-            if (bang) {
-                return new Literal(Symbol.for(signalName), pos, false);
-            } else {
-                return new Literal(Symbol.for(signalName), pos);
-            }
-        } },
-    {"name": "LITERAL", "symbols": ["SIGNAL_NAME"], "postprocess": ([signalName]) => new Literal(Symbol.for(signalName))},
-    {"name": "OUTPUT", "symbols": ["SIGNAL_NAME"], "postprocess": ([signalName]) => new RuleOutput(0, Symbol.for(signalName))},
-    {"name": "OUTPUT", "symbols": ["INT", {"literal":"."}, "SIGNAL_NAME"], "postprocess": ([pos, , signalName]) => new RuleOutput(pos, Symbol.for(signalName))},
-    {"name": "OUTPUT", "symbols": [{"literal":"/"}, "INT", {"literal":"."}, "SIGNAL_NAME"], "postprocess": ([ , step, , signalName]) => new RuleOutput(0, Symbol.for(signalName), step)},
-    {"name": "OUTPUT", "symbols": ["INT", {"literal":"/"}, "INT", {"literal":"."}, "SIGNAL_NAME"], "postprocess": ([pos, , step, , signalName]) => new RuleOutput(pos, Symbol.for(signalName), step)},
+    {"name": "LITERAL", "symbols": ["POSITION_LIST", {"literal":"."}, "LITERAL$ebnf$1", "SIGNAL_NAME"], "postprocess":  ([coords, , bang, s]) =>
+        new Literal(Symbol.for(s), new Vector(coords), bang ? false : true) },
+    {"name": "LITERAL", "symbols": [{"literal":"!"}, "SIGNAL_NAME"], "postprocess":  ([, s]) =>
+        new Literal(Symbol.for(s), new Vector(), false) },
+    {"name": "LITERAL", "symbols": ["SIGNAL_NAME"], "postprocess":  ([s]) =>
+        new Literal(Symbol.for(s), new Vector(), true) },
+    {"name": "OUTPUT", "symbols": ["SIGNAL_NAME"], "postprocess": ([s]) => new RuleOutput(new Vector([]), Symbol.for(s), 1)},
+    {"name": "OUTPUT", "symbols": ["POSITION_LIST", {"literal":"."}, "SIGNAL_NAME"], "postprocess": ([pos, , s]) => new RuleOutput(new Vector(pos), Symbol.for(s), 1)},
+    {"name": "OUTPUT", "symbols": [{"literal":"/"}, "INT", {"literal":"."}, "SIGNAL_NAME"], "postprocess": ([, step, , s]) => new RuleOutput(new Vector([]), Symbol.for(s), step)},
+    {"name": "OUTPUT", "symbols": ["POSITION_LIST", {"literal":"/"}, "INT", {"literal":"."}, "SIGNAL_NAME"], "postprocess":  ([pos, , step, , s]) =>
+        new RuleOutput(new Vector(pos), Symbol.for(s), step) },
     {"name": "OUTPUTS_LIST", "symbols": ["OUTPUT"]},
     {"name": "OUTPUTS_LIST", "symbols": ["OUTPUTS_LIST", "OUTPUT"], "postprocess": ([list, o]) => [...list, o]},
     {"name": "MULTISIGNAL_LINE", "symbols": ["INDENT", "SIGNAL_NAME", {"literal":"="}, "SIGNAL_VALUES"], "postprocess":  ([indent, multiSignalName, , values]) => ({

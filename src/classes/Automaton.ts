@@ -333,6 +333,13 @@ export default class Automaton {
         return new Automaton(resultingRules, this.multiSignals);
     }
 
+    getDimension(): number {
+        return Math.max(
+            ...this.rules.map((rule) => rule.getDimension()),
+            0
+        );
+    }
+
     /**
      * Applies the rules of the automaton on a given configuration in a portion of a space-time diagram.
      * The rules are executed on each cell of the diagram's configuration referenced by the `time` parameter.
@@ -345,11 +352,13 @@ export default class Automaton {
      * already pre-computed future steps)
      * @param time the time index of the configuration in the diagram on which to apply the rules
      */
-
-    applyRulesOnDiagram<TCell extends Cell>(diagram: Configuration<TCell>[], time: number = 0) {
+    applyRulesOnDiagram<TCell extends Cell>(
+        diagram: Configuration<TCell>[],
+        time: number = 0
+    ) {
         const configuration = diagram[time];
         const evalContext = this.getEvalContext();
-        for (let c of configuration.iterNeighborhood(
+        for (let c of configuration.iterWithNeighborhood(
             this.minNeighbor,
             this.maxNeighbor
         )) {

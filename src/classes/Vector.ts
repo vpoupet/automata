@@ -15,8 +15,25 @@ export default class Vector {
         return this.coords.every((coord) => coord === 0);
     }
 
-    toString(): string {
-        return this.coords.join(",");
+    /**
+     *
+     * @returns the number of coordinates of the `Vector`
+     */
+    dimension(): number {
+        return this.coords.length;
+    }
+
+    /**
+     * @returns the position of the last non-zero coordinate of the `Vector`
+     * plus one. Returns 0 if the vector is the zero vector.
+     */
+    intrinsicDimension(): number {
+        for (let i = this.coords.length - 1; i >= 0; i--) {
+            if (this.coords[i] !== 0) {
+                return i + 1;
+            }
+        }
+        return 0;
     }
 
     at(index: number): number {
@@ -149,5 +166,9 @@ export default class Vector {
             );
         }
         return new Vector(resultingCoords);
+    }
+
+    toString(): string {
+        return this.coords.join(", ");
     }
 }

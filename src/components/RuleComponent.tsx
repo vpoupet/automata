@@ -9,6 +9,8 @@ import Button from "./Common/Button.tsx";
 import Frame from "./Common/Frame.tsx";
 import RuleGridComponent from "./RuleGridComponent.tsx";
 import RuleGrid from "../classes/RuleGrid.ts";
+import { Configuration, Configuration1D } from "../classes/Configuration.ts";
+import Vector from "../classes/Vector.ts";
 
 interface RuleComponentProps {
     rule: Rule;
@@ -46,7 +48,7 @@ export default function RuleComponent(props: RuleComponentProps) {
 
     function replaceConjunctionRule(conjRule: Rule) {
         const newRule = grid.makeRule();
-        
+
         if (conjRule.outputs.toString() === newRule.outputs.toString()) {
             // compatible outputs
             const newDNFCondition = new Disjunction(
@@ -62,7 +64,9 @@ export default function RuleComponent(props: RuleComponentProps) {
         } else {
             // incompatible outputs, replace with 2 rules
             const newDNFCondition = new Disjunction(
-                conditionAsDNF.subclauses.filter((c) => c !== conjRule.condition)
+                conditionAsDNF.subclauses.filter(
+                    (c) => c !== conjRule.condition
+                )
             ).simplified();
             replaceRule(rule, [
                 new Rule(newDNFCondition, rule.outputs),
@@ -74,7 +78,7 @@ export default function RuleComponent(props: RuleComponentProps) {
     return (
         <Frame>
             <div
-                className="flex flex-row cursor-pointer justify-between"
+                className="flex flex-row justify-between cursor-pointer"
                 onClick={() => setIsOpen(!isOpen)}
             >
                 <span className="flex flex-row">
@@ -108,53 +112,68 @@ export default function RuleComponent(props: RuleComponentProps) {
             {isOpen && (
                 <div className="flex flex-row">
                     {conjuctionRules.map((conjRule) => {
-                        const inputCells = Array.from(
-                            { length: 2 * settings.gridRadius + 1 },
-                            () => new InputCell()
-                        );
+                        const inputCells: Configuration1D<InputCell> =
+                            new Configuration1D(
+                                Array.from(
+                                    { length: 2 * settings.gridRadius + 1 },
+                                    () => new InputCell()
+                                )
+                            );
                         for (const literal of conjRule.condition.subclauses) {
                             // ignore literals that are outside the grid
                             // TODO: find better solution ?
                             if (
-                                literal.position < -settings.gridRadius ||
-                                literal.position > settings.gridRadius
+                                literal.position.at(0) < -settings.gridRadius ||
+                                literal.position.at(0) > settings.gridRadius
                             ) {
                                 continue;
                             }
 
                             if (literal.sign) {
-                                inputCells[
-                                    literal.position + settings.gridRadius
-                                ].signals.add(literal.signal);
+                                inputCells
+                                    .getCellAt(
+                                        literal.position.add(
+                                            new Vector([settings.gridRadius])
+                                        )
+                                    )
+                                    ?.addSignal(literal.signal);
                             } else {
-                                inputCells[
-                                    literal.position + settings.gridRadius
-                                ].negatedSignals.add(literal.signal);
+                                inputCells
+                                    .getCellAt(
+                                        literal.position.add(
+                                            new Vector([settings.gridRadius])
+                                        )
+                                    )
+                                    ?.negatedSignals.add(literal.signal);
                             }
                         }
-                        const outputCells = Array.from(
+                        const outputCells: Configuration<Cell>[] = Array.from(
                             { length: settings.gridNbFutureSteps },
                             () =>
-                                Array.from(
-                                    { length: 2 * settings.gridRadius + 1 },
-                                    () => new Cell()
+                                new Configuration1D(
+                                    Array.from(
+                                        {
+                                            length: 2 * settings.gridRadius + 1,
+                                        },
+                                        () => new Cell()
+                                    )
                                 )
                         );
                         for (const output of conjRule.outputs) {
                             // ignore outputs that are outside the grid
                             // TODO: find better solution ?
                             if (
-                                output.position < -settings.gridRadius ||
-                                output.position > settings.gridRadius ||
+                                output.position.at(0) < -settings.gridRadius ||
+                                output.position.at(0) > settings.gridRadius ||
                                 output.futureStep < 1 ||
                                 output.futureStep > settings.gridNbFutureSteps
                             ) {
                                 continue;
                             }
 
-                            outputCells[output.futureStep - 1][
-                                output.position + settings.gridRadius
-                            ].signals.add(output.signal);
+                            outputCells[output.futureStep - 1].getCellAt(
+                                output.position.add(new Vector([settings.gridRadius]))
+                            )?.signals.add(output.signal);
                         }
 
                         return (
@@ -164,7 +183,9 @@ export default function RuleComponent(props: RuleComponentProps) {
                                 outputCells={outputCells}
                                 setGrid={setGrid}
                                 onDelete={() => deleteConjunctionRule(conjRule)}
-                                onReplace={() => replaceConjunctionRule(conjRule)}
+                                onReplace={() =>
+                                    replaceConjunctionRule(conjRule)
+                                }
                                 colorMap={colorMap}
                             />
                         );

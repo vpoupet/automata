@@ -1,13 +1,13 @@
 import Cell from "../classes/Cell.ts";
-import type { Coordinates, Signal } from "../types.ts";
+import type { Site, Signal } from "../types.ts";
 import CellComponent from "./CellComponent.tsx";
 
 type GridOutputsRowProps = {
     outputs: Cell[];
     rowIndex: number;
-    activeOutputCells: Coordinates[];
+    activeOutputCells: Site[];
     setActiveInputCells: React.Dispatch<React.SetStateAction<number[]>>;
-    setActiveOutputCells: React.Dispatch<React.SetStateAction<Coordinates[]>>;
+    setActiveOutputCells: React.Dispatch<React.SetStateAction<Site[]>>;
     colorMap: Map<Signal, string>;
 };
 

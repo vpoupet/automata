@@ -3,8 +3,10 @@ import { MdSettings } from "react-icons/md";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Automaton from "./classes/Automaton.ts";
-import Configuration from "./classes/Configuration.ts";
+import Cell, { InputCell } from "./classes/Cell.ts";
+import { Configuration1D } from "./classes/Configuration.ts";
 import RuleGrid from "./classes/RuleGrid.ts";
+import Vector from "./classes/Vector.ts";
 import Heading from "./components/Common/Heading.tsx";
 import Diagram from "./components/Diagram.tsx";
 import EditGrid from "./components/EditGrid.tsx";
@@ -14,9 +16,10 @@ import SettingsComponent from "./components/SettingsComponent.tsx";
 import SignalsList from "./components/SignalsList.tsx";
 import { randomColor } from "./style/materialColors.ts";
 import "./style/style.scss";
-import { Coordinates, SettingsInterface, Signal } from "./types.ts";
+import { SettingsInterface, Signal, Site } from "./types.ts";
 
 const defaultSettings: SettingsInterface = {
+    dimension: 1,
     gridRadius: 2,
     gridNbFutureSteps: 3,
     nbCells: 40,
@@ -33,17 +36,15 @@ export default function App() {
     const [colorMap, setColorMap] = useState(new Map<Signal, string>());
     const [grid, setGrid] = useState<RuleGrid>(
         RuleGrid.withSize(
-            2 * settings.gridRadius + 1,
+            settings.gridRadius,
             settings.gridNbFutureSteps
         )
     );
     const [extraSignalsSet, setExtraSignalsSet] = useState<Set<Signal>>(
         new Set([Symbol.for("Init")])
     );
-    const [activeInputCells, setActiveInputCells] = useState<number[]>([]);
-    const [activeOutputCells, setActiveOutputCells] = useState<Coordinates[]>(
-        []
-    );
+    const [activeInputCells, setActiveInputCells] = useState<Vector[]>([]);
+    const [activeOutputCells, setActiveOutputCells] = useState<Site[]>([]);
     const [hiddenSignalsSet, setHiddenSignalsSet] = useState<Set<Signal>>(
         new Set()
     );
@@ -51,8 +52,11 @@ export default function App() {
         new Automaton(),
     ]);
     const [automatonIndex, setAutomatonIndex] = useState(0);
-    const [initialConfiguration, setInialConfiguration] =
-        useState<Configuration>(Configuration.withSize(settings.nbCells));
+
+    const config = Configuration1D.withSize(new Vector([settings.nbCells]));
+    config.getCellAt(new Vector())?.addSignal(Symbol.for("Init"));
+
+    const [initialConfiguration, setInitialConfiguration] = useState(config);
 
     // Update edit grid when settings change
     useEffect(() => {
@@ -71,7 +75,7 @@ export default function App() {
             shiftPrev = -deltaRadius;
         }
         const newGrid = RuleGrid.withSize(
-            2 * newRadius + 1,
+            newRadius,
             settings.gridNbFutureSteps
         );
         const minWidth = 2 * minRadius + 1;
@@ -81,46 +85,56 @@ export default function App() {
         );
 
         for (let i = 0; i < minWidth; i++) {
-            newGrid.inputCells[i + shiftNew] = grid.inputCells[i + shiftPrev];
+            newGrid.inputCells.setCellAt(
+                new Vector([i + shiftNew]),
+                grid.inputCells.getCellAt(new Vector([i + shiftPrev])) ??
+                    new InputCell()
+            );
         }
         for (let j = 0; j < minNbSteps; j++) {
             for (let i = 0; i < minWidth; i++) {
-                newGrid.outputCells[j][i + shiftNew] =
-                    grid.outputCells[j][i + shiftPrev];
+                newGrid.outputCells[j].setCellAt(
+                    new Vector([i + shiftNew]),
+                    grid.outputCells[j].getCellAt(
+                        new Vector([i + shiftPrev])
+                    ) ?? new Cell()
+                );
             }
         }
         setGrid(newGrid);
 
-        const newActiveInputCells = [];
-        for (const col of activeInputCells) {
+        const newActiveInputCells: Vector[] = [];
+        for (const pos of activeInputCells) {
             if (
-                col + deltaRadius >= 0 &&
-                col + deltaRadius < newGrid.inputCells.length
+                pos.at(0) + deltaRadius >= 0 &&
+                pos.at(0) + deltaRadius < newGrid.inputCells.getSize().at(0)
             ) {
-                newActiveInputCells.push(col + deltaRadius);
+                newActiveInputCells.push(pos.add(new Vector([deltaRadius])));
             }
         }
         setActiveInputCells(newActiveInputCells);
 
-        const newActiveOutputCells = [];
-        for (const { row, col } of activeOutputCells) {
+        const newActiveOutputCells: Site[] = [];
+        for (const { time, pos } of activeOutputCells) {
             if (
-                row < newGrid.outputCells.length &&
-                col + deltaRadius >= 0 &&
-                col + deltaRadius < newGrid.outputCells[row].length
+                time < newGrid.outputCells.length &&
+                pos.at(0) + deltaRadius >= 0 &&
+                pos.at(0) + deltaRadius < newGrid.outputCells[time].getSize().at(0)
             ) {
                 newActiveOutputCells.push({
-                    row: row,
-                    col: col + deltaRadius,
+                    time: time,
+                    pos: pos.add(new Vector([deltaRadius])),
                 });
             }
         }
         setActiveOutputCells(newActiveOutputCells);
 
         // Set initial configuration
-        const initialConfiguration = Configuration.withSize(settings.nbCells);
+        const initialConfiguration = Configuration1D.withSize(
+            new Vector([settings.nbCells])
+        );
         initialConfiguration.cells[0].addSignal(Symbol.for("Init"));
-        setInialConfiguration(initialConfiguration);
+        setInitialConfiguration(initialConfiguration);
     }, [settings.gridRadius, settings.gridNbFutureSteps, settings.nbCells]);
 
     function changeIndexAutomaton(deltaIndex: number) {
@@ -183,10 +197,10 @@ export default function App() {
     }
 
     return (
-        <div className="flex flex-col p-2 bg-gradient-to-b from-slate-50 to-slate-100 text-gray-700 w-screen min-h-screen">
+        <div className="flex flex-col w-screen min-h-screen p-2 text-gray-700 bg-gradient-to-b from-slate-50 to-slate-100">
             <ToastContainer />
             <div
-                className="absolute top-4 right-4 cursor-pointer"
+                className="absolute cursor-pointer top-4 right-4"
                 onClick={() => {
                     setIsSettingsOpen(!isSettingsOpen);
                 }}
@@ -199,10 +213,24 @@ export default function App() {
                 <SettingsComponent
                     settings={settings}
                     setSettings={setSettings}
+                    setIsSettingsOpen={setIsSettingsOpen}
                 />
             )}
             <Heading level={1}>Signal-based cellular automata</Heading>
-            <div className="flex justify-evenly gap-2">
+            <SignalsList
+                automaton={automaton}
+                setAutomaton={setAutomaton}
+                extraSignalsSet={extraSignalsSet}
+                setExtraSignalsSet={setExtraSignalsSet}
+                hiddenSignalsSet={hiddenSignalsSet}
+                setHiddenSignalsSet={setHiddenSignalsSet}
+                colorMap={colorMap}
+                setColorMap={setColorMap}
+                colorPickingSignal={colorPickingSignal}
+                setColorPickingSignal={setColorPickingSignal}
+                setSignalColor={setSignalColor}
+            />
+            <div className="flex gap-2 justify-evenly">
                 <EditGrid
                     grid={grid}
                     setGrid={setGrid}
@@ -221,19 +249,6 @@ export default function App() {
                     setAutomaton={setAutomaton}
                 />
             </div>
-            <SignalsList
-                automaton={automaton}
-                setAutomaton={setAutomaton}
-                extraSignalsSet={extraSignalsSet}
-                setExtraSignalsSet={setExtraSignalsSet}
-                hiddenSignalsSet={hiddenSignalsSet}
-                setHiddenSignalsSet={setHiddenSignalsSet}
-                colorMap={colorMap}
-                setColorMap={setColorMap}
-                colorPickingSignal={colorPickingSignal}
-                setColorPickingSignal={setColorPickingSignal}
-                setSignalColor={setSignalColor}
-            />
             <RulesList
                 automaton={automaton}
                 setAutomaton={setAutomaton}
@@ -250,7 +265,6 @@ export default function App() {
             <Diagram
                 automaton={automataHistory[automatonIndex]}
                 initialConfiguration={initialConfiguration!}
-                setGrid={setGrid}
                 hiddenSignalsSet={hiddenSignalsSet}
                 settings={settings}
                 colorMap={colorMap}

@@ -68,7 +68,7 @@ class RuleGrid {
     makeRuleCondition(centerOrigin: boolean = true): Clause {
         const shift = new Vector([centerOrigin ? -this.getRadius() : 0]);
         const literals: Literal[] = [];
-        for (const c of this.inputCells.iterNeighborhood()) {
+        for (const c of this.inputCells.iter()) {
             const cell = this.inputCells.getCellAt(c);
             if (cell === null) {
                 continue;
@@ -93,7 +93,7 @@ class RuleGrid {
         const shift = new Vector([centerOrigin ? -this.getRadius() : 0]);
         const outputs: RuleOutput[] = [];
         this.outputCells.forEach((row, rowIndex) => {
-            for (const c of row.iterNeighborhood()) {
+            for (const c of row.iter()) {
                 const cell = row.getCellAt(c);
                 if (cell === null) {
                     continue;

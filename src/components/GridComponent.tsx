@@ -1,18 +1,20 @@
 import Cell, { InputCell } from "../classes/Cell";
+import { Configuration } from "../classes/Configuration";
 import RuleGrid from "../classes/RuleGrid";
-import { Coordinates, Signal } from "../types";
+import Vector from "../classes/Vector";
+import { Site, Signal } from "../types";
 import CellComponent from "./CellComponent";
 
 interface GridComponentProps {
-    inputCells: InputCell[];
-    outputCells: Cell[][];
+    inputCells: Configuration<InputCell>;
+    outputCells: Configuration<Cell>[];
     colorMap: Map<Signal, string>;
     onClickGrid?: () => void;
     activeCellsManager?: {
-        activeInputCells: number[];
-        activeOutputCells: Coordinates[];
-        setActiveInputCells: (input: number[]) => void;
-        setActiveOutputCells: (output: Coordinates[]) => void;
+        activeInputCells: Vector[];
+        activeOutputCells: Site[];
+        setActiveInputCells: (input: Vector[]) => void;
+        setActiveOutputCells: (output: Site[]) => void;
     };
 }
 
@@ -27,8 +29,8 @@ export default function GridComponent(props: GridComponentProps) {
     const grid = new RuleGrid(inputCells, outputCells);
 
     function handleClickOutputCell(
-        row: number,
-        col: number,
+        time: number,
+        pos: Vector,
         event: React.MouseEvent
     ) {
         if (activeCellsManager === undefined) {
@@ -41,24 +43,25 @@ export default function GridComponent(props: GridComponentProps) {
         if (event.ctrlKey || event.metaKey) {
             if (
                 activeOutputCells.some(
-                    (coords) => coords.row === row && coords.col === col
+                    (coords) => coords.time === time && coords.pos.equals(pos)
                 )
             ) {
                 setActiveOutputCells(
                     activeOutputCells.filter(
-                        (coords) => coords.row !== row || coords.col !== col
+                        (coords) =>
+                            coords.time !== time || !coords.pos.equals(pos)
                     )
                 );
             } else {
-                setActiveOutputCells([...activeOutputCells, { row, col }]);
+                setActiveOutputCells([...activeOutputCells, { time, pos }]);
             }
         } else {
             setActiveInputCells([]);
-            setActiveOutputCells([{ row, col }]);
+            setActiveOutputCells([{ time, pos }]);
         }
     }
 
-    function handleClickInputCell(col: number, event: React.MouseEvent) {
+    function handleClickInputCell(pos: Vector, event: React.MouseEvent) {
         if (activeCellsManager === undefined) {
             return;
         }
@@ -67,13 +70,15 @@ export default function GridComponent(props: GridComponentProps) {
             activeCellsManager;
 
         if (event.ctrlKey || event.metaKey) {
-            if (activeInputCells.includes(col)) {
-                setActiveInputCells(activeInputCells.filter((i) => i !== col));
+            if (activeInputCells.some((input) => input.equals(pos))) {
+                setActiveInputCells(
+                    activeInputCells.filter((i) => !i.equals(pos))
+                );
             } else {
-                setActiveInputCells([...activeInputCells, col]);
+                setActiveInputCells([...activeInputCells, pos]);
             }
         } else {
-            setActiveInputCells([col]);
+            setActiveInputCells([pos]);
             setActiveOutputCells([]);
         }
     }
@@ -83,28 +88,24 @@ export default function GridComponent(props: GridComponentProps) {
             className="flex flex-col items-center cursor-pointer"
             onClick={onClickGrid}
         >
-            <div className="mb-1 flex flex-col-reverse">
-                {grid.outputCells.slice().map((row, rowIndex) => (
-                    <div key={rowIndex} className="flex flex-row">
-                        {row.map((cell, colIndex) => (
+            <div className="flex flex-col-reverse mb-1">
+                {grid.outputCells.map((config, time) => (
+                    <div key={time} className="flex flex-row">
+                        {Array.from(config.iter(), (pos) => (
                             <CellComponent
-                                key={`${rowIndex + 1}-${colIndex}`}
-                                cell={cell}
+                                key={`${time + 1}-${pos.at(0)}`}
+                                cell={config.getCellAt(pos)!}
                                 isActive={
                                     activeCellsManager &&
                                     activeCellsManager.activeOutputCells.some(
                                         (coordinates) =>
-                                            coordinates.row === rowIndex &&
-                                            coordinates.col === colIndex
+                                            coordinates.time === time &&
+                                            coordinates.pos.equals(pos)
                                     )
                                 }
                                 hiddenSignalsSet={new Set()}
                                 onClick={(event) =>
-                                    handleClickOutputCell(
-                                        rowIndex,
-                                        colIndex,
-                                        event
-                                    )
+                                    handleClickOutputCell(time, pos, event)
                                 }
                                 colorMap={colorMap}
                             />
@@ -113,32 +114,28 @@ export default function GridComponent(props: GridComponentProps) {
                 ))}
             </div>
             <div className="flex flex-row">
-                {grid.inputCells
-                    .slice()
-                    .map((cell: InputCell, colIndex: number) => {
-                        return (
-                            <CellComponent
-                                key={`0-${colIndex}`}
-                                cell={
-                                    new InputCell(
-                                        cell.signals,
-                                        cell.negatedSignals
-                                    )
-                                }
-                                isActive={
-                                    activeCellsManager &&
-                                    activeCellsManager.activeInputCells.includes(
-                                        colIndex
-                                    )
-                                }
-                                hiddenSignalsSet={new Set()}
-                                onClick={(event) =>
-                                    handleClickInputCell(colIndex, event)
-                                }
-                                colorMap={colorMap}
-                            />
-                        );
-                    })}
+                {Array.from(grid.inputCells.iter(), (pos) => {
+                    const cell = grid.inputCells.getCellAt(pos)!;
+                    return (
+                        <CellComponent
+                            key={`0-${pos.at(0)}`}
+                            cell={
+                                new InputCell(cell.signals, cell.negatedSignals)
+                            }
+                            isActive={
+                                activeCellsManager &&
+                                activeCellsManager.activeInputCells.some(
+                                    (c) => c.equals(pos)
+                                )
+                            }
+                            hiddenSignalsSet={new Set()}
+                            onClick={(event) =>
+                                handleClickInputCell(pos, event)
+                            }
+                            colorMap={colorMap}
+                        />
+                    );
+                })}
             </div>
         </div>
     );
