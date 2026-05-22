@@ -8,7 +8,8 @@ import { Configuration1D } from "./classes/Configuration.ts";
 import RuleGrid from "./classes/RuleGrid.ts";
 import Vector from "./classes/Vector.ts";
 import Heading from "./components/Common/Heading.tsx";
-import Diagram from "./components/Diagram.tsx";
+import Diagram1D from "./components/Diagram1D.tsx";
+import Diagram2D from "./components/Diagram2D.tsx";
 import EditGrid from "./components/EditGrid.tsx";
 import RuleInputArea from "./components/RuleInputArea.tsx";
 import RulesList from "./components/RulesList.tsx";
@@ -35,10 +36,7 @@ export default function App() {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [colorMap, setColorMap] = useState(new Map<Signal, string>());
     const [grid, setGrid] = useState<RuleGrid>(
-        RuleGrid.withSize(
-            settings.gridRadius,
-            settings.gridNbFutureSteps
-        )
+        RuleGrid.withSize(settings.gridRadius, settings.gridNbFutureSteps)
     );
     const [extraSignalsSet, setExtraSignalsSet] = useState<Set<Signal>>(
         new Set([Symbol.for("Init")])
@@ -119,7 +117,8 @@ export default function App() {
             if (
                 time < newGrid.outputCells.length &&
                 pos.at(0) + deltaRadius >= 0 &&
-                pos.at(0) + deltaRadius < newGrid.outputCells[time].getSize().at(0)
+                pos.at(0) + deltaRadius <
+                    newGrid.outputCells[time].getSize().at(0)
             ) {
                 newActiveOutputCells.push({
                     time: time,
@@ -261,14 +260,23 @@ export default function App() {
                 settings={settings}
                 colorMap={colorMap}
             />
-
-            <Diagram
-                automaton={automataHistory[automatonIndex]}
-                initialConfiguration={initialConfiguration!}
-                hiddenSignalsSet={hiddenSignalsSet}
-                settings={settings}
-                colorMap={colorMap}
-            />
+            {settings.dimension === 1 ? (
+                <Diagram1D
+                    automaton={automataHistory[automatonIndex]}
+                    initialConfiguration={initialConfiguration!}
+                    hiddenSignalsSet={hiddenSignalsSet}
+                    settings={settings}
+                    colorMap={colorMap}
+                />
+            ) : (
+                <Diagram2D
+                    automaton={automataHistory[automatonIndex]}
+                    initialConfiguration={initialConfiguration!}
+                    hiddenSignalsSet={hiddenSignalsSet}
+                    settings={settings}
+                    colorMap={colorMap}
+                />
+            )}
         </div>
     );
 }

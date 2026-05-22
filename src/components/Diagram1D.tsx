@@ -1,13 +1,14 @@
-import Automaton from "../classes/Automaton";
-import { Configuration } from "../classes/Configuration";
+import Automaton from "../classes/Automaton.ts";
+import { Configuration } from "../classes/Configuration.ts";
 import "../style/Cell.scss";
 
 import Cell from "../classes/Cell.ts";
 import type { SettingsInterface, Signal } from "../types.ts";
 import CellComponent from "./CellComponent.tsx";
 import Heading from "./Common/Heading.tsx";
+import { Config1DComponent } from "./Config1DComponent.tsx";
 
-interface DiagramProps {
+type Props ={
     automaton: Automaton;
     initialConfiguration: Configuration<Cell>;
     hiddenSignalsSet?: Set<Signal>;
@@ -21,7 +22,7 @@ export default function Diagram({
     hiddenSignalsSet,
     settings,
     colorMap,
-}: DiagramProps) {
+}: Props) {
     const diagram = automaton.makeDiagram(
         initialConfiguration,
         settings.nbSteps
@@ -35,7 +36,7 @@ export default function Diagram({
             <Heading level={2}>Diagram</Heading>
             <div className="flex flex-col justify-center w-full align-middle">
                 {diagram.map((config, row) => (
-                    <DiagramRow
+                    <Config1DComponent
                         key={row}
                         config={config}
                         hiddenSignalsSet={hiddenSignalsSet}
